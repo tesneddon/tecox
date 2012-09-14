@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<info xmlns="http://docbook.org/ns/docbook" version="5.0">
+  <title>Standard TECO</title>
+  <subtitle>Text Editor and Corrector for the VAX, PDP-11, PDP-10 and PDP-8</subtitle>
+  <author></author>
+  <copyright>
+    <year>1979</year>
+    <year>1985</year>
+    <year>1990</year>
+    <holder>TECO SIG</holder>
+  </copyright>
+  <legalnotice>
+    General permission to copy or modify, but not for profit,
+    is hereby granted, provided that the copyright notice is
+    included and reference made to the fact that reproduction
+    privileges were granted by the TECO SIG.
+  </legalnotice>
+</info>
