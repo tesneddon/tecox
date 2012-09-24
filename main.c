@@ -31,13 +31,13 @@
 #define MODULE TECOMAIN
 #define VERSION "V41.00"
 #ifdef vms
-#  ifdef VAX11C
-#    module MODULE VERSION
-#  else
-#    pragma module MODULE VERSION
-#  endif
-#  include <ssdef.h>
-#  include <stsdef.h>
+# ifdef VAX11C
+#  module MODULE VERSION
+# else
+#  pragma module MODULE VERSION
+# endif
+# include <ssdef.h>
+# include <stsdef.h>
 #endif
 #include <stdlib.h>
 #include "tecodef.h"

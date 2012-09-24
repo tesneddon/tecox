@@ -45,18 +45,20 @@
 **  MODIFICATION HISTORY:
 **
 **      09-OCT-2011 V41.00  Sneddon	Initial coding.
-**	10-NOV-2011 V41.01  Sneddon	Fix up radix support and add integer handling.
-**	14-DEC-2011 V41.02  Sneddon	Add support for a number of 'E' commands.
+**	10-NOV-2011 V41.01  Sneddon	Fix up radix support and add integer
+**					handling.
+**	14-DEC-2011 V41.02  Sneddon	Add support for a number of 'E'
+**					commands.
 **--
 */
 #define MODULE TECO
 #define VERSION "V41.02"
 #ifdef vms
-#  ifdef VAX11C
-#    module MODULE VERSION
-#  else
-#    pragma module MODULE VERSION
-#  endif
+# ifdef VAX11C
+#  module MODULE VERSION
+# else
+#  pragma module MODULE VERSION
+# endif
 #endif
 #include <ctype.h>
 #include <signal.h>
@@ -64,7 +66,6 @@
 #include <string.h>
 #include <time.h>
 #include "tecodef.h"
-#include "tecoio.h"
 #include "tecomsg.h"
 
 /*
@@ -222,10 +223,12 @@ int32_t teco(void)
 	    if (status == TECO__NORMAL)
 		teco_interp();
 
-	    // TODO: clear out all the local q-registers, as well as the PDL...
-		// can loop over the PDL...however, not sure how to kill off
-		// the local q-registers...might need some work on that...
-
+	    for (pdl = ctx.pdl; pdl != 0; pdl = pdl->next)
+		free(pdl);
+	    for (lclptr = ctx.lclptr; lclptr != qreg_local; lclptr = 
+	    // if ctx.lclptr != qreg_local
+		// loop
+		    // free pdl...
 	    ctx.lclptr = qreg_local;
 	    ctx.qpntr->qrg_size = 0;
 	}
@@ -368,10 +371,7 @@ int32_t teco_init(void)
     memset(qreg_local, 0, sizeof(qreg_local));
     ctx.lclptr = qreg_local;
     ctx.qarray = qreg_array;
-
     ctx.qpntr = &ctx.qarray[TECO_K_QRG_FAKE];
-
-    // setup filesystem interface
 
     io_support.init();
 
@@ -987,7 +987,6 @@ void teco_interp(void)
 	    } else {
 		memcpy(qpdl, ctx.qnmbr, sizeof(QRGDEF));
 		qpdl->qrg_flags |= TECO_M_QRG_REF;
-
 		qpdl->qrg_next = ctx.qpdl;
 		ctx.qpdl = qpdl;
 	    }
@@ -1090,7 +1089,7 @@ void teco_interp(void)
 
 	ctx.qlengt = ctx.qcmnd->qrg_size;
     } else {
-	if (ctx.pdl)
+	if (ctx.pdl != 0)
 	    ERROR_MESSAGE(UTC);
     }
 }
@@ -1099,28 +1098,28 @@ void teco_interp(void)
 static uint8_t scan(void) {
     uint8_t chr;
 
-    /* End of this command?
+    /*
+    ** End of this command?
     */
     if ((ctx.scanp - ctx.qcmnd->qrg_ptr) >= ctx.qlengt) {
-	/* Yes, check for macro.
+	/*
+	** Yes, check for macro.
         */
 	if (ctx.mpdcnt)
 	    ERROR_MESSAGE(UTM);
-
 	ERROR_MESSAGE(UTC);
     } else {
-	/* No.  Process the next character.
+	/*
+	** No.  Process the next character.
         */
 	chr = *ctx.scanp++;
 	trace(chr);
 
 	if (ctx.flags2 & TECO_M_MAKCTL) {
 	    ctx.flags2 &= ~TECO_M_MAKCTL;
-
 	    chr = toupper(chr);
 	    if ((chr < '@') || (chr > '_'))
 		ERROR_MESSAGE(IUC);
-
 	    chr &= ~0x40;
 	}
     }
@@ -1583,11 +1582,8 @@ static void pop(type)
 {
     PDLDEF *pdl = ctx.pdl;
 
-    if (!pdl)
-	ERROR_MESSAGE(PDO);
-
-    if (pdl->type != type)
-	ERROR_MESSAGE(UTM);
+    if (!pdl) ERROR_MESSAGE(PDO);
+    if (pdl->type != type) ERROR_MESSAGE(UTM);
 
     switch (type) {
     case TECO_K_PDL_ITR:
@@ -1613,7 +1609,17 @@ static void pop(type)
     free(pdl);
 }
 
-static void poplcl(QRGDEF *lclptr) {
+static void poplcl(lclptr)
+    QRGDEF *lclptr;
+{
+    uint32_t i;
+
+    for (i = 0; i < TECO_K_NUMQRG; i++) {
+	if (lclptr[i].qrg_alloc != 0) {
+	    free(lclptr[i].qrg_ptr);
+	}
+    }
+    free(lclptr);
 }
 
 /*

@@ -32,22 +32,20 @@
 #define MODULE TECOIO
 #define VERSION "V41.01"
 #ifdef vms
-#  ifdef VAX11C
-#    module MODULE VERSION
-#  else
-#    pragma module MODULE VERSION
-#  endif
+# ifdef VAX11C
+#  module MODULE VERSION
+# else
+#  pragma module MODULE VERSION
+# endif
 #endif
 #include <ctype.h>
 #include <strings.h>
 #include "tecodef.h"
 #include "tecomsg.h"
-#include "tecoio.h"
 
 /*
 ** Forward Declarations
 */
-
     void teco_type();
     uint8_t listen();
     void teco_delch();

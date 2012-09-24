@@ -33,11 +33,11 @@
 #define MODULE TECO_CRTRUB
 #define VERSION "V1.0"
 #ifdef vms
-#  ifdef VAX11C
-#    module MODULE VERSION
-#  else
-#    pragma module MODULE VERSION
-#  endif
+# ifdef VAX11C
+#  module MODULE VERSION
+# else
+#  pragma module MODULE VERSION
+# endif
 #endif
 #include "tecodef.h"
 

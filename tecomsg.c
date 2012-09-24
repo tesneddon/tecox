@@ -32,15 +32,14 @@
 #define MODULE TECOMSG
 #define VERSION "V41.00"
 #ifdef vms
-#  ifdef VAX11C
-#    module MODULE VERSION
-#  else
-#    pragma module MODULE VERSION
-#  endif
+# ifdef VAX11C
+#  module MODULE VERSION
+# else
+#  pragma module MODULE VERSION
+# endif
 #endif
 #include <stdlib.h>
 #include "tecodef.h"
-#include "tecoio.h"
 #include "tecomsg.h"
 
 /*
