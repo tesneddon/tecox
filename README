@@ -1,3 +1,38 @@
+		       TECO - Text Editor and COrrector
+
+    TECO's history goes back a long time.  Its roots go back to 1962, when
+it was conceived by Daniel L. Murphy at MIT on Digital Equipment Corporation's
+first computer, the PDP-1.
+
+Since then, TECO has seen many implementations and additions to its power.
+This implementation, TECO-X draws its roots from TECO-32 for the VAX/VMS
+operating system, which in turn has its roots in TECO-11 for the PDP-11
+computers.
+
+PDP-11 TECO started out as a brute force translation of OS/8 TECO by Hank
+Maurer and Bob Hartman at Ford of Cologne, West Germany.  OS/8 TECO came from
+a program originally written by Russel Hamm, way back when...
+
+It was modified for OS/8 by the O.M.S.I crewa, speeded up, shortened, and
+made PDP-10 compatible by Richard Lary of DEC with assistance from Mario
+Denobli of the P/S.  The brute force translation was further munged and
+altered by Mark Bramhall of DEC to bring it into more standard PDP-11 code
+and make a high/low segment split.
+
+Memory size expansion was added.  Further PDP-10 compatabiliy was done by
+Anton Chernoff.  Various new commands and features were added again.  Finally 
+TECO-11 was born!
+
+This was then brute-forced to VAX Native mode by Rick Murphy and updated
+by Andy Goldstein.
+
+Now, much further down the line, VAX TECO-32 has been translated from MACRO-32
+to C making it portable to and operating system with a C compiler.
+
+----
+
+NOTES:
+
 * Currently implementing the pop/push of macros and parenthesis'.  Need to
   finish this and investigate if UTM is still happening...
 
