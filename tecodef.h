@@ -26,13 +26,14 @@
 **  MODIFICATION HISTORY:
 **
 **      01-FEB-2004 V41.00  Sneddon   Initial coding.
-**	08-NOV-2011 V41.01  Sneddon   Remove dispatch stuff from previous port.  Add TT
-**				      driver structure.
+**	08-NOV-2011 V41.01  Sneddon   Remove dispatch stuff from previous port.
+**  	    	    	    	      Add TT driver structure.
 **	10-NOV-2011 V41.02  Sneddon   Changes to radix constants.
 **	11-NOV-2011 V41.03  Sneddon   Add np back to TECODEF.
-**	15-DEC-2011 V41.04  Sneddon   Add IO_SUPPORT as a replacement and extension of
-**				      TT driver structure.
-**	31-JAN-2012 V41.05  Sneddon   Changed all flags in TECODEF to be uint32_t.
+**	15-DEC-2011 V41.04  Sneddon   Add IO_SUPPORT as a replacement and
+**				      extension of TT driver structure.
+**	31-JAN-2012 V41.05  Sneddon   Changed all flags in TECODEF to be
+**				      uint32_t.
 **	01-FEB-2012 V41.06  Sneddon   Moving external routine declarations in
 **				      here as well.
 **	07-MAR-2012 V41.07  Sneddon   Added x86-64/amd64.
