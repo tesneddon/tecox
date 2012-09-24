@@ -986,7 +986,7 @@ void teco_interp(void)
 		}
 	    } else {
 		memcpy(qpdl, ctx.qnmbr, sizeof(QRGDEF));
-		qpdl->qrg_flags |= TECO_M_QREG_REF;
+		qpdl->qrg_flags |= TECO_M_QRG_REF;
 
 		qpdl->qrg_next = ctx.qpdl;
 		ctx.qpdl = qpdl;
@@ -1042,7 +1042,7 @@ void teco_interp(void)
 	    QRGDEF *qpdl = ctx.qpdl;
 
 	    chkclo();
-	    qref(0,sncupp());
+	    qref(0,scnupp());
 
 	    if (!qpdl) {
 		if (ctx.flags & TECO_M_NFLG) {
