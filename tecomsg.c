@@ -41,6 +41,7 @@
 #include <stdlib.h>
 #include "tecodef.h"
 #include "tecomsg.h"
+#include "globals.h"
 
 /*
 ** Forward Declarations.

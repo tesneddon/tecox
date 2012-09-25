@@ -67,6 +67,7 @@
 #include <time.h>
 #include "tecodef.h"
 #include "tecomsg.h"
+#include "globals.h"
 
 /*
 ** Forward Declarations
@@ -178,13 +179,13 @@ do { \
 
     TECODEF ctx;
     SCOPEDEF scope;
-    QRGLST qreg_array, qreg_local;
 
 /*
 ** Own Storage.
 */
 
     const static uint8_t *tecocmd = (const uint8_t *)"\001Welcome to TECO!\001\033\033";  // Remove this in future...
+    QRGDEF qreg_array[TECO_K_NUMQRG+1], qreg_local[TECO_K_NUMQRG];
 
 int32_t teco(void)
 {
@@ -224,15 +225,12 @@ int32_t teco(void)
 
 	    pdl = ctx.pdl;
 	    while (pdl != 0) {
+// we need to pop and free up localregisters, etc...
+
 		next = pdl->next;
 		free(pdl);
 		pdl = next;
 	    }
-	    for (lclptr = ctx.lclptr; lclptr != qreg_local; lclptr = 
-	    // if ctx.lclptr != qreg_local
-		// loop
-		    // free pdl...
-	    ctx.lclptr = qreg_local;
 	    ctx.qpntr->qrg_size = 0;
 	}
 
@@ -914,10 +912,12 @@ void teco_interp(void)
 	    qref(0, scnupp());
 	    push(TECO_K_PDL_MACRO);
 
-	    if (!(ctx.flags & TECO_M_CLNF) && !(ctx.qnmbr->qrg_flags & TECO_M_QRG_LOCAL))
+	    if (!(ctx.flags & TECO_M_CLNF)
+		&& !(ctx.qnmbr->qrg_flags & TECO_M_QRG_LOCAL)) {
 		ctx.lclptr = 0;
-	    else
+	    } else {
 		ctx.flags &= ~TECO_M_CLNF;
+	    }
 
 	    ctx.mpdcnt++;
 	    ctx.itrst = 0;
@@ -1373,32 +1373,32 @@ static void qref(additional,
     QRGDEF *qarray;
     uint32_t qreg;
 
-    /* Is the Q-register local?
+    /*
+    ** Is the Q-register local?
     */
     if (qrg_num == '.') {
-	/* Yup.  Set Q-register array to local list.  Fetch
+	/*
+	** Yup.  Set Q-register array to local list.  Fetch
 	** Q-register number, allocating the local Q-register
 	** list if necessary.
 	*/
 	qrg_flags = TECO_M_QRG_LOCAL;
-
 	if (!ctx.lclptr) {
 	    ctx.lclptr = malloc(sizeof(QRGDEF) * TECO_K_NUMQRG);
-	    if (!ctx.lclptr)
-		ERROR_MESSAGE(MEM);
-
+	    if (!ctx.lclptr) ERROR_MESSAGE(MEM);
 	    memset(ctx.lclptr, 0, sizeof(QRGDEF) * TECO_K_NUMQRG);
 	}
-
 	qarray = ctx.lclptr;
 	qrg_num = scnupp();
     } else {
-	/* No.  Use global Q-registers.
+	/*
+	** No.  Use global Q-registers.
 	*/
 	qarray = ctx.qarray;
     }
 
-    /* Is Q-register number valid?
+    /*
+    ** Is Q-register number valid?
     */
     if (!isalnum(qrg_num)) {
 	/*
@@ -1427,7 +1427,6 @@ static void qref(additional,
 	    qreg = qrg_num - '0';
 	else
 	    qreg = qrg_num - ('9' - 1);
-
 	ctx.qnmbr = &qarray[qreg];
     }
 
@@ -1613,12 +1612,12 @@ static void poplcl(lclptr)
 {
     uint32_t i;
 
+    if (lclptr == 0) return;
     for (i = 0; i < TECO_K_NUMQRG; i++) {
-	if (lclptr[i].qrg_alloc != 0) {
+	if (lclptr[i].qrg_alloc != 0)
 	    free(lclptr[i].qrg_ptr);
-	}
     }
-    free(lclptr);
+    if (lclptr != qreg_local) free(lclptr);
 }
 
 /*

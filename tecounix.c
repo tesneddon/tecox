@@ -33,11 +33,11 @@
 #define MODULE TECOUNIX
 #define VERSION "V41.01"
 #ifdef vms
-#  ifdef VAX11C
-#    module MODULE VERSION
-#  else
-#    pragma module MODULE VERSION
-#  endif
+# ifdef VAX11C
+#  module MODULE VERSION
+# else
+#  pragma module MODULE VERSION
+# endif
 #endif
 #include <errno.h>
 #include <signal.h>
@@ -48,6 +48,7 @@
 #include <unistd.h>
 #include "tecodef.h"
 #include "tecomsg.h"
+#include "globals.h"
 
 /*
 ** Forward Declarations
@@ -61,12 +62,6 @@
     static int32_t etflg();
     static int32_t getcmd();
     static void sigcont_handler();
-
-/*
-** External routines
-*/
-
-    void qset();
 
 /*
 ** Global Storage.

@@ -40,6 +40,7 @@
 # endif
 #endif
 #include "tecodef.h"
+#include "globals.h"
 
 /*
 **++

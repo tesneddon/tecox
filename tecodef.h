@@ -37,9 +37,6 @@
 **	01-FEB-2012 V41.06  Sneddon   Moving external routine declarations in
 **				      here as well.
 **	07-MAR-2012 V41.07  Sneddon   Added x86-64/amd64.
-**	24-SEP-2012 V41.08  Sneddon   Local q-register list now in a struct
-**				      with pointer to higher level for safe
-**				      unwinding.
 **--
 */
 #ifndef __TECODEF_LOADED
@@ -290,14 +287,6 @@
 #define TECO_K_QRG_FAKE (TECO_K_NUMQRG)	/* REGISTER FOR TEC$DO_COMMAND	    */
 
 /*
-**	Q-Register List
-*/
-    typedef struct _qrglst {
-	struct _qrglst	*next;
-	QRGDEF q[TECO_K_NUMQRG];
-    } QRGLST;
-
-/*
 **	CHARACTER DEFINITIONS
 */
 #define TECO_C_NUL	'\0'	/* ASCII NULL				    */
@@ -415,7 +404,7 @@
     typedef struct _tecodef {
     	uint8_t		*scanp;		/* COMMAND LINE EXECUTION POINTER   */
     	uint32_t	mpdcnt;		/* MACRO PUSHDOWN COUNTER	    */
-    	QRGLST		*lclptr;	/* LOCAL LEVEL Q-REG ARRAY POINTER  */
+    	QRGDEF		*lclptr;	/* LOCAL LEVEL Q-REG ARRAY POINTER  */
     	uint8_t		*itrst;		/* ITERATION START		    */
     	uint32_t	itrcnt;		/* ITERATION COUNT		    */
     	uint32_t	nopr;		/* ARITHMETIC OPERATOR		    */
@@ -530,7 +519,7 @@
     	uint32_t	zmax;		/* TEXT BUFFER SIZE		    */
     	uint8_t		*txstor;	/* TEXT BUFFER BIAS		    */
     	uint32_t	qz;		/* Q-REG BUFFER SIZE IN USE	    */
-    	QRGLST		*qarray;	/* POINTER TO Q-REGISTER ARRAY	    */
+    	QRGDEF		*qarray;	/* POINTER TO Q-REGISTER ARRAY	    */
     	QRGDEF		*qpntr;		/* COMMAND Q-REGISTER OFFSET	    */
     	uint32_t	indir;		/* FILOPN SET IF PROCESSING	    */
 					/*  INDIRECT COMMAND FILE	    */
@@ -680,7 +669,9 @@ do { \
 /*
 ** teco.c
 */
+
     extern int32_t teco();
+    extern void qset();
 
 /*
 ** tecoio.c
