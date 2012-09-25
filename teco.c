@@ -49,10 +49,11 @@
 **					handling.
 **	14-DEC-2011 V41.02  Sneddon	Add support for a number of 'E'
 **					commands.
+**	25-SEP-2012 V41.03  Sneddon	Correctly unwind PDL stack.
 **--
 */
 #define MODULE TECO
-#define VERSION "V41.02"
+#define VERSION "V41.03"
 #ifdef vms
 # ifdef VAX11C
 #  module MODULE VERSION
@@ -216,20 +217,15 @@ int32_t teco(void)
     for (;;) {
 	setcmd(ctx.qpntr);
 	if (ctx.qpntr->qrg_size > 0) {
-	    PDLDEF *next, *pdl;
-
 	    ctx.qlcmd = ctx.qpntr->qrg_size;
 	    status = set_unwind();
 	    if (status == TECO__NORMAL)
 		teco_interp();
 
-	    pdl = ctx.pdl;
-	    while (pdl != 0) {
-// we need to pop and free up localregisters, etc...
-
-		next = pdl->next;
-		free(pdl);
-		pdl = next;
+	    poplcl(ctx.lclptr);
+	    while (ctx.pdl != 0) {
+		pop(ctx.pdl->type);
+		poplcl(ctx.lclptr);
 	    }
 	    ctx.qpntr->qrg_size = 0;
 	}
