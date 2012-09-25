@@ -426,10 +426,12 @@ void teco_interp(void)
 	}
 
 	case '\002': {		/* "CTRL/B" is today's date */
-	    struct tm *now;
+	    time_t now;
+	    struct tm *tm;
 
-	    now = localtime((time_t *)0);
-	    ncom(((now->tm_year-1900)*16+now->tm_mon)*32+now->tm_mday);
+	    now = time(0);
+	    tm = localtime(&now);
+	    ncom(((tm->tm_year-1900)*16+tm->tm_mon)*32+tm->tm_mday);
 	    break;
 	}
 
@@ -459,14 +461,12 @@ void teco_interp(void)
 	    break;
 
 	case '\010': {		/* "CTRL/H" is time of day. */
-	    time_t t;
-	    struct tm *tmp;
+	    time_t now;
+	    struct tm *tm;
 
-	    t = time(NULL);
-	    tmp = localtime(&t);
-
-	    ncom(((((tmp->tm_hour * 60) + tmp->tm_min) * 60) + tmp->tm_sec) / 2);
-
+	    now = time(0);
+	    tm = localtime(&now);
+	    ncom(((((tm->tm_hour*60)+tm->tm_min)*60)+tm->tm_sec)/2);
 	    break;
 	}
 
