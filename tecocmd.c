@@ -10,7 +10,7 @@
 **
 **  AUTHOR:             Tim E. Sneddon
 **
-**  Copyright (C) 2011 Tim E. Sneddon <tim@sneddon.id.au>
+**  Copyright (C) 2012 Tim E. Sneddon <tim@sneddon.id.au>
 **
 **  This program is free software: you can redistribute it and/or modify
 **  it under the terms of the GNU General Public License as published by
@@ -31,19 +31,21 @@
 **
 **      29-JAN-1985 V40.00  Murphy	Initial coding.
 **	21-OCT-1986 V40.11  Goldstein	Integrate into VMS system build.
-**	04-SEP-1989 V40.12  Murphy	Save TECO.TEC input Q-registers (0,1,2) and restore
-**					to allow re-entering TECO without random behaviour.
-**	09-NOV-2011 V41.00  Sneddon	Adapted this version from original MACRO-32 source.
+**	04-SEP-1989 V40.12  Murphy	Save TECO.TEC input Q-registers (0,1,2)
+**					and restore to allow re-entering TECO
+**					without random behaviour.
+**	09-NOV-2011 V41.00  Sneddon	Adapted this version from original
+**					MACRO-32 source.
 **--
 */
 #define MODULE TECOCMD
 #define VERSION "V41.00"
 #ifdef vms
-#  ifdef VAX11C
-#    module MODULE VERSION
-#  else
-#    pragma module MODULE VERSION
-#  endif
+# ifdef VAX11C
+#  module MODULE VERSION
+# else
+#  pragma module MODULE VERSION
+# endif
 #endif
 #include "tecodef.h"
 
@@ -86,17 +88,17 @@ S::FST\033\033\"S::FSE\033\033\033''''::FS^ES\033\033\
 1Q1-1J-:S[\033\"S:S]\033\"S.-Q1\"GF<'''Q1-1J-:S<\033\"S:S>\033\
 \"S.-Q1\"GF<'''Q1-1J-:S(\033\"S:S)\033\"S.-Q1\"GF<'''Q1-1J.-1-Q0\
 \"LD.U0'0;>Q0J<-.;-1A-32\"N-1A-9\"N0;''-D>0,.X0::S^ES\033\0330\
-,.K:Q0\"E?\001\077How can I MUNG nothing\077\015\012\001\
-.ASCII  <3><3>?'EI^EQ0?<27>?JODONE?<27>?'J:FS^ES/GT?<27><27>?"SO/G?
-.ASCII  ?TEDIT?<27>?'J:FS/GT?<27><27>?"S!/GTEDIT!::FSE?<27><27>?"S::?
-.ASCII  ?FSD?<27><27>?"S::FSI?<27><27>?"S::FST?<27><27><27>?''':?
-.ASCII  ?:FS^ES?<27><27>?"S0A"AI ?<27>?''Q1#64U1'J:FS^ES/VT?<27><27>
-.ASCII  ?"SO/VTEDIT?<27>?'J:FS/VT?<27><27>?"S!/VTEDIT!::FSE?<27><27>
-.ASCII  ?"S::FSD?<27><27>?"S::FSI?<27><27>?"S::FST?<27><27><27>
-.ASCII  ?'''::FS:H?<27><27>?"S::FSO?<27><27>?"S::FSL?<27><27>?"S::?
-.ASCII  ?FSD?<27><27><27>?''Q1#32U1'::FS:S?<27><27>?"S::FSE?<27><27>
-.ASCII  ?"S::FSE?<27><27>?"S::FSA?<27><27>?"S::FSL?<27><27>?"S::FS?
-.ASCII  ?L?<27><27><27>?''''Q1#16U1'::FS:H?<27><27>?"S::FSO?<27><27>
+,.K:Q0\"E\001\077How can I MUNG nothing\077\015\012\001\
+\003\003'EI^EQ0\033JODONE\033'J:FS^ES/GT\033\033\"SO/G\
+TEDIT\033'J:FS/GT\033\033\"S!/GTEDIT!::FSE\033\033\"S::\
+FSD\033\033\"S::FSI\033\033\"S::FST\033\033\033''':\
+:FS^ES\033\033\"S0A\"AI \033''Q1#64U1'J:FS^ES/VT\033\033\
+\"SO/VTEDIT\033'J:FS/VT\033\033\"S!/VTEDIT!::FSE\033\033\
+\"S::FSD\033\033\"S::FSI\033\033\"S::FST\033\033\033\
+'''::FS:H\033\033\"S::FSO\033\033\"S::FSL\033\033\"S::\
+FSD\033\033\033''Q1#32U1'::FS:S\033\033\"S::FSE\033\033\
+\"S::FSE\033\033\"S::FSA\033\033\"S::FSL\033\033\"S::FS\
+L\033\033\033''''Q1#16U1'::FS:H\033\033\"S::FSO\033\033\
 .ASCII  ?"S::FSL?<27><27>?"S::FSD?<27><27><27>?''Q1#32U1'::FS^ES?<27>
 .ASCII  <27>?"S0A"AI ?<27>?''Q1#1U1'J:FS^ES/SC?<27><27>?"SO/SCROLL?<27>
 .ASCII  ?'J:FS/SC?<27><27>?"S!/SCROLL!::FSR?<27><27>?"S::FSO?<27><27>
