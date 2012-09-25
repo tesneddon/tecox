@@ -49,7 +49,7 @@
 **					handling.
 **	14-DEC-2011 V41.02  Sneddon	Add support for a number of 'E'
 **					commands.
-**	25-SEP-2012 V41.03  Sneddon	Correctly unwind PDL stack.
+**	25-SEP-2012 V41.03  Sneddon	Correctly unwind PDL stack. Add ^B, ^C.
 **--
 */
 #define MODULE TECO
@@ -435,6 +435,12 @@ void teco_interp(void)
 	    break;
 	}
 
+	case '\003':		/* "CTRL/C" is exit from macro/teco */
+	    if (tstnxt(chr) || (ctx.mpdcnt == 0)) exit(TECO__NORMAL);
+	    ctx.errcod = 1;
+	    goto_unwind();
+	    break;
+
 	case '\004':		/* "CTRL/D" means decimal radix */
 	    ctx.nmrbas = RADIX_DEC;
 	    break;
@@ -444,15 +450,12 @@ void teco_interp(void)
 
 	    if (ctx.flags & TECO_M_NFLG) {
 		ctx.flags &= ~TECO_M_NFLG;
-
 		if (n != 0)
 		    ctx.flags2 &= ~TECO_M_FFFLAG;
 		else
 		    ctx.flags2 |= TECO_M_FFFLAG;
 	    }
-
 	    ncom(-n);
-
 	    break;
 	}
 
@@ -481,8 +484,8 @@ void teco_interp(void)
 	    ctx.oscanp--;
 
 	    /*
-	    ** Ensure that we are droppin back to a quote as it is acceptable
-	    ** to execute this command as" @^i%text%.
+	    ** Ensure that we are dropping back to a quote as it is acceptable
+	    ** to execute this command as "@^i%text%".
 	    */
 	    saved = *ctx.oscanp;
 	    *ctx.oscanp = '\t';
