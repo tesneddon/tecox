@@ -686,7 +686,8 @@ void teco_interp(void)
 	case '0': {
 	    int32_t np = ctx.np, i = chr - '0';
 
-	    /* Correct a hexidecimal digit.
+	    /*
+	    ** Correct a hexidecimal digit.
 	    */
 	    if (i > 9)
 		i -= ('A' - 10) - '0';
@@ -700,8 +701,9 @@ void teco_interp(void)
 
 	    ctx.np += ctx.np + i;
 
-	    /* Save np, so it can be restored following ncom.  This is in case we
-	    ** have not finished parsing the number.
+	    /*
+	    ** Save np, so it can be restored following ncom.  This is in
+	    ** case we have not finished parsing the number.
 	    */
 	    np = ctx.np;
 	    ncom(ctx.np);
@@ -739,28 +741,37 @@ void teco_interp(void)
 	case '=': {		/* "=" is the number printer */
 	    uint8_t nmrbas = ctx.nmrbas;
 
-	    if (!(ctx.flags & TECO_M_NFLG))
-		ERROR_MESSAGE(NAE);
-
+	    if (!(ctx.flags & TECO_M_NFLG)) ERROR_MESSAGE(NAE);
 	    ctx.flags &= ~TECO_M_NFLG;
-
-	    for (ctx.nmrbas = 0; tstnxt(chr) && (ctx.nmrbas <= RADIX_MAX); ctx.nmrbas++)
+	    for (ctx.nmrbas = 0; tstnxt(chr) &&
+				 (ctx.nmrbas <= RADIX_MAX); ctx.nmrbas++)
 		;
-
 	    zerod(TECO_K_ZEROD_TERM);
-
 	    ctx.nmrbas = nmrbas;
-
 	    if (ctx.flags & TECO_M_CLNF)
 		ctx.flags &= ~TECO_M_CLNF;
 	    else
 		crlfno();
-
 	    break;
 	}
 
 	case '@':		/* "@" is quote flag setter */
 	    ctx.flags |= TECO_M_QFLG;
+	    break;
+
+	case 'A':
+	case 'a':		/* "A" is append */
+	    if (ctx.flags & TECO_M_CLNF) {
+		// 30$: -- line 1833
+	    } else if (!ctx.flags & TECO_M_NFLG) {
+		// 40$:
+	    } else {
+		/*
+		** Return the ASCII code of the n'th character from .
+		*/
+		int32_t p = ctx.p + ctx.n;
+		ncom((p >= 0) && (p <= ctx.zz) ? ctx.txstor[p] : -1);
+	    }
 	    break;
 
 	case 'B':
