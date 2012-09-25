@@ -425,6 +425,14 @@ void teco_interp(void)
 	    break;
 	}
 
+	case '\002': {		/* "CTRL/B" is today's date */
+	    struct tm *now;
+
+	    now = localtime((time_t *)0);
+	    ncom(((now->tm_year-1900)*16+now->tm_mon)*32+now->tm_mday);
+	    break;
+	}
+
 	case '\004':		/* "CTRL/D" means decimal radix */
 	    ctx.nmrbas = RADIX_DEC;
 	    break;
