@@ -49,7 +49,8 @@
 **					handling.
 **	14-DEC-2011 V41.02  Sneddon	Add support for a number of 'E'
 **					commands.
-**	25-SEP-2012 V41.03  Sneddon	Correctly unwind PDL stack. Add ^B, ^C.
+**	25-SEP-2012 V41.03  Sneddon	Correctly unwind PDL stack. Add ^B,
+**					^C, nA, D, K.
 **--
 */
 #define MODULE TECO
@@ -538,7 +539,8 @@ void teco_interp(void)
 	    ncom(ctx.lschsz);
 	    break;
 
-	case '\024':		/* "CTRL/T" means value of next input character */
+	case '\024':		/* "CTRL/T" means value of next input
+					character */
 	    /*
 	    ** Is there an argument?
 	    */
@@ -784,6 +786,24 @@ void teco_interp(void)
 	    getn();
 	    ctx.p += ctx.n;
 	    bzchk(ctx.p);
+	    break;
+
+	case 'D':
+	case 'd':		/* "D" is delete characters */
+	    if (ctx.flags & TECO_M_CFLG) {
+		gettx();
+		ctx.p = ctx.m;
+		txadj(ctx.n * -1);
+	    } else {
+		getn();
+	    	if (ctx.n < 0) {
+		    bzchk(ctx.n);
+		    ctx.p += ctx.n;
+	    	} else {
+		    ctx.n *= -1;
+		}
+	    	txadj(ctx.n);
+	    }
 	    break;
 
 	case 'E':
