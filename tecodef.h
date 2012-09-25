@@ -293,7 +293,8 @@
 **	Q-Register List
 */
     typedef struct _qrglst {
-	
+	struct _qrglst	*next;
+	QRGDEF q[TECO_K_NUMQRG];
     } QRGLST;
 
 /*
@@ -414,7 +415,7 @@
     typedef struct _tecodef {
     	uint8_t		*scanp;		/* COMMAND LINE EXECUTION POINTER   */
     	uint32_t	mpdcnt;		/* MACRO PUSHDOWN COUNTER	    */
-    	QRGDEF		*lclptr;	/* LOCAL LEVEL Q-REG ARRAY POINTER  */
+    	QRGLST		*lclptr;	/* LOCAL LEVEL Q-REG ARRAY POINTER  */
     	uint8_t		*itrst;		/* ITERATION START		    */
     	uint32_t	itrcnt;		/* ITERATION COUNT		    */
     	uint32_t	nopr;		/* ARITHMETIC OPERATOR		    */
@@ -529,7 +530,7 @@
     	uint32_t	zmax;		/* TEXT BUFFER SIZE		    */
     	uint8_t		*txstor;	/* TEXT BUFFER BIAS		    */
     	uint32_t	qz;		/* Q-REG BUFFER SIZE IN USE	    */
-    	QRGDEF		*qarray;	/* POINTER TO Q-REGISTER ARRAY	    */
+    	QRGLST		*qarray;	/* POINTER TO Q-REGISTER ARRAY	    */
     	QRGDEF		*qpntr;		/* COMMAND Q-REGISTER OFFSET	    */
     	uint32_t	indir;		/* FILOPN SET IF PROCESSING	    */
 					/*  INDIRECT COMMAND FILE	    */
@@ -663,20 +664,6 @@
     	int32_t (*etflg)    ();		/* inform terminal of ET flag       */
     	int32_t (*getcmd)   ();		/* get command line into Q-reg Z    */
     } IO_SUPPORT;
-
-/*
-** External definitions for TECO context blocks...and extras.
-*/
-    extern TECODEF	teco_ctx;		/* TECO's context area	    */
-    extern SCOPEDEF	teco_scope;		/* TECO's "screen" area	    */
-    extern IO_SUPPORT	teco_io_support;	/* TECO's OS-specific block */
-
-/*
-* Macros to access them...
-**/
-#define ctx teco_ctx
-#define scope teco_scope
-#define io_support teco_io_support
 
 /*
 ** Useful macros...

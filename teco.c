@@ -176,10 +176,9 @@ do { \
 ** Global Storage
 */
 
-    TECODEF teco_ctx;        /* Referred to as 'ctx' */
-    SCOPEDEF teco_scope;     /* Referred to as 'scope' */
-    QRGDEF qreg_array[TECO_K_NUMQRG+1];
-    QRGDEF qreg_local[TECO_K_NUMQRG];
+    TECODEF ctx;
+    SCOPEDEF scope;
+    QRGLST qreg_array, qreg_local;
 
 /*
 ** Own Storage.
@@ -215,16 +214,20 @@ int32_t teco(void)
 
     for (;;) {
 	setcmd(ctx.qpntr);
-
 	if (ctx.qpntr->qrg_size > 0) {
-	    ctx.qlcmd = ctx.qpntr->qrg_size;
+	    PDLDEF *next, *pdl;
 
+	    ctx.qlcmd = ctx.qpntr->qrg_size;
 	    status = set_unwind();
 	    if (status == TECO__NORMAL)
 		teco_interp();
 
-	    for (pdl = ctx.pdl; pdl != 0; pdl = pdl->next)
+	    pdl = ctx.pdl;
+	    while (pdl != 0) {
+		next = pdl->next;
 		free(pdl);
+		pdl = next;
+	    }
 	    for (lclptr = ctx.lclptr; lclptr != qreg_local; lclptr = 
 	    // if ctx.lclptr != qreg_local
 		// loop
@@ -239,9 +242,7 @@ int32_t teco(void)
 		crlfno();
 	    }
 
-	    if (ctx.flags2 & TECO_M_EXITEND)
-		break;
-
+	    if (ctx.flags2 & TECO_M_EXITEND) break;
 	    ctx.etype &= ~TECO_M_ET_XIT;
 
 	    if (ctx.edit & ~TECO_M_ED_WCH) {
@@ -266,8 +267,7 @@ int32_t teco(void)
 	    if ((chr = listen(!ctx.qpntr->qrg_size)) == TECO_C_ESC) {
 		if (ctx.temp == TECO_C_ESC) {
 		    more = 0;
-		    if (!ctx.indir)
-			crlfno();
+		    if (!ctx.indir) crlfno();
 		}
 	    } else if (!ctx.indir) {
 		switch (chr) {
@@ -309,7 +309,6 @@ int32_t teco(void)
 		    if (ctx.errpos) {
 			print(ctx.errptr, ctx.errpos);
 			type('?');
-
 			docrlfno = 1;
 			storechr = more = 0;
 		    }
