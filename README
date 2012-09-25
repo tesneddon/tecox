@@ -27,7 +27,7 @@ This was then brute-forced to VAX Native mode by Rick Murphy and updated
 by Andy Goldstein.
 
 Now, much further down the line, VAX TECO-32 has been translated from MACRO-32
-to C making it portable to and operating system with a C compiler.
+to C making it portable to any operating system with a C compiler.
 
 ----
 
