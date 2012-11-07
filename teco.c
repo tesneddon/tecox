@@ -966,9 +966,44 @@ void teco_interp(void)
 	    break;
 
 	case 'O':
-	case 'o':		/* "O" is goto tag */
-	    
+	case 'o': {		/* "O" is goto tag */
+	    uint8_t *tag;
+	    uint32_t taglen;
+
+	    getstg(&ctx.tagbuf);
+	    tag = ctx.tagbuf.qrg_ptr;
+	    taglen = tag + ctx.tagbuf.qrg_size;
+	    if (ctx.flags & TECO_M_NFLG) {
+		uint8_t *tend, *tp;
+
+		ctx.flags &= ~TECO_M_NFLG;
+		tp = tag;
+		tend = tp + taglen;
+		while (tp < tend) {
+		    if (*tp == ',') {
+			if (--ctx.n <= 0) {
+			    taglen = tp - tag;
+			    break;
+			}
+			tag = ++tp;
+		    } else {
+			tp++;
+		    }
+		}
+		if (tp >= tend) tag = 0;
+	    }
+	    if (tag != 0) {
+		ctx.scanp = ctx.itrst != 0 ? ctx.itrst : ctx.qcmnd->qrg_ptr;
+		do {
+		    skpset('!', TECO_C_NUL);
+		    trace('!');
+		    ctx.quote = '!';
+		    skpquo();
+		} while (!memcmp(tag, ctx.oscanp, (ctx.scanp-ctx.oscanp)-1));
+	    }
+	    irest();
 	    break;
+	}
 
 	case 'Q':
 	case 'q': {		/* "Q" is value/size in q-register */
@@ -1398,7 +1433,7 @@ static void getstg(out)
     uint32_t insflg = 0;
     uint16_t inslen = 0;
     uint8_t *insptr = 0;
-    int8_t chr;
+    uint8_t chr;
     int32_t upper, lower, skip = 0;
 
     out->qrg_size = 0;
@@ -1421,7 +1456,7 @@ static void getstg(out)
 		if ((chr == 'U') || (chr == 'Q')) {
 		    qref();
 		    if (chr == 'U') {
-			insptr = &ctx.qnmbr->qrg_value;
+			insptr = (uint8_t *)&ctx.qnmbr->qrg_value;
 		    } else {
 			insptr = ctx.qnmbr->qrg_ptr;
 			inslen = ctx.qnmbr->qrg_size;
