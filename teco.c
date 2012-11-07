@@ -52,7 +52,7 @@
 **	25-SEP-2012 V41.03  Sneddon	Correctly unwind PDL stack. Add ^B,
 **					^C, nA, D, K.
 **	08-OCT-2012 V41.04  Sneddon	Add getstg for O and others.
-**	07-NOV-2012 V41.05  Sneddon	Add U.
+**	07-NOV-2012 V41.05  Sneddon	Add U, X.
 **--
 */
 #define MODULE TECO
@@ -1056,6 +1056,14 @@ void teco_interp(void)
 		ctx.flags &= ~TECO_M_CFLG;
 		ncom(ctx.m);
 	    }
+	    break;
+
+	case 'X':
+	case 'x':		/* "X" is q-reg text insert */
+	    qref(0, scnupp());
+	    gettx();
+	    qset(ctx.flags & TECO_M_CLNF, &ctx.txstor[ctx.m], ctx.n);
+	    ctx.flags &= ~TECO_M_CLNF;
 	    break;
 
 	case 'Z':
