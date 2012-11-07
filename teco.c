@@ -733,20 +733,32 @@ void teco_interp(void)
 	    break;
 
 	case ';':		/* ";" is special iteration end */
-	    if (!ctx.itrst)
-		ERROR_MESSAGE(SNI);
-	    if (!(ctx.flags & TECO_M_NFLG))
-		ERROR_MESSAGE(NAS);
-	    if (ctx.flags & TECO_M_CLNF)
-		ctx.n = -ctx.n;
-	    if (ctx.n < 0) {
-		ctx.flags &= ~(TECO_M_CFLG  | TECO_M_OFLG | TECO_M_CLNF |
-			       TECO_M_CLN2F | TECO_M_NFLG);
-		irest();
-	    } else {
-		skpset(TECO_C_RAB, TECO_C_NUL);
-		pop(TECO_K_PDL_ITR);
+	    if (ctx.itrst == 0) ERROR_MESSAGE(SNI);
+	    if (!(ctx.flags & TECO_M_NFLG)) ERROR_MESSAGE(NAS);
+	    ctx.flags &= ~TECO_M_NFLG;
+	    if (ctx.flags & TECO_M_CLNF) {
+		ctx.flags &= ~TECO_M_CLNF;
+		ctx.n *= -1;
 	    }
+	    if (ctx.n >= 0) {
+		uint8_t *itrst = ctx.itrst;
+
+		for (;;) {
+		    skpset(TECO_C_RAB, TECO_C_NUL);
+		    if (itrst == ctx.itrst) {
+			trace();
+			break;
+		    }
+		    if (ctx.itrst == 0) ERROR_MESSAGE(BNI);
+		    pop(TECO_K_PDL_ITR);
+		    ctx.flags &= ~(TECO_M_CFLG|TECO_M_OFLG|TECO_M_CLNF|
+				   TECO_M_CLN2F|TECO_M_NFLG);
+		    irest();
+		}
+	    }
+	    ctx.flags &= ~(TECO_M_CFLG|TECO_M_OFLG|TECO_M_CLNF|
+			   TECO_M_CLN2F|TECO_M_NFLG);
+	    irest();
 	    break;
 
 	case '=': {		/* "=" is the number printer */
