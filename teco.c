@@ -51,10 +51,11 @@
 **					commands.
 **	25-SEP-2012 V41.03  Sneddon	Correctly unwind PDL stack. Add ^B,
 **					^C, nA, D, K.
+**	08-OCT-2012 V41.04  Sneddon	Add getstg for O and others.
 **--
 */
 #define MODULE TECO
-#define VERSION "V41.03"
+#define VERSION "V41.04"
 #ifdef vms
 # ifdef VAX11C
 #  module MODULE VERSION
@@ -90,6 +91,7 @@
     static void zerod();
     void txadj();
     void qset();
+    static void getstg();
     static void push();
     static void pop();
     static void poplcl();
@@ -551,7 +553,6 @@ void teco_interp(void)
 		** Yes.  Type out character whose ASCII value is 'n'.
 		*/
 		ctx.flags &= ~TECO_M_NFLG;
-
 		if (ctx.flags & TECO_M_CLNF)
 		    ctx.etype |= TECO_M_ET_BIN;
 
@@ -962,6 +963,11 @@ void teco_interp(void)
 
 	    setcmd(ctx.qnmbr);
 	    teco_interp();
+	    break;
+
+	case 'O':
+	case 'o':		/* "O" is goto tag */
+	    
 	    break;
 
 	case 'Q':
@@ -1384,6 +1390,81 @@ static void gettx(void) {
     bzchk(ctx.n);
 
     ctx.n -= ctx.m;
+}
+
+static void getstg(out)
+    QRGDEF *out;
+{
+    uint32_t insflg = 0;
+    uint16_t inslen = 0;
+    uint8_t *insptr = 0;
+    int8_t chr;
+    int32_t upper, lower, skip = 0;
+
+    out->qrg_size = 0;
+    getquo();
+    chr = scan();
+    while ((chr = scan()) != ctx.quote) {
+	inslen = 1;
+	insptr = &chr;
+	upper = lower = 0;
+
+	if (skip) {
+	    skip = 0;
+	} else {
+	    switch (chr) {
+	    default:
+		break;
+
+	    case TECO_C_ENQ:		/* ^E */
+		chr = scnupp();
+		if ((chr == 'U') || (chr == 'Q')) {
+		    qref();
+		    if (chr == 'U') {
+			insptr = &ctx.qnmbr->qrg_value;
+		    } else {
+			insptr = ctx.qnmbr->qrg_ptr;
+			inslen = ctx.qnmbr->qrg_size;
+		    }
+		}
+		break;
+
+	    case TECO_C_DC1:		/* ^Q */
+	    case TECO_C_DC2:		/* ^R */
+		skip = 1;
+		inslen = 0;
+		break;
+
+	    case TECO_C_SYN:		/* ^V */
+		lower = 1;
+		inslen = 0;
+		break;
+
+	    case TECO_C_ETB:		/* ^W */
+		upper = 1;
+		inslen = 0;
+		break;
+
+	    case '^':
+		if (!(ctx.edit & TECO_M_ED_CTL)) {
+		    ctx.flags2 |= TECO_M_MAKCTL;
+		    inslen = 0;
+		}
+		break;
+	    }
+	}
+
+	if (inslen != 0) {
+	    ctx.qnmbr = out;
+	    qset(insflg, insptr, inslen);
+	    insflg = 1;
+	}
+
+	chr = scan();
+	chr = upper ? toupper(chr) : lower ? tolower(chr) : chr;
+    }
+
+    resquo();
 }
 
 /*
