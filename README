@@ -33,9 +33,6 @@ to C making it portable to any operating system with a C compiler.
 
 NOTES:
 
-* Currently implementing the pop/push of macros and parenthesis'.  Need to
-  finish this and investigate if UTM is still happening...
-
 * TECO job control support for UNIX....
 
 	Currently a ^Y (depending on certain flags) will return you
