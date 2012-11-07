@@ -52,10 +52,11 @@
 **	25-SEP-2012 V41.03  Sneddon	Correctly unwind PDL stack. Add ^B,
 **					^C, nA, D, K.
 **	08-OCT-2012 V41.04  Sneddon	Add getstg for O and others.
+**	07-NOV-2012 V41.05  Sneddon	Add U.
 **--
 */
 #define MODULE TECO
-#define VERSION "V41.04"
+#define VERSION "V41.05"
 #ifdef vms
 # ifdef VAX11C
 #  module MODULE VERSION
@@ -1042,6 +1043,19 @@ void teco_interp(void)
 	case 't':		/* "T" is the printer */
 	    gettx();
 	    prinf(&ctx.txstor[ctx.m], ctx.n);
+	    break;
+
+	case 'U':
+	case 'u':		/* "U" is q-reg number setter */
+	    if (!(ctx.flags & TECO_M_NFLG))
+		ERROR_MESSAGE(NAU); 
+	    ctx.flags &= ~TECO_M_NFLG;
+	    qref(0, scnupp());
+	    ctx.qnmbr->qrg_value = ctx.n;
+	    if (ctx.flags & TECO_M_CFLG) {
+		ctx.flags &= ~TECO_M_CFLG;
+		ncom(ctx.m);
+	    }
 	    break;
 
 	case 'Z':
