@@ -25,7 +25,7 @@
 **
 **  AUTHOR:             Tim E. Sneddon
 **
-**  Copyright (C) 2011 Tim E. Sneddon <tim@sneddon.id.au>
+**  Copyright (C) 2012 Tim E. Sneddon <tim@sneddon.id.au>
 **
 **  This program is free software: you can redistribute it and/or modify
 **  it under the terms of the GNU General Public License as published by
@@ -53,6 +53,7 @@
 **					^C, nA, D, K.
 **	08-OCT-2012 V41.04  Sneddon	Add getstg for O and others.
 **	07-NOV-2012 V41.05  Sneddon	Add U, X.
+**	07-NOV-2012 V41.05A Sneddon	Add support for search.
 **--
 */
 #define MODULE TECO
@@ -85,6 +86,7 @@
     static uint32_t tstnxt();
     static void ncom();
     static void nlines();
+    static void search();
     static void skpquo();
     static void skpset();
     static void gettx();
@@ -177,6 +179,11 @@ do { \
 #define OP_AND  4
 #define OP_OR   5
 
+#define SUR_FAIL 0x8000
+#define SUR_OK   0x4000
+#define SUR_REV  0x2000
+#define SUR_BND  0x1000		/* Bounded search flag */
+#define SUR_NPG  0x0800
 
 /*
 ** Global Storage
@@ -730,7 +737,7 @@ void teco_interp(void)
 		ERROR_MESSAGE(SNI);
 	    if (!(ctx.flags & TECO_M_NFLG))
 		ERROR_MESSAGE(NAS);
-	    if (ctx.flags * TECO_M_CLNF)
+	    if (ctx.flags & TECO_M_CLNF)
 		ctx.n = -ctx.n;
 	    if (ctx.n < 0) {
 		ctx.flags &= ~(TECO_M_CFLG  | TECO_M_OFLG | TECO_M_CLNF |
@@ -1039,6 +1046,79 @@ void teco_interp(void)
 	    break;
 	}
 
+	case 'S':
+	case 's':		/* "S" is search */
+
+	    // status = search();
+	    if (ctx.flags & TECO_M_REPFLG) {
+		ctx.flags &= ~TECO_M_REPFLG;
+		qskp();
+		if (status & SUR_OK) {
+		    // do some jigger-pokery and call .sch.r();
+		}
+	    }
+	    irest();
+	    ncom(status & SUR_OK ? TECO__TRUE : TECO__FALSE);
+	    if (!(ctx.flags & (TECO_M_CLNF|TECO_M_CLN2F))) {
+		if (ctx.itrst) {
+		    uint32_t trace = ctx.flags & TECO_M_TRACE;
+
+		    ctx.flags &= ~TECO_M_TRACE;
+		    if tstnxt(';') == 1
+			// 90$
+		    if tstnxt(':') == 0
+			// 50$
+		    if tstnxt(';') == 1
+			// 80$
+		    decl (r11)
+		50$:
+		    ctx.flags |= trace;
+		    ctx.flags &= ~TECO_M_NFLG;
+		    if (ctx.n == TECOO_TRUE)
+			break;
+		    // crlfno();
+		    ERROR_MESSAGE(SEAR_ITER);
+		    // clear CLNF flag
+		    // n = TECO__FALSE
+		    // chr = ';'
+		    // continue;
+
+		    // The above bit of code will restart the switch using
+		    // SEMI_COLON command char...
+		}
+		ctx.flags &= ~TECO_M_NFLG;
+		if (ctx.n >= 0) {
+		    ERROR_MESSAGE(SRH);// ...need to supply the search string?
+		}
+		if (ctx.esflag == 0) {
+		    ctx.flags &= ~(TECO_M_CLNF|TECO_M_CLN2F);
+		    break;
+		}
+		/* So.., from here we need to be able to drop through to
+		   the code for 'V', verify, below.  This will require a
+		   little bit of set up and clever arrangement to make it
+		   work though...or maybe some way to restart the switch...
+
+
+		   Maybe move the chr = scan(); to the bottom of the loop
+		   then we can say:
+
+			chr = 'V';
+			continue;
+
+		   That way we can restart and continue on from where we
+		   are, rather than a crafty 'drop-through'.
+
+		*/
+	    }
+	    ctx.flags &= ~(TECO_M_CLNF|TECO_M_CLN2F);
+	    break;
+
+	case 'V':
+	case 'v':		/* "V" is verify */
+	    ERROR_MESSAGE(NYI);
+	    break;
+
 	case 'T':
 	case 't':		/* "T" is the printer */
 	    gettx();
@@ -1295,6 +1375,11 @@ static void nlines(void)
 	    ctx.p--;
 	}
     }
+}
+
+static int32_t search(void) {
+
+    return 
 }
 
 static void skpquo(void) {
