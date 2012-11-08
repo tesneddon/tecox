@@ -86,7 +86,7 @@
     static uint32_t tstnxt();
     static void ncom();
     static void nlines();
-    static void search();
+    static uint32_t search();
     static void skpquo();
     static void skpset();
     static void gettx();
@@ -409,9 +409,8 @@ void teco_interp(void)
 {
     uint8_t chr, *end = ctx.scanp + ctx.qlengt;
 
+    chr = scan();
     while (ctx.scanp < end) {
-	chr = scan();
-
 	switch (chr) {
 	default:
 	    if ((int8_t)chr < 0) {
@@ -746,7 +745,7 @@ void teco_interp(void)
 		for (;;) {
 		    skpset(TECO_C_RAB, TECO_C_NUL);
 		    if (itrst == ctx.itrst) {
-			trace();
+			trace('>');
 			break;
 		    }
 		    if (ctx.itrst == 0) ERROR_MESSAGE(BNI);
@@ -1059,12 +1058,13 @@ void teco_interp(void)
 	}
 
 	case 'S':
-	case 's':		/* "S" is search */
-
+	case 's': {		/* "S" is search */
+	    uint32_t status;
 	    // status = search();
+	    status = SUR_FAIL;
 	    if (ctx.flags & TECO_M_REPFLG) {
 		ctx.flags &= ~TECO_M_REPFLG;
-		qskp();
+		skpquo();
 		if (status & SUR_OK) {
 		    // do some jigger-pokery and call .sch.r();
 		}
@@ -1073,30 +1073,31 @@ void teco_interp(void)
 	    ncom(status & SUR_OK ? TECO__TRUE : TECO__FALSE);
 	    if (!(ctx.flags & (TECO_M_CLNF|TECO_M_CLN2F))) {
 		if (ctx.itrst) {
-		    uint32_t trace = ctx.flags & TECO_M_TRACE;
-
-		    ctx.flags &= ~TECO_M_TRACE;
-		    if tstnxt(';') == 1
-			// 90$
-		    if tstnxt(':') == 0
-			// 50$
-		    if tstnxt(';') == 1
-			// 80$
-		    decl (r11)
-		50$:
-		    ctx.flags |= trace;
-		    ctx.flags &= ~TECO_M_NFLG;
-		    if (ctx.n == TECOO_TRUE)
+		    uint32_t tflg = ctx.flags & TECO_M_TFLG;
+		    ctx.flags &= ~TECO_M_TFLG;
+		    if (tstnxt(';')) {
+			ctx.scanp--;
+			ctx.flags |= tflg;
+			ctx.flags &= ~(TECO_M_CLNF|TECO_M_CLN2F);
 			break;
-		    // crlfno();
+		    } else if (tstnxt(':')) {
+		    	if (tstnxt(';')) {
+			    ctx.scanp -= 2;
+			    ctx.flags |= tflg;
+			    ctx.flags &= ~(TECO_M_CLNF|TECO_M_CLN2F);
+			    break;
+			} else {
+			    ctx.scanp--;
+			}
+		    }
+		    ctx.flags |= tflg;
+		    ctx.flags &= ~TECO_M_NFLG;
+		    if (ctx.n == TECO__TRUE)
+			break;
+		    /* TODO: crlfno(); */
 		    ERROR_MESSAGE(SEAR_ITER);
-		    // clear CLNF flag
-		    // n = TECO__FALSE
-		    // chr = ';'
-		    // continue;
-
-		    // The above bit of code will restart the switch using
-		    // SEMI_COLON command char...
+		    chr =';';
+		    continue;
 		}
 		ctx.flags &= ~TECO_M_NFLG;
 		if (ctx.n >= 0) {
@@ -1106,30 +1107,13 @@ void teco_interp(void)
 		    ctx.flags &= ~(TECO_M_CLNF|TECO_M_CLN2F);
 		    break;
 		}
-		/* So.., from here we need to be able to drop through to
-		   the code for 'V', verify, below.  This will require a
-		   little bit of set up and clever arrangement to make it
-		   work though...or maybe some way to restart the switch...
-
-
-		   Maybe move the chr = scan(); to the bottom of the loop
-		   then we can say:
-
-			chr = 'V';
-			continue;
-
-		   That way we can restart and continue on from where we
-		   are, rather than a crafty 'drop-through'.
-
-		*/
+		ctx.flags &= ~(TECO_M_NFLG|TECO_M_CFLG);
+		chr = 'V';
+		continue;
 	    }
 	    ctx.flags &= ~(TECO_M_CLNF|TECO_M_CLN2F);
 	    break;
-
-	case 'V':
-	case 'v':		/* "V" is verify */
-	    ERROR_MESSAGE(NYI);
-	    break;
+    	}
 
 	case 'T':
 	case 't':		/* "T" is the printer */
@@ -1148,6 +1132,11 @@ void teco_interp(void)
 		ctx.flags &= ~TECO_M_CFLG;
 		ncom(ctx.m);
 	    }
+	    break;
+
+	case 'V':
+	case 'v':		/* "V" is verify */
+	    ERROR_MESSAGE(NYI);
 	    break;
 
 	case 'X':
@@ -1269,6 +1258,8 @@ void teco_interp(void)
 
 	if (ctx.flags & ~TECO_M_NFLG)
 	    ctx.n = 0;
+
+	chr = scan();
     }
 
     if (ctx.mpdcnt != 0) {
@@ -1389,9 +1380,9 @@ static void nlines(void)
     }
 }
 
-static int32_t search(void) {
+static uint32_t search(void) {
 
-    return 
+    return SUR_FAIL;
 }
 
 static void skpquo(void) {

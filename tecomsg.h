@@ -17,10 +17,15 @@
  *
  *		06-Mar-2005, TES; Version V1-001
  *	001 -	Created.
+ *		08-Nov-2012, TES; Version V1-001
+ *	002 -	Add SEAR_ITER.  Will need to review the way messages are
+ *		handled...
 -*/
 
 #ifndef __TECOMSG_LOADED
 #define __TECOMSG_LOADED 1
+
+#define TECO__SEAR_ITER  1
 
 #define TECO__NORMAL	 0
 
