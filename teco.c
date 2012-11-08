@@ -409,8 +409,8 @@ void teco_interp(void)
 {
     uint8_t chr, *end = ctx.scanp + ctx.qlengt;
 
-    chr = scan();
     while (ctx.scanp < end) {
+	if (chr == 0) chr = scan();
 	switch (chr) {
 	default:
 	    if ((int8_t)chr < 0) {
@@ -1259,7 +1259,7 @@ void teco_interp(void)
 	if (ctx.flags & ~TECO_M_NFLG)
 	    ctx.n = 0;
 
-	chr = scan();
+	chr = 0;
     }
 
     if (ctx.mpdcnt != 0) {
