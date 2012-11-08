@@ -1060,8 +1060,7 @@ void teco_interp(void)
 	case 'S':
 	case 's': {		/* "S" is search */
 	    uint32_t status;
-	    // status = search();
-	    status = SUR_FAIL;
+	    status = search();
 	    if (ctx.flags & TECO_M_REPFLG) {
 		ctx.flags &= ~TECO_M_REPFLG;
 		skpquo();
@@ -1381,6 +1380,40 @@ static void nlines(void)
 }
 
 static uint32_t search(void) {
+
+/* TIMMY */
+
+    int32_t bound, flags;
+
+    if ((bound = ctx.m) < 0) {
+	bound *= -1;
+	flags |= SUR_REV;
+    }
+
+    if (ctx.flags & TECO_M_CFLG) {
+	ctx.flags &= ~TECO_M_CFLG;
+	flags |= SUR_BND;
+    } else {
+	bound = 0;
+	/*
+	** Is this an old style 'no move' search??
+	*/
+	if (ctx.flags & TECO_M_CLN2F) {
+	    /*
+	    ** Yup, set bound for no movement and set
+	    ** bound seearch flag.
+	    */
+	    bound++;
+	    flags |= SUR_BND;
+	}
+    }
+
+40$: --> What are we testing in the MACRO-32 code when we do the call to
+	 getsch (really getstg with schbuf as the argument)...the BNEQ
+         is testing a flag clearly set by getsch...which is set by the
+	 test...[drum roll....]....
+    getn();
+    getstg(&ctx.schbuf);
 
     return SUR_FAIL;
 }
