@@ -105,8 +105,7 @@
 
 #define bzchk(n) \
 do { \
-    if ((n) > ctx.zz) \
-	ERROR_MESSAGE(POP); \
+    if ((n) > ctx.zz) ERROR_MESSAGE(POP); \
 } while (0)
 
 #define chkclo() \
@@ -135,8 +134,7 @@ do { \
 
 #define getn() \
 do { \
-    if (ctx.flags & ~TECO_M_NFLG) \
-	ncom(1); \
+    if (ctx.flags & ~TECO_M_NFLG) ncom(1); \
     ctx.flags &= ~TECO_M_NFLG; \
 } while (0)
 
@@ -168,8 +166,7 @@ do { \
 #define trace(c) \
 do { \
     chkstp(); \
-    if (ctx.flags & TECO_M_TFLG) \
-	type((c)); \
+    if (ctx.flags & TECO_M_TFLG) type((c)); \
 } while (0)
 
 #define OP_ADD  0    /* Define operators for ncom */
@@ -1383,18 +1380,17 @@ static uint32_t search(void) {
 
 /* TIMMY */
 
-    int32_t bound, flags;
+    int32_t limit, flags;
 
-    if ((bound = ctx.m) < 0) {
-	bound *= -1;
+    if ((limit = ctx.m) < 0) {
+	limit *= -1;
 	flags |= SUR_REV;
     }
-
     if (ctx.flags & TECO_M_CFLG) {
 	ctx.flags &= ~TECO_M_CFLG;
 	flags |= SUR_BND;
     } else {
-	bound = 0;
+	limit = 0;
 	/*
 	** Is this an old style 'no move' search??
 	*/
@@ -1403,19 +1399,58 @@ static uint32_t search(void) {
 	    ** Yup, set bound for no movement and set
 	    ** bound seearch flag.
 	    */
-	    bound++;
+	    limit++;
 	    flags |= SUR_BND;
 	}
     }
-
-40$: --> What are we testing in the MACRO-32 code when we do the call to
-	 getsch (really getstg with schbuf as the argument)...the BNEQ
-         is testing a flag clearly set by getsch...which is set by the
-	 test...[drum roll....]....
     getn();
     getstg(&ctx.schbuf);
+    if (ctx.n == 0) ERROR_MESSAGE(ISA);
+    cp = ctx.p + ctx.txstor;		// R3
+    end = ctx.zz + ctx.txstor;		// 8(SP)
+    hits = ctx.n;			// SP
+    if (hits < 0) {
+	direction = -1;
+	flags |= SUR_REV;
+	if (!(flags & SUR_BND)) {
+	    flags |= SUR_NPG;
+	}
+	hits *= -1;
+    } else {
+    	direction = 1;			// 4(SP)
+    }
+    ctx.lschsz = 0;
 
-    return SUR_FAIL;
+    do {
+    	// sp = ctx.schbuf.arg_ptr;
+    	// send = sp + ctx.schbuf.qrg_size;
+    	// ctln = -1;
+    	while (cp < end) {
+	    if (++ctln != 0) {
+	    	goto 120$;
+	    } else {
+	    	if (cp
+	    }
+	}
+    } while (--hits != 0);
+
+    // does it match end of string?
+    flags |= SUR_FAIL;
+    if (!(flags & SUR_BND)
+	&& !(ctx.edit & TECO_M_ED_SRH)) {
+	    r5 = 0;
+	    ctx.p = r5;
+	}
+    }
+    return flags;
+
+/*
+    hits		//   (SP)
+    dir			//  4(SP)
+    end			//  8(SP)
+    limit		// 12(SP)
+    flags		// 16(SP)
+*/
 }
 
 static void skpquo(void) {
@@ -1570,6 +1605,9 @@ static void gettx(void) {
     ctx.n -= ctx.m;
 }
 
+/*
+TODO: Add in more TECO-10 features like ^V^V and ^W^W
+*/
 static void getstg(out)
     QRGDEF *out;
 {
@@ -1597,7 +1635,7 @@ static void getstg(out)
 	    case TECO_C_ENQ:		/* ^E */
 		chr = scnupp();
 		if ((chr == 'U') || (chr == 'Q')) {
-		    qref();
+		    qref(0, scnupp());
 		    if (chr == 'U') {
 			insptr = (uint8_t *)&ctx.qnmbr->qrg_value;
 		    } else {
