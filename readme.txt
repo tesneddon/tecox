@@ -46,3 +46,13 @@ NOTES:
   after a 'fg'.
 
   Probably need to be able to compile out job control on UNIX...
+
+* IO Notes...
+
+  Look to MMK for the FILEHANDLE (also the common IO code in gpl1).  This
+  is the method we want to implement for teco_getfl and the io_support
+  getfl member.  This way we can abstract the real nitty-gritty.
+
+  Also, think the package specific stuff with NETLIB would be useful.
+
+  -- need a parse routine in IO_SUPPORT...
