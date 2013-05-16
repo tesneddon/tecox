@@ -37,6 +37,7 @@
 **	01-FEB-2012 V41.06  Sneddon   Moving external routine declarations in
 **				      here as well.
 **	07-MAR-2012 V41.07  Sneddon   Added x86-64/amd64.
+**	16-MAY-2013 V41.08  Sneddon   Added OpenBSD/hppa.
 **--
 */
 #ifndef __TECODEF_LOADED
@@ -91,6 +92,7 @@
  *			2	GNU/Linux
  * 7	PA-RISC		0	HP-UX
  *			1	GNU/Linux
+ *			2	OpenBSD
  * 8	x86		0	GNU/Linux
  *			1	OpenBSD
  *			2	Solaris
@@ -178,9 +180,11 @@
 # define TECO_K_ARCH 7
 # if (defined(__hpux))
 #  define TECO_K_OS 0
-# elif ((defined(linux) || (defined(__linux) || defined(__linux__))
+# elif (defined(linux) || defined(__linux) || defined(__linux__))
 #  define TECO_K_OS 1
 #  include <stdint.h>
+# elif (defined(__OpenBSD__))
+#  define TECO_K_OS 2
 # else
 #  error "unknown OS on PA-RISC architecture"
 # endif
