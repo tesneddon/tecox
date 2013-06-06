@@ -53,6 +53,7 @@
 **					^C, nA, D, K.
 **	08-OCT-2012 V41.04  Sneddon	Add getstg for O and others.
 **	07-NOV-2012 V41.05  Sneddon	Add U, X.
+**	06-JUN-2013 V41.06  Sneddon	Add :^T.
 **--
 */
 #define MODULE TECO
@@ -566,11 +567,16 @@ void teco_interp(void)
 		** No.  Character input from terminal.
 		*/
 		if (ctx.flags & TECO_M_CLNF) {
+		    uint32_t code, type;
+
 		    ctx.flags &= ~TECO_M_CLNF;
-		    // call tecolt
-		    // m = typecode
-		    // indicate m is active with CFLG (comma flag)
-		    // ncom the result
+
+		    code = tlistn();
+		    decode(&code, &type);
+
+		    ctx.m = type;
+		    ctx.flags != TECO_M_CFLG;
+		    ncom(code);
 		} else {
 		    ncom(tlistn());
 		}
