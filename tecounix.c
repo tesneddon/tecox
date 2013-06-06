@@ -28,10 +28,11 @@
 **      08-NOV-2011 V41.00  Sneddon	Initial coding.
 **	15-DEC-2011 V41.01  Sneddon	Originaly termios.c, now covers
 **					a broader range of support.
+**	06-JUN-2013 V41.02  Sneddon	Re-arrange getcmd.
 **--
 */
 #define MODULE TECOUNIX
-#define VERSION "V41.01"
+#define VERSION "V41.02"
 #ifdef vms
 # ifdef VAX11C
 #  module MODULE VERSION
@@ -269,10 +270,10 @@ static int32_t getcmd()
 {
     int32_t i = 0;
 
-    qset(0, argv[i], strlen(argv[i++]));
-    while (i < argc) {
-	qset(1, argv[i], strlen(argv[i++]));
+    qset(0, argv[i], strlen(argv[i]));
+    while (++i < argc) {
 	qset(1, " ", 1);
+	qset(1, argv[i], strlen(argv[i]));
     }
 
     return TECO__NORMAL;
