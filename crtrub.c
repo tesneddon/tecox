@@ -85,18 +85,16 @@
 **	None.
 **--
 */
-uint32_t decode(cptr,
-		tptr)
+uint32_t decode(cptr)
     uint32_t *cptr;
-    uint32_t *tptr;
 {
-    uint32_t code = *cptr, etype = ctx.etype, type;
+    uint32_t code = *cptr, etype = ctx.etype, type = 0;
     int32_t status;
 
     if ((code != TECO_C_ESC)
 	&& (code != TECO_C_SS3)
 	&& (code != TECO_C_CSI))
-	return 0;
+	return type;
 
     ctx.etype |= TECO_M_ET_CC | TECO_M_ET_LC;
     ctx.etype &= ~TECO_M_ET_CKE;
@@ -159,7 +157,5 @@ uint32_t decode(cptr,
     }
 
     *cptr = code;
-    *tptr = type;
-
-    return 1;
+    return type;
 }
