@@ -671,6 +671,12 @@ do { \
 #define set_unwind() (int32_t) sigsetjmp(ctx.tecosp, 1)
 
 /*
+** crtrub.c
+*/
+
+    extern uint32_t decode(uint32_t *);
+
+/*
 ** teco.c
 */
 
