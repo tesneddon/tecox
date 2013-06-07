@@ -291,8 +291,8 @@ void teco_putmsg(void)
 	    */
 	    msglen += ctx.filbuf.qrg_size;
 	    fnfptr = alloca(msglen);
-	    sprintf(fnfptr, msgptr, ctx.filbuf.qrg_size, ctx.filbuf.qrg_size,
-		    ctx.filbuf.qrg_ptr);
+	    snprintf(fnfptr, msglen, msgptr, ctx.filbuf.qrg_size,
+		     ctx.filbuf.qrg_size, ctx.filbuf.qrg_ptr);
 	    msgptr = fnfptr;
 	}
 
