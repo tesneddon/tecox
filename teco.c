@@ -55,6 +55,7 @@
 **	07-NOV-2012 V41.05  Sneddon	Add U, X.
 **	06-JUN-2013 V41.06  Sneddon	Add :^T.
 **	09-JUN-2013 V41.07  Sneddon	Switch to snprintf. Change to :^T.
+**					Fix definition of tecocmd.
 **--
 */
 #define MODULE TECO
@@ -191,7 +192,7 @@ do { \
 ** Own Storage.
 */
 
-    const static uint8_t *tecocmd = (const uint8_t *)"\001Welcome to TECO!\001\033\033";  // Remove this in future...
+    const static uint8_t tecocmd[] = "\001Welcome to TECO!\001\033\033";  // Remove this in future...
     QRGDEF qreg_array[TECO_K_NUMQRG+1], qreg_local[TECO_K_NUMQRG];
 
 int32_t teco(void)
