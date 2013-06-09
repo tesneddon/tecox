@@ -1711,7 +1711,7 @@ static void zerod(flags)
     else
 	format ="%d";
 
-    outlen = sprintf(outbuf, format, ctx.n);
+    outlen = snprintf(outbuf, sizeof(outbuf), format, ctx.n);
     if (flags == TECO_K_ZEROD_TXBUF) {
 	txadj(outlen);
 	memcpy(&ctx.txstor[ctx.p + ctx.lschsz], outbuf, outlen);
