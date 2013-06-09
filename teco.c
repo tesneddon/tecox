@@ -54,10 +54,11 @@
 **	08-OCT-2012 V41.04  Sneddon	Add getstg for O and others.
 **	07-NOV-2012 V41.05  Sneddon	Add U, X.
 **	06-JUN-2013 V41.06  Sneddon	Add :^T.
+**	09-JUN-2013 V41.07  Sneddon	Switch to snprintf. Change to :^T.
 **--
 */
 #define MODULE TECO
-#define VERSION "V41.05"
+#define VERSION "V41.07"
 #ifdef vms
 # ifdef VAX11C
 #  module MODULE VERSION
@@ -567,14 +568,12 @@ void teco_interp(void)
 		** No.  Character input from terminal.
 		*/
 		if (ctx.flags & TECO_M_CLNF) {
-		    uint32_t code, type;
+		    uint32_t code;
 
 		    ctx.flags &= ~TECO_M_CLNF;
 
 		    code = tlistn();
-		    decode(&code, &type);
-
-		    ctx.m = type;
+		    ctx.m = decode(&code);
 		    ctx.flags != TECO_M_CFLG;
 		    ncom(code);
 		} else {
