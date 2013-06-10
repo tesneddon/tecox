@@ -1,65 +1,104 @@
-/*
-**++
-**  MODULE DESCRIPTION:
-**
-**	This module contains the command decode logics for TECO
-**  (written in TECO of course).  Line continuation is handled with
-**  the C line terminator '\'.  All non-printable characters are
-**  encoded using octal character constants (of course :-),
-**  eg. ESC = \033.
-**
-**  AUTHOR:             Tim E. Sneddon
-**
-**  Copyright (C) 2012 Tim E. Sneddon <tim@sneddon.id.au>
-**
-**  This program is free software: you can redistribute it and/or modify
-**  it under the terms of the GNU General Public License as published by
-**  the Free Software Foundation, either version 3 of the License, or
-**  (at your option) any later version.
-**
-**  This program is distributed in the hope that it will be useful,
-**  but WITHOUT ANY WARRANTY; without even the implied warranty of
-**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-**  GNU General Public License for more details.
-**
-**  You should have received a copy of the GNU General Public License
-**  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-**
-**  CREATION DATE:      29-JAN-1985
-**
-**  MODIFICATION HISTORY:
-**
-**      29-JAN-1985 V40.00  Murphy	Initial coding.
-**	21-OCT-1986 V40.11  Goldstein	Integrate into VMS system build.
-**	04-SEP-1989 V40.12  Murphy	Save TECO.TEC input Q-registers (0,1,2)
-**					and restore to allow re-entering TECO
-**					without random behaviour.
-**	09-NOV-2011 V41.00  Sneddon	Adapted this version from original
-**					MACRO-32 source.
-**--
-*/
-#define MODULE TECOCMD
-#define VERSION "V41.00"
-#ifdef vms
-# ifdef VAX11C
-#  module MODULE VERSION
-# else
-#  pragma module MODULE VERSION
-# endif
-#endif
-#include "tecodef.h"
+! - - - - - - - - - - - - - - - - - - - - - - - !
+!	  Responder to TECO commands		!
+!	     !!TECO.TEC V40.00!!		!
+!						!
+!						!
+!						!
+!						!
+!	Last edit on 10-Jun-13 by TES		!
+! - - - - - - - - - - - - - - - - - - - - - - - !
+!	Switches recognized by commands:	!
+!	  /NOI-NI		 TECO,MAKE,MUNG	!
+!	  /NOM-EMORY		 TECO,MAKE,MUNG	!
+!	  /NOC-REATE		 TECO,MAKE,MUNG	!
+!	  /GT-EDIT		 TECO,MAKE	!
+!	  /VT-EDIT		 TECO,MAKE	!
+!	  /VT-EDIT:H-OLD	 TECO,MAKE	!
+!	  /VT-EDIT:H-OLD:S-EEALL TECO,MAKE	!
+!	  /VT-EDIT:S-EEALL	 TECO,MAKE	!
+!	  /VT-EDIT:S-EEALL:H-OLD TECO,MAKE	!
+!	  /SC-ROLL		 TECO,MAKE	!
+!	  /SC-ROLL:n		 TECO,MAKE	!
+!	  /FI-ND		 TECO		!
+!	  /IN-SPECT		 TECO		!
+! - - - - - - - - - - - - - - - - - - - - - - - !
+!	Entry conditions:			!
+!	    Q-reg 1				!
+!		+32768 => EITECO$ already tried	!
+!		 other => Bit flags (see below)	!
+!		    -1 => Same as +32768 only	!
+!	    This macro (see ** notes)		!
+!		Active EI -or-			!
+!		Q-reg Y				!
+!	    DCL/CCL/MCR command			!
+!		Text buffer -or-		!
+!		Q-reg Z (if text buffer empty)	!
+! - - - - - - - - - - - - - - - - - - - - - - - !
+!	Q-register usage:			!
+!	  0 % Scratch				!
+!	  0 $ Scratch				!
+!	  1 % Bit encoded flags (see below)	!
+!	  1 $ Top level directory specification !
+!	  2 % Number of scrolling lines		!
+!	  2 $ Scratch				!
+!	  9 % Bit flags from initializer	!
+!	  9 $ File specification for memory	!
+! - - - - - - - - - - - - - - - - - - - - - - - !
+!	Bit encoded flags (in Q-reg 1)		!
+!	  Load VTEDIT		    +1		!
+!	  Inspect file		    +2		!
+!	  Don't use memory	    +4		!
+!	  Find position marker	    +8		!
+!	  Use VTEDIT SEEALL mode   +16		!
+!	  Use VTEDIT hold mode	   +32		!
+!	  Load GTEDIT		   +64		!
+!	  Use scrolling mode	  +128		!
+!	  No automatic creation   +256		!
+!	  Yank needs doing	 +2048		!
+!	  Initialization done	 +4096		!
+!	  Force memory write	 +8192		!
+!	  Announce file used	+16384		!
+!	  Memory used		+32768		!
+! - - - - - - - - - - - - - - - - - - - - - - - !
+!	Set up our operating environment	!
+! - - - - - - - - - - - - - - - - - - - - - - - !
+! Shut ourselves off (** deleted if we're in Y)	!
+@EI%%
+! Remove old copy (** deleted if we're in Y)	!
+0,0XY
+! Save old context; set our context		!
+[0 0U0 0,0X0
+[1 0U1 0,0X1
+[2 0U2 0,0X2
+[3 0U3 0,0X3
+[4 0U4 0,0X4
+[5 0U5 0,0X5
+[6 0U6 0,0X6
+[7 0U7 0,0X7
+[8 0U8 0,0X8
+[9 0U9 0,0X9
+[9 0,0X9
+[0 0,0X0
+[2 0,0X2
+10U0 [0 ^D
+^XU0 [0 0^X
+EDU0 [0 ED&4ED
+EUU0 [0 -1EU
+ESU0 [0 0ES
+ETU0 [0 32768#32#8#1,0ET
+Q1U0 0U1 [1 0,0X1
 
-/*
-** Initial command decoder (TECO.TEC)
-*/
-    const uint8_t tecocmd[] = "\
-!TECO.TEC V40.00![00U00,0X0[10U10,0X1[20U20,0X2[30U30,0X3[40U40,0X4\
-[50U50,0X5[60U60,0X6[70U70,0X7[80U80,0X8[90U90,0X9\
-[90,0X9[00,0X0[20,0X210U0[0\004\030U0[00\030\
-EDU0[0ED&4EDEUU0[0-1EUESU0[00ESETU0[032768#32#8#1,0ETQ1U00U1[10,\
-0X1-1EJ-4\"E:QZ#Z\"E-1\030G_J::FSdcl  teco\033TECO\033\"UH\
-':S \033\033J0\030''Q0+1\"E32768U0'32768\"E:EITECO\033\"S]\
-1Q0#32768U1[1JODONE\033''Z\"EGZ0,0XZ'J::FS^ES\033\033\033\
+-1EJ-4"E
+  :QZ#Z"E
+    -1^XG_ J::@FSdcl  teco%TECO%"U H '
+    :@S% %% J0^X ' '
+
+Q0+1"E 32768U0 '
+! Do EITECO$ if not already tried		!
+! (** Q0&32768"E becomes 32768"E if we're in Y)	!
+Q0&32768"E :@EI%TECO%"S ]1 Q0#32768U1 [1 J @O!DONE! ' '
+
+Z\"EGZ0,0XZ'J::FS^ES\033\033\033\
 ::FSTECO32\033TECO\033\
 ZJ-:S^ES\033\"S.-Z\"EFR\033''Z\"EODONE\033'Q0&32767U10,0X10,\
 0X9J:FS^ES/NOI\033\033\"SO/NOINI\033'J:FS/NOI\033\033\"\
