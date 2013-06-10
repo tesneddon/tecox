@@ -87,23 +87,50 @@ EUU0 [0 -1EU
 ESU0 [0 0ES
 ETU0 [0 32768#32#8#1,0ET
 Q1U0 0U1 [1 0,0X1
-
+! - - - - - - - - - - - - - - - - - - - - - - - !
+!	Try for private command decoder		!
+! - - - - - - - - - - - - - - - - - - - - - - - !
 -1EJ-4"E
   :QZ#Z"E
     -1^XG_ J::@FSdcl  teco%TECO%"U H '
     :@S% %% J0^X ' '
-
+! Fix entry value for old enterers...		!
 Q0+1"E 32768U0 '
 ! Do EITECO$ if not already tried		!
 ! (** Q0&32768"E becomes 32768"E if we're in Y)	!
 Q0&32768"E :@EI%TECO%"S ]1 Q0#32768U1 [1 J @O!DONE! ' '
-
-Z\"EGZ0,0XZ'J::FS^ES\033\033\033\
-::FSTECO32\033TECO\033\
-ZJ-:S^ES\033\"S.-Z\"EFR\033''Z\"EODONE\033'Q0&32767U10,0X10,\
-0X9J:FS^ES/NOI\033\033\"SO/NOINI\033'J:FS/NOI\033\033\"\
-S!/NOINI!::FSN\033\033\"S::FSI\033\033\033'::FS^ES\033\
-\033\"S0A\"AI \033''Q1#4096U1'Q1&4096\"EHX0HKEPEAEF:EGINI\033\
+! - - - - - - - - - - - - - - - - - - - - - - - !
+!	Do initial set up			!
+! - - - - - - - - - - - - - - - - - - - - - - - !
+! Get command into text buffer if not already	!
+Z"E GZ 0,0XZ '
+! Fix up spacing on command			!
+J ::@FS%^ES%%
+! Convert TECO32 to TECO			!
+J ::@FS%TECO32%TECO%
+ZJ-:S^ES\033\"S.-Z\"EFR\033''
+! Just quit if no command at all		!
+Z"E @O!DONE! '
+! Default bt encoded flags			!
+Q0&32767U1
+! Default directory specification to null	!
+0,0X1
+! Default memory file specification to null	!
+0,0X9
+! - - - - - - - - - - - - - - - - - - - - - - - !
+!	Handle private initializers		!
+! - - - - - - - - - - - - - - - - - - - - - - - !
+! Parse /NOINI if present			!
+J :@FS%^ES/NOI%%"S @O!/NOINI! '
+J :@FS%/NOI%%"S !/NOINI!
+::@FS%N%%"S ::@FS%I%% ^[ '
+::@FS%^ES%%"S 0A"A @I% % ' ' Q1#4096U1 '
+! Do private initializer processing		!
+Q1&4096"E
+! Start of private initializer processing	!
+HX0 HK EP EA EF
+! Use built in "INI" and "MEM" if available	!
+:EGINI\033\
 \"SG*J::FS$\033\033\"SHX1HK:ER^EQ1\033\"SYHX1HKECG1\174\001\
 %Can't find initialization file \"\001:G1\001\"\015\012\001\
 ''0,0X1\1740,0X1-1EJ-5*-1EJ-1024\"EEN[]*.*\033:EN\033\"SG*JS[\033\
