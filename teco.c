@@ -56,10 +56,11 @@
 **	06-JUN-2013 V41.06  Sneddon	Add :^T.
 **	09-JUN-2013 V41.07  Sneddon	Switch to snprintf. Change to :^T.
 **					Fix definition of tecocmd.
+**	11-JUN-2013 V41.08  Sneddon	Add EG and fixe bug in getstg.
 **--
 */
 #define MODULE TECO
-#define VERSION "V41.07"
+#define VERSION "V41.08"
 #ifdef vms
 # ifdef VAX11C
 #  module MODULE VERSION
@@ -834,6 +835,11 @@ void teco_interp(void)
 		}
 		break;
 
+	    case 'G':		/* "EG" is process special function */
+		getstg(&ctx.filbuf);
+		ncom(io_support.gexit);
+		break;
+
 	    case 'H':		/* "EH" is edit help level */
 		flag = &ctx.ehelp;
 		break;
@@ -1467,7 +1473,7 @@ static void getstg(out)
     out->qrg_size = 0;
     getquo();
     chr = scan();
-    while ((chr = scan()) != ctx.quote) {
+    while (chr != ctx.quote) {
 	inslen = 1;
 	insptr = &chr;
 	upper = lower = 0;
