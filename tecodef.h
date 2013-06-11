@@ -38,6 +38,7 @@
 **				      here as well.
 **	07-MAR-2012 V41.07  Sneddon   Added x86-64/amd64.
 **	16-MAY-2013 V41.08  Sneddon   Added OpenBSD/hppa.
+**	11-JUN-2013 V41.09  Sneddon   Add gexit to IO_SUPPORT.
 **--
 */
 #ifndef __TECODEF_LOADED
@@ -656,6 +657,7 @@
     	int32_t (*ejflg)    ();		/* get ej flag information	    */
     	int32_t (*etflg)    ();		/* inform terminal of ET flag       */
     	int32_t (*getcmd)   ();		/* get command line into Q-reg Z    */
+	int32_t (*gexit)    ();		/* process special functions	    */
     } IO_SUPPORT;
 
 /*
