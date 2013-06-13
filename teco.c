@@ -837,7 +837,7 @@ void teco_interp(void)
 
 	    case 'G':		/* "EG" is process special function */
 		getstg(&ctx.filbuf);
-		ncom(io_support.gexit);
+		ncom(io_support.gexit());
 		break;
 
 	    case 'H':		/* "EH" is edit help level */
