@@ -11,6 +11,7 @@ clean :
 rebuild : clean all
 
 teco : crtrub.o main.o teco.o tecoio.o tecomsg.o tecounix.o
+	cc -o $@ $(.ALLSRC)
 
 teco.pdf : teco.xml
 	xmllint --xinclude $^ | xmlstarlet val --net --err --xsd /usr/share/xml/docbook/schema/xsd/5.0/docbook.xsd
