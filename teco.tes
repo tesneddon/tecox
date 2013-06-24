@@ -2,10 +2,7 @@
 !	  Responder to TECO commands		!
 !	     !!TECO.TEC V40.00!!		!
 !						!
-!						!
-!						!
-!						!
-!	Last edit on 10-Jun-13 by TES		!
+!	Last edit on 25-Apr-85 by GPK		!
 ! - - - - - - - - - - - - - - - - - - - - - - - !
 !	Switches recognized by commands:	!
 !	  /NOI-NI		 TECO,MAKE,MUNG	!
@@ -19,6 +16,8 @@
 !	  /VT-EDIT:S-EEALL:H-OLD TECO,MAKE	!
 !	  /SC-ROLL		 TECO,MAKE	!
 !	  /SC-ROLL:n		 TECO,MAKE	!
+!	  /SC-ROLL:S-EEALL	 TECO,MAKE	!
+!	  /SC-ROLL:n:S-EEALL	 TECO,MAKE	!
 !	  /FI-ND		 TECO		!
 !	  /IN-SPECT		 TECO		!
 ! - - - - - - - - - - - - - - - - - - - - - - - !
@@ -38,7 +37,7 @@
 !	  0 % Scratch				!
 !	  0 $ Scratch				!
 !	  1 % Bit encoded flags (see below)	!
-!	  1 $ Top level directory specification !
+!	  1 $ Top level directory specification	!
 !	  2 % Number of scrolling lines		!
 !	  2 $ Scratch				!
 !	  9 % Bit flags from initializer	!
@@ -49,11 +48,11 @@
 !	  Inspect file		    +2		!
 !	  Don't use memory	    +4		!
 !	  Find position marker	    +8		!
-!	  Use VTEDIT SEEALL mode   +16		!
-!	  Use VTEDIT hold mode	   +32		!
+!	  Use SEEALL mode	   +16		!
+!	  Use screen hold mode	   +32		!
 !	  Load GTEDIT		   +64		!
 !	  Use scrolling mode	  +128		!
-!	  No automatic creation   +256		!
+!	  No automatic creation	  +256		!
 !	  Yank needs doing	 +2048		!
 !	  Initialization done	 +4096		!
 !	  Force memory write	 +8192		!
@@ -67,16 +66,6 @@
 ! Remove old copy (** deleted if we're in Y)	!
 0,0XY
 ! Save old context; set our context		!
-[0 0U0 0,0X0
-[1 0U1 0,0X1
-[2 0U2 0,0X2
-[3 0U3 0,0X3
-[4 0U4 0,0X4
-[5 0U5 0,0X5
-[6 0U6 0,0X6
-[7 0U7 0,0X7
-[8 0U8 0,0X8
-[9 0U9 0,0X9
 [9 0,0X9
 [0 0,0X0
 [2 0,0X2
@@ -88,12 +77,12 @@ ESU0 [0 0ES
 ETU0 [0 32768#32#8#1,0ET
 Q1U0 0U1 [1 0,0X1
 ! - - - - - - - - - - - - - - - - - - - - - - - !
+! Get command line if DCL under RSTS/E		!
+! - - - - - - - - - - - - - - - - - - - - - - - !
+-1EJ-4"E :QZ#Z"E -1^X G_ J ::@FS%dcl  teco%TECO%"U HK ' :@S% %^[ J 0^X ' '
+! - - - - - - - - - - - - - - - - - - - - - - - !
 !	Try for private command decoder		!
 ! - - - - - - - - - - - - - - - - - - - - - - - !
--1EJ-4"E
-  :QZ#Z"E
-    -1^XG_ J::@FSdcl  teco%TECO%"U H '
-    :@S% %% J0^X ' '
 ! Fix entry value for old enterers...		!
 Q0+1"E 32768U0 '
 ! Do EITECO$ if not already tried		!
@@ -105,13 +94,10 @@ Q0&32768"E :@EI%TECO%"S ]1 Q0#32768U1 [1 J @O!DONE! ' '
 ! Get command into text buffer if not already	!
 Z"E GZ 0,0XZ '
 ! Fix up spacing on command			!
-J ::@FS%^ES%%
-! Convert TECO32 to TECO			!
-J ::@FS%TECO32%TECO%
-ZJ-:S^ES\033\"S.-Z\"EFR\033''
+J ::@FS%^ES%%^[ ZJ -:@S%^ES%"S .-Z"E @FR%% ' '
 ! Just quit if no command at all		!
 Z"E @O!DONE! '
-! Default bt encoded flags			!
+! Default bit encoded flags			!
 Q0&32767U1
 ! Default directory specification to null	!
 0,0X1
@@ -123,117 +109,310 @@ Q0&32767U1
 ! Parse /NOINI if present			!
 J :@FS%^ES/NOI%%"S @O!/NOINI! '
 J :@FS%/NOI%%"S !/NOINI!
-::@FS%N%%"S ::@FS%I%% ^[ '
+::@FS%N%%"S ::@FS%I%%^[ '
 ::@FS%^ES%%"S 0A"A @I% % ' ' Q1#4096U1 '
-! Do private initializer processing		!
+! Do private initializer if desired		!
 Q1&4096"E
 ! Start of private initializer processing	!
 HX0 HK EP EA EF
 ! Use built in "INI" and "MEM" if available	!
-:EGINI\033\
-\"SG*J::FS$\033\033\"SHX1HK:ER^EQ1\033\"SYHX1HKECG1\174\001\
-%Can't find initialization file \"\001:G1\001\"\015\012\001\
-''0,0X1\1740,0X1-1EJ-5*-1EJ-1024\"EEN[]*.*\033:EN\033\"SG*JS[\033\
-0KFS.\033]\033JS]\0330,.X1HK'':ER^EQ1TECO.INI\033\"SYHX9\
-HKECG90,0X9''ER\033EW\033Z\"NZJ.U0G1I=\033G0Q0JZX9ZK]1]0Q0\
-ET]0Q0ES]0Q0EU]0Q0ED]0Q0\030]0Q0\022]2HX0HKG9JS=\0330,.-1\
-X90,.KM0+0U90,0X0[20,0X210U0[0\004\030U0[00\030EDU0[0ED&4E\
-DEUU0[0-1EUESU0[00ESETU0[032768#32#8#1,0ET[1G9\031X1\031K0,\
-0X9Q9U1J::FS^ES\033\033\033ZJ-:S^ES\033\"S.-Z\"EFR\033'\
-'Z\"EOSCOPES\033'\174G0''J:FS^ES/NOM\033\033\"SO/NOMEMOR\
-Y\033'J:FS/NOM\033\033\"S!/NOMEMORY!::FSE\033\033\"S::F\
-SM\033\033\"S::FSO\033\033\"S::FSR\033\033\"S::FSY\033\
-\033\033''''::FS^ES\033\033\"S0A\"AI \033''Q1#4U1'J:FS^\
-ES/NOC\033\033\"SO/NOCREATE\033'J:FS/NOC\033\033\"S!/NO\
-CREATE!::FSR\033\033\"S::FSE\033\033\"S::FSA\033\033\"\
-S::FST\033\033\"S::FSE\033\033\033''''::FS^ES\033\033\
-\"S0A\"AI \033''Q1#256U1'-1EJ-4\"NJ::STE\033\"S<0A\"AC>'::S^ES@\033\
-\"S0KIMUNG \033'''J::FSMU\033\033\"S<0A\"AD>'::FS^ES\033\033\
-\033-1EJ-5*-1EJ-1024\"EJ::FS\"\033\033\"S::FS^ES\033\033\033''ZU\
-0J:S/\033\"SR.-Q0\"L.U0''J:S^ES\033\"S.-Q0\"L.U0''J<S,\033;.U\
-1Q1-1J-:S[\033\"S:S]\033\"S.-Q1\"GF<'''Q1-1J-:S<\033\"S:S>\033\
-\"S.-Q1\"GF<'''Q1-1J-:S(\033\"S:S)\033\"S.-Q1\"GF<'''Q1-1J.-1-Q0\
-\"LD.U0'0;>Q0J<-.;-1A-32\"N-1A-9\"N0;''-D>0,.X0::S^ES\033\0330\
-,.K:Q0\"E\001\077How can I MUNG nothing\077\015\012\001\
-\003\003'EI^EQ0\033JODONE\033'J:FS^ES/GT\033\033\"SO/G\
-TEDIT\033'J:FS/GT\033\033\"S!/GTEDIT!::FSE\033\033\"S::\
-FSD\033\033\"S::FSI\033\033\"S::FST\033\033\033''':\
-:FS^ES\033\033\"S0A\"AI \033''Q1#64U1'J:FS^ES/VT\033\033\
-\"SO/VTEDIT\033'J:FS/VT\033\033\"S!/VTEDIT!::FSE\033\033\
-\"S::FSD\033\033\"S::FSI\033\033\"S::FST\033\033\033\
-'''::FS:H\033\033\"S::FSO\033\033\"S::FSL\033\033\"S::\
-FSD\033\033\033''Q1#32U1'::FS:S\033\033\"S::FSE\033\033\
-\"S::FSE\033\033\"S::FSA\033\033\"S::FSL\033\033\"S::FS\
-L\033\033\033''''Q1#16U1'::FS:H\033\033\"S::FSO\033\033\
-\"S::FSL\033\033\"S::FSD\033\033\033''Q1#32U1'::FS^ES\033\
-\033\"S0A\"AI \033''Q1#1U1'J:FS^ES/SC\033\033\"SO/SCROLL\033\
-'J:FS/SC\033\033\"S!/SCROLL!::FSR\033\033\"S::FSO\033\033\
-\"S::FSL\033\033\"S::FSL\033\033\033'''::S:^ED\033\"SR\
--D\U2FR\033]0U2'::FS:S\033\033\"S::FSE\033\033\"S\
-::FSE\033\033\"S::FSA\033\033\"S::FSL\033\033\"S::FSL\033\
-\033\033''''Q1#16U1'::FS^ES\033\033\"S0A\"AI \033''Q1#1\
-28U1'J::FSTE\033\033\"S<0A\"AD>'::FS^ES\033\033\033J:FS\
-^ES/IN\033\033\"SO/INSPECT\033'J:FS/IN\033\033\"S!/INSP\
-ECT!::FSS\033\033\"S::FSP\033\033\"S::FSE\033\033\"S::\
-FSC\033\033\"S::FST\033\033\033''''::FS^ES\033\033\
-\"S0A\"AI \033''Q1#2U1'J:FS^ES/FI\033\033\"SO/FIND\033'J:F\
-S/FI\033\033\"S!/FIND!::FSN\033\033\"S::FSD\033\033\033\
-'::FS^ES\033\033\"S0A\"AI \033''Q1#8U1'J<.-Z;0A-9\"EDF<'0A-3\
-2\"EDF<'C-1A-\036\"\"E:S\"\033\"UZJ''>Q1&4#Z\"E:EGMEM\033\"SG*J:?\
-:FS$\033\033\"SF\174'\174Z\"E:Q1\"E-1EJ-5*-1EJ-1024\"EEN[]*.*\033\
-:EN\033\"SG*JS[\033R0KFS.\033]\033JS]\0330,.X1HK''':Q9?\
-\"E0EJ+100\JDG1ITECF\033ZJI.TMP\033-1EJ-4\"EI<60>/MODE:#3000\033\
-\174-1EJ-7\"NI;1/-CR\033''HX9HK'G9'HX0HKEPEAEF:ER^EQ0\033\
-\"SYL.\"N-1A-10\"E-D''.\"N-1A-13\"E-D''ZKHX0HKECG0'ER\033EW\0330\
-,0X0'J<.-Z;0A-9\"EDF<'0A-32\"EDF<'C-1A-\036\"\"E:S\"\033\"UZJ''>J\
-:FS/FI\033\033\"S::FSN\033\033\"S::FSD\033\033\033'\
-Q1#8192#8U1'Z\"NQ1#32768#16384U1''Q1&16384\"NQ1&2\"E\001Edi\001\174\
-\001Inspec\001'\001ting file \"\001HT\001\"\015\012\001\
-'Z\"EQ1&2\"EOSCOPES\033'\001\077How can I inspect nothing?\077\
-\015\012\001\003\003'Q1&2\"EJ:S=\033\"S0,.-1X00,.KZU0HX2\
-HK:Q2\"N:ER^EQ2\033\"UG2HX0HKONOTFND\033'':Q0\"NEW^EQ0\033'Q\
-0\"NQ1#2048U1'OREMEM\033''HX0HKQ1&2\"E:EB^EQ0\033\"SQ1#2048U1O?\
-REMEM\033'Q1&256\"NQ1&32768\"EONOTFND\033''\001%Can't find f\
-ile \"\001:G0\001\"\015\012\001Q1&32768\"E\001%Creating ne\
-w file\015\012\001OCREATE\033\174\001%Ignoring TECO'\
-s memory\015\012\001Q1#8192U10,0X0OREMEM\033'':ER^EQ0\033\
-\"SQ1#2048U1OSCOPES\033'!NOTFND!\001\077Can't find file \"\001\
-:G0\001\"\077\015\012\001\003\003'J::FSMA\033\033\"\
-S<0A\"AD>'::FS^ES\033\033\033J<.-Z;0A-9\"EDF<'0A-32\"EDF<'C-\
-1A-\036\"\"E:S\"\033\"UZJ''>Z\"E?\001\077How can I MAKE nothin\
-g\077\015\012\001\033\033'Z-4\"EJ::SLOVE\033\"S\001No\
-t war\077\015\012\001''HX0HK!CREATE!EW^EQ0\033OREMEM\033\
-'\001%Unrecognized command \"\001HTHK\001\"\015\012\001OS\
-COPES\033!REMEM!Q1&8192\"NOWRITE\033'Q1&(32768#4)\"NOSCOPES\033\
-:Q0\"EOSCOPES\033'!WRITE!:EGMEM\033\"SZJG*\023C::FS$\033\
-\033\"UZK:EGMEM ^EQ0\033\033\174ZX9ZKF\174'\174:Q\
-9\"E:Q1\"E-1EJ-5*-1EJ-1024\"EEN[]*.*\033:EN\033\"SZJ.U0G*Q0JS[\033RQ0\
-KFS.\033]\033Q0JS]\033Q0,.X1Q0,ZK'''G1\031X9\031K:\025\
-9TECF\0330EJ+100\.-2,.:X9-3D:\0259.TMP\033-1EJ-4\"E:\025\
-9<60>/MODE:#3000\033\174-1EJ-7\"N:\0259;1/-CR\033'''EA:\
-EW^EQ9\033\"SG0\031PW\031K'EFEW\033'!SCOPES!Q1&64"NET&10\
-24\"E\001%You don't have a refresh scope?\015\012\001Q1#64-\
-64U1''Q1&1"NET&512"E\001%Your terminal is not an interactive s\
-cope\015\012\001Q1#1-1U1\1740,3:W\033Q1&16\"N-1,3:W\033\
-'0,5:W\033Q1&32\"N-1,5:W\033'''Q1&(64#1)\"EOYANK\033'Q1&64\"\
-N\0259GTE\033\174\0259VTE\033':EG^EQ9\033\"S\0251\
-\033G*\031X9\031K\174:\0259DIT\033:Q1\"E-1EJ-5*-1EJ-1024\"EEN[\
-]*.*\033:EN\033\"SZJ.U0G*Q0JS[\033RQ0,.KFS.\033]\033Q0\
-JS]\033Q0,.X1Q0,ZK'''':Q9\"N:EI^EQ1^EQ9\033\"SQ1#2048-2048U1O\
-YANK\033'':EGLIB\033\"SG*\031X1\031K\174\0251\033\
-':Q1\"E\0251LB:[1,2]\033-1EJ-7\"E\0251SY:\033'-1EJ-5*-1EJ-1024\"E\
-1SYS$LIBRARY:\033'-1EJ-4\"E\0251$\033''Q1&64\"N\0259GTEDI\
-T\033\174\0259VTEDIT\033':Q1\"N:EI^EQ1^EQ9\033\"SQ1#20\
-48-2048U1OYANK\033''\001%The \001:G9\001 macro is not avai\
-lable\015\012\001!YANK!Q1&2048\"NY'JQ1&8\"N\001Finding posi\
-.ASCII  ?tion marker...?<13><10><1>?EW?<27>?G*?<25>?X0?<25>?K-1?<24>
-.ASCII  ?:Q0"N:FN?<126><126>?/\?<126><126><13><10><27><27>?U?
-.ASCII  ?0?<124>?:F_?<126><126>?/\?<126><126><13><10><27><27>
-.ASCII  ?U0'0?<24>?Q0"U?<1><63>?Position marker not found?<63><13><10>
-.ASCII  <1><3><3>?''Q1&128"NET&512"E?<1>?%Your terminal is not an ?
-.ASCII  ?interactive scope?<13><10><1><124>?Q2"E2:W/4U2'0,3:W?<27>
-.ASCII  ?Q1&16"N-1,3:W?<27>?'0,5:W?<27>?Q1&32"N-1,5:W?<27>?'Q2,7:W-Q2"N?<1>
-.ASCII  ?%Your terminal doesn't support scrolling?<13><10><1><124>
-.ASCII  ?-1EV'''!DONE!]1]0Q0ET]0Q0ES]0Q0EU]0Q0ED]0Q0?<24>?]0Q0?<18>?]2]0?
-.ASCII  ?]90,0XY]9]8]7]6]5]4]3]2]1]0?
-";
+:@EG%INI%"S G* J ::@FS%$%%"S HX1 HK
+:@ER%^EQ1%"S Y HX1 HK EC G1 |
+@^A/%Can't find initialization file "/ :G1 @^A/"
+/ ' ' 0,0X1 |
+! Else form default directory specification	!
+0,0X1 -1EJ-1024"E @EN%[]*.*% :@EN%%"S G*
+J @S%[% R 0K @FS%.%]% J @S%]% 0,.X1 HK ' '
+! Try for initialization from TECO.INI		!
+:@ER%^EQ1TECO.INI%"S Y HX9 HK EC G9 0,0X9 ' '
+! Use private initializer code if any		!
+@ER%% @EW%% Z"N ZJ .U0 G1 @I%=% G0 Q0J ZX9 ZK
+]1
+]0 Q0ET
+]0 Q0ES
+]0 Q0EU
+]0 Q0ED
+]0 Q0^X
+]0 Q0^R
+]2
+HX0 HK G9 J @S%=% 0,.-1X9 0,.K M0+0U9
+0,0X0
+[2 0,0X2
+10U0 [0 ^D
+^XU0 [0 0^X
+EDU0 [0 ED&4ED
+EUU0 [0 -1EU
+ESU0 [0 0ES
+ETU0 [0 32768#32#8#1,0ET
+[1
+G9 ^YX1 ^YK 0,0X9
+! Set initializer defaulted bit encoded flags	!
+Q9U1
+! Fix up spacing on command again		!
+J ::@FS%^ES%%^[ ZJ -:@S%^ES%"S .-Z"E @FR%% ' '
+! Is there any command there at all?		!
+Z"E @O!SCOPES! '
+! End of private initializer processing		!
+| G0 ' '
+! Parse /NOMEMORY if present			!
+J :@FS%^ES/NOM%%"S @O!/NOMEMORY! '
+J :@FS%/NOM%%"S !/NOMEMORY!
+::@FS%E%%"S ::@FS%M%%"S ::@FS%O%%"S ::@FS%R%%"S ::@FS%Y%%^[ ' ' ' '
+::@FS%^ES%%"S 0A"A @I% % ' ' Q1#4U1 '
+! Parse /NOCREATE if present			!
+J :@FS%^ES/NOC%%"S @O!/NOCREATE! '
+J :@FS%/NOC%%"S !/NOCREATE!
+::@FS%R%%"S ::@FS%E%%"S ::@FS%A%%"S ::@FS%T%%"S ::@FS%E%%^[ ' ' ' '
+::@FS%^ES%%"S 0A"A @I% % ' ' Q1#256U1 '
+! "TECO @file" is "MUNG file" if not RSTS/E	!
+-1EJ-4"N J ::@S%TE%"S < 0A"A C > ' ::@S%^ES@%"S
+0K @I%MUNG % ' ' '
+! - - - - - - - - - - - - - - - - - - - - - - - !
+!	Decode MUNG command			!
+! - - - - - - - - - - - - - - - - - - - - - - - !
+! Is the command 'MUNG' ?			!
+J ::@FS%MU%%"S
+! Yes, it is 'MUNG', do correct thing		!
+< 0A"A D > ' ::@FS%^ES%%^[
+! Remove a leading " if VAX/VMS			!
+-1EJ-1024"E J ::@FS%"%%"S ::@FS%^ES%%^[ ' '
+! Isolate the file to MUNG and argument string	!
+ZU0
+J :@S%/%"S R .-Q0"L .U0 ' '
+J :@S%^ES%"S .-Q0"L .U0 ' '
+J < @S%,%; .U1
+Q1-1J -:@S%[%"S :@S%]%"S .-Q1"G F< ' ' '
+Q1-1J -:@S%<%"S :@S%>%"S .-Q1"G F< ' ' '
+Q1-1J -:@S%(%"S :@S%)%"S .-Q1"G F< ' ' '
+Q1-1J .-1-Q0"L D .U0 ' 0; >
+Q0J < -.; -1A-32"N -1A-9"N 0; ' ' -D >
+0,.X0 ::@S%^ES%^[ 0,.K
+:Q0"E @^A/?How can I MUNG nothing?
+/ ^C^C '
+@EI%^EQ0% J @O!DONE!
+! End of 'MUNG' command processing		!
+'
+! - - - - - - - - - - - - - - - - - - - - - - - !
+!	Decode common command switches		!
+! - - - - - - - - - - - - - - - - - - - - - - - !
+! Parse /GTEDIT if present			!
+J :@FS%^ES/GT%%"S @O!/GTEDIT! '
+J :@FS%/GT%%"S !/GTEDIT!
+::@FS%E%%"S ::@FS%D%%"S ::@FS%I%%"S ::@FS%T%%^[ ' ' '
+::@FS%^ES%%"S 0A"A @I% % ' ' Q1#64U1 '
+! Parse /VTEDIT if present			!
+J :@FS%^ES/VT%%"S @O!/VTEDIT! '
+J :@FS%/VT%%"S !/VTEDIT!
+::@FS%E%%"S ::@FS%D%%"S ::@FS%I%%"S ::@FS%T%%^[ ' ' '
+! Sub-parse :HOLD if present			!
+::@FS%:H%%"S
+::@FS%O%%"S ::@FS%L%%"S ::@FS%D%%^[ ' '
+Q1#32U1 '
+! Sub-parse :SEEALL if present			!
+::@FS%:S%%"S
+::@FS%E%%"S ::@FS%E%%"S ::@FS%A%%"S ::@FS%L%%"S ::@FS%L%%^[ ' ' ' '
+Q1#16U1 '
+! Sub-parse :HOLD again if present		!
+::@FS%:H%%"S
+::@FS%O%%"S ::@FS%L%%"S ::@FS%D%%^[ ' '
+Q1#32U1 '
+::@FS%^ES%%"S 0A"A @I% % ' ' Q1#1U1 '
+! Parse /SCROLL if present			!
+J :@FS%^ES/SC%%"S @O!/SCROLL! '
+J :@FS%/SC%%"S !/SCROLL!
+::@FS%R%%"S ::@FS%O%%"S ::@FS%L%%"S ::@FS%L%%^[ ' ' '
+! Sub-parse :n if present			!
+::@S%:^ED%"S R -D \U2 @FR%% | 0U2 '
+! Sub-parse :SEEALL if present			!
+::@FS%:S%%"S
+::@FS%E%%"S ::@FS%E%%"S ::@FS%A%%"S ::@FS%L%%"S ::@FS%L%%^[ ' ' ' '
+Q1#16U1 '
+::@FS%^ES%%"S 0A"A @I% % ' ' Q1#128U1 '
+! - - - - - - - - - - - - - - - - - - - - - - - !
+!	Decode TECO command			!
+! - - - - - - - - - - - - - - - - - - - - - - - !
+! Is the command 'TECO' ?			!
+J ::@FS%TE%%"S
+! Yes, it is 'TECO', do correct thing		!
+< 0A"A D > ' ::@FS%^ES%%^[
+! Parse /INSPECT if present			!
+J :@FS%^ES/IN%%"S @O!/INSPECT! '
+J :@FS%/IN%%"S !/INSPECT!
+::@FS%S%%"S ::@FS%P%%"S ::@FS%E%%"S ::@FS%C%%"S ::@FS%T%%^[ ' ' ' '
+::@FS%^ES%%"S 0A"A @I% % ' ' Q1#2U1 '
+! Parse /FIND if present			!
+J :@FS%^ES/FI%%"S @O!/FIND! '
+J :@FS%/FI%%"S !/FIND!
+::@FS%N%%"S ::@FS%D%%^[ '
+::@FS%^ES%%"S 0A"A @I% % ' ' Q1#8U1 '
+! Now strip out all non-quoted spaces/tabs	!
+J < .-Z; 0A-9"E D F< ' 0A-32"E D F< ' C -1A-^^""E :@S%"%"U ZJ ' ' >
+! Default file if none and not /NOMEMORY	!
+Q1&4#Z"E :@EG%MEM%"S G* J ::@FS%$%%"S F| ' |
+! Form default directory specification if none	!
+Z"E :Q1"E -1EJ-1024"E @EN%[]*.*% :@EN%%"S G*
+J @S%[% R 0K @FS%.%]% J @S%]% 0,.X1 HK ' ' '
+! Form file specification of memory if none	!
+:Q9"E 0EJ+100\ J D G1 @I%TECF% ZJ @I%.TMP%
+-1EJ-4"E @I%<60>/MODE:#3000% |
+-1EJ-7"N @I%;1/-CR% ' ' HX9 HK ' G9 '
+! Try to read the memory file			!
+HX0 HK EP EA EF :@ER%^EQ0%"S Y L
+."N -1A-10"E -D ' ' ."N -1A-13"E -D ' '
+ZK HX0 HK EC G0 ' @ER%% @EW%% 0,0X0 '
+! Strip all non-quoted spaces/tabs from memory	!
+J < .-Z; 0A-9"E D F< ' 0A-32"E D F< ' C -1A-^^""E :@S%"%"U ZJ ' ' >
+! Parse /FIND on memory if present		!
+J :@FS%/FI%%"S
+::@FS%N%%"S ::@FS%D%%^[ '
+Q1#8192#8U1 '
+! Say memory used if we found something		!
+Z"N Q1#32768#16384U1 ' '
+! Announce the file if requested		!
+Q1&16384"N Q1&2"E @^A/Edi/ | @^A/Inspec/ '
+@^A/ting file "/ HT @^A/"
+/ '
+! Exit or error if no file			!
+Z"E Q1&2"E @O!SCOPES! '
+@^A/?How can I inspect nothing?
+/ ^C^C '
+! Check for output=input format			!
+Q1&2"E J :@S%=%"S 0,.-1X0 0,.K ZU0 HX2 HK
+:Q2"N :@ER%^EQ2%"U G2 HX0 HK @O!NOTFND! ' '
+:Q0"N @EW%^EQ0% ' Q0"N Q1#2048U1 ' @O!REMEM! ' '
+! Check for editing file			!
+HX0 HK Q1&2"E :@EB%^EQ0%"S Q1#2048U1 @O!REMEM! '
+Q1&256"N Q1&32768"E @O!NOTFND! ' '
+@^A/%Can't find file "/ :G0 @^A/"
+/ Q1&32768"E @^A/%Creating new file
+/ @O!CREATE! | @^A/%Ignoring TECO's memory
+/ Q1#8192U1 0,0X0 @O!REMEM! ' '
+! It must be inspect file by now...		!
+:@ER%^EQ0%"S Q1#2048U1 @O!SCOPES! '
+! File not found type error, so say so		!
+!NOTFND!
+@^A/?Can't find file "/ :G0 @^A/"?
+/ ^C^C
+! End of 'TECO' command processing		!
+'
+! - - - - - - - - - - - - - - - - - - - - - - - !
+!	Decode MAKE command			!
+! - - - - - - - - - - - - - - - - - - - - - - - !
+! Is the command 'MAKE' ?			!
+J ::@FS%MA%%"S
+! Yes, it is 'MAKE', do correct thing		!
+< 0A"A D > ' ::@FS%^ES%%^[
+! Now strip out all non-quoted spaces/tabs	!
+J < .-Z; 0A-9"E D F< ' 0A-32"E D F< ' C -1A-^^""E :@S%"%"U ZJ ' ' >
+! Check for null and fancy messages...		!
+Z"E @^A/?How can I MAKE nothing?
+/ ^C^C '
+Z-4"E J ::@S%LOVE%"S @^A/Not war?
+/ ' '
+! Set file for creation				!
+HX0 HK
+! Do file creation				!
+!CREATE!
+@EW%^EQ0% @O!REMEM!
+! End of 'MAKE' command processing		!
+'
+! - - - - - - - - - - - - - - - - - - - - - - - !
+!	We couldn't recognize the command	!
+! - - - - - - - - - - - - - - - - - - - - - - - !
+! We could not recognize this command		!
+@^A/%Unrecognized command "/ HT HK @^A/"
+/ @O!SCOPES!
+! - - - - - - - - - - - - - - - - - - - - - - - !
+!	Write TECO's memory			!
+! - - - - - - - - - - - - - - - - - - - - - - - !
+!REMEM!
+! Remember the file name in Q0 if desired	!
+Q1&8192"N @O!WRITE! '
+Q1&(32768#4)"N @O!SCOPES! '
+:Q0"E @O!SCOPES! '
+! Write the memory				!
+!WRITE!
+:@EG%MEM%"S ZJ G* ^SC
+::@FS%$%%"U ZK :@EG%MEM ^EQ0%^[ | ZX9 ZK F| ' |
+! Form default directory specification if none	!
+:Q9"E :Q1"E -1EJ-1024"E @EN%[]*.*% :@EN%%"S ZJ .U0 G* Q0J
+@S%[% R Q0,.K @FS%.%]% Q0J @S%]% Q0,.X1 Q0,ZK ' ' '
+! Form file specification of memory if none	!
+G1 ^YX9 ^YK :@^U9%TECF%
+0EJ+100\ .-2,.:X9 -3D :@^U9%.TMP%
+-1EJ-4"E :@^U9%<60>/MODE:#3000% |
+-1EJ-7"N :@^U9%;1/-CR% ' ' '
+! Write the memory file				!
+EA :@EW%^EQ9%"S G0 ^YPW ^YK ' EF @EW%% '
+! - - - - - - - - - - - - - - - - - - - - - - - !
+!	Invoke scope editing macro		!
+! - - - - - - - - - - - - - - - - - - - - - - - !
+!SCOPES!
+! If /GTEDIT specified, do scope check		!
+Q1&64"N ET&1024"E @^A/%You don't have a refresh scope
+/ Q1#64-64U1 ' '
+! If /VTEDIT specified, check scope; set modes	!
+Q1&1"N ET&512"E @^A/%Your terminal is not an interactive scope
+/ Q1#1-1U1 | 0,3:W^[ Q1&16"N -1,3:W^[ ' 0,5:W^[ Q1&32"N -1,5:W^[ ' ' '
+! Give up if all scopes were disabled		!
+Q1&(64#1)"E @O!YANK! '
+! Find where the scope editing macro is located	!
+Q1&64"N @^U9%GTE% | @^U9%VTE% '
+:@EG%^EQ9%"S @^U1%% G* ^YX9 ^YK | :@^U9%DIT%
+! Form default directory specification if none	!
+:Q1"E -1EJ-1024"E @EN%[]*.*% :@EN%%"S ZJ .U0 G* Q0J
+@S%[% R Q0,.K @FS%.%]% Q0J @S%]% Q0,.X1 Q0,ZK ' ' ' '
+! Try to get the scope editing macro		!
+:Q9"N :@EI%^EQ1^EQ9%"S Q1#2048-2048U1 @O!YANK! ' '
+! Form library directory specification		!
+:@EG%LIB%"S G* ^YX1 ^YK | @^U1%% ' :Q1"E
+@^U1%LB:[1,2]% -1EJ-7"E @^U1%SY:% '
+-1EJ-1024"E @^U1%SYS$LIBRARY:% ' -1EJ-4"E @^U1%TECO$:% ' '
+! Try to get the scope editing macro again	!
+Q1&64"N @^U9%GTEDIT% | @^U9%VTEDIT% '
+:Q1"N :@EI%^EQ1^EQ9%"S Q1#2048-2048U1 @O!YANK! ' '
+@^A/%The / :G9 @^A/ macro is not available
+/
+! - - - - - - - - - - - - - - - - - - - - - - - !
+!	Do a Yank command if needed		!
+! - - - - - - - - - - - - - - - - - - - - - - - !
+!YANK!
+! Do a Yank command if needed and won't be done	!
+Q1&2048"N Y '
+! - - - - - - - - - - - - - - - - - - - - - - - !
+!	Find position marker			!
+! - - - - - - - - - - - - - - - - - - - - - - - !
+! If /FIND specified, find the ~~/\~~		!
+J Q1&8"N @^A/Finding position marker...
+/ @EW%% G* ^YX0 ^YK -1^X
+:Q0"N :@FN%~~/\~~
+%%U0 | :@F_%~~/\~~
+%%U0 ' 0^X
+Q0"U @^A/?Position marker not found?
+/ ^C^C ' '
+! - - - - - - - - - - - - - - - - - - - - - - - !
+!	Enter scrolling mode			!
+! - - - - - - - - - - - - - - - - - - - - - - - !
+! If /SCROLL specified, check scope; set modes	!
+Q1&128"N ET&512"E @^A/%Your terminal is not an interactive scope
+/ | Q2"E 2:W/4U2 ' 0,3:W^[ Q1&16"N -1,3:W^[ ' 0,5:W^[ Q1&32"N -1,5:W^[ '
+Q2,7:W-Q2"N @^A/%Your terminal doesn't support scrolling
+/ | -1EV ' ' '
+! - - - - - - - - - - - - - - - - - - - - - - - !
+!	Restore caller's operating environment	!
+! - - - - - - - - - - - - - - - - - - - - - - - !
+!DONE!
+! All finished, restore context			!
+]1
+]0 Q0ET
+]0 Q0ES
+]0 Q0EU
+]0 Q0ED
+]0 Q0^X
+]0 Q0^R
+]2
+]0
+]9
+! 0,0XY (** added if we're in Y)		!
+! Final double ESCape (** deleted if we're in Y)!
+
