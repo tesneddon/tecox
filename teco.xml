@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-<book xmlns="http://docbook.org/ns/docbook" version="5.0"
-      xmlns:xi="http://www.w3.org/2001/XInclude">
-  <xi:include href="intro.xml"/>
-  <xi:include href="ch_bas.xml"/>
-</book>
