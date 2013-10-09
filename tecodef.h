@@ -37,6 +37,7 @@
 **	01-FEB-2012 V41.06  Sneddon   Moving external routine declarations in
 **				      here as well.
 **	07-MAR-2012 V41.07  Sneddon   Added x86-64/amd64.
+**	09-OCT-2013 V41.08  Sneddon   Replaced [u]intXX_t with C99 [u]intmax_t
 **--
 */
 #ifndef __TECODEF_LOADED
@@ -240,21 +241,6 @@
 # error "unknown architecture"
 #endif
 
-/*
-** Define machine word size data type.
-*/
-#if (TECO_K_WORD_SIZE == 16)
-# error "16-bit systems may be supported soon..."
-#elif (TECO_K_WORD_SIZE == 32)
-    typedef int32_t intXX_t;
-    typedef uint32_t uintXX_t;
-#elif (TECO_K_WORD_SIZE == 64)
-    typedef int64_t intXX_t;
-    typedef uint64_t uintXX_t;
-#else
-# error "word size unsupported by TECO"
-#endif
-
 #ifdef TRUE
 # undef TRUE
 #endif
@@ -269,7 +255,7 @@
 */
     typedef struct _qrgdef {
 	struct _qrgdef	*qrg_next;	/* Q-register next in PDL	    */
-	intXX_t		qrg_value;	/* Q-register's 'VALUE'		    */
+	intmax_t	qrg_value;	/* Q-register's 'VALUE'		    */
     	uint8_t		*qrg_ptr;	/* Q-register's Text Pointer	    */
     	uint16_t	qrg_size;	/* Q-register's size		    */
     	uint16_t	qrg_alloc;	/* Q-register's space alloc	    */
@@ -396,6 +382,31 @@
 #define RADIX_OCT 1			/* Octal radix			    */
 #define RADIX_HEX 2			/* Hexidecimal radix		    */
 #define RADIX_MAX 2
+
+    struct TECFAB {
+    	uint32_t tecsts;
+	void *tecque;
+	void *tecdsp;
+	uint32_t tecctl;
+	struct FILEHANDLE *tecfab; // ?
+    };
+
+#define TECO_M_TECEOF	0x0001	    	/* at end-of-file		    */
+#define TECO_M_TECNO1ST 0x0002	    	/* not first time through	    */
+#define TECO_M_TECBUF	0x0004	    	/* use buffered data instead of file*/
+#define TECO_M_TECICR	0x0008	    	/* <cr> ignored, need <cr><lf> on   */
+					/*  eof				    */
+#define TECO_M_TECECR	0x0010		/* extra <cr> output, do <lf> next  */
+#define TECO_M_TECNXT	0x0020		/* pre-fetched character exists	    */
+					/*  (@ + 3)			    */
+#define TECO_M_TECFMT	0x0040		/* /-cr, /cr, or /ft specified	    */
+#define TECO_M_TECRW	0x0080		/* /rw - rewind magtape before opens*/
+#define TECO_M_TECSH	0x0100		/* /sh - shared open		    */
+#define TECO_M_TECB2	0x0200		/* /b2 - basic-plus-2 mode	    */
+#define TECO_M_TECNV	0x0400		/* /nv - always create a new version*/
+#define TECO_M_TECSTM	0x0800		/* /stm - stream format specified   */
+#define TECO_M_TECVAR	0x1000		/* /var - variable format specified */
+
 
 /*
 **	Define the impure area, pointed to
@@ -536,9 +547,9 @@
     	uint8_t		*errptr;	/* Error string pointer		    */
     	int32_t		errcod;		/* Last status code reported by	    */
 					/*  the interpreter		    */
-    	uintXX_t	syserr;		/* System-specific error code, set  */
+    	uintmax_t	syserr;		/* System-specific error code, set  */
 					/*  when errcod is TECO__ERR	    */
-    	uintXX_t	syserr2;	/* Extension for VMS (RMS STV)	    */
+    	uintmax_t	syserr2;	/* Extension for VMS (RMS STV)	    */
     } TECODEF;
 
     typedef struct _scopedef {
