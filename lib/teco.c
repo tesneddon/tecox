@@ -53,10 +53,14 @@
 **					^C, nA, D, K.
 **	08-OCT-2012 V41.04  Sneddon	Add getstg for O and others.
 **	07-NOV-2012 V41.05  Sneddon	Add U, X.
+**	06-JUN-2013 V41.06  Sneddon	Add :^T.
+**	09-JUN-2013 V41.07  Sneddon	Switch to snprintf. Change to :^T.
+**					Fix definition of tecocmd.
+**	11-JUN-2013 V41.08  Sneddon	Add EG and fixe bug in getstg.
 **--
 */
 #define MODULE TECO
-#define VERSION "V41.05"
+#define VERSION "V41.08"
 #ifdef vms
 # ifdef VAX11C
 #  module MODULE VERSION
@@ -189,7 +193,7 @@ do { \
 ** Own Storage.
 */
 
-    const static uint8_t *tecocmd = (const uint8_t *)"\001Welcome to TECO!\001\033\033";  // Remove this in future...
+    const static uint8_t tecocmd[] = "\001Welcome to TECO!\001\033\033";  // Remove this in future...
     QRGDEF qreg_array[TECO_K_NUMQRG+1], qreg_local[TECO_K_NUMQRG];
 
 int32_t teco(void)
@@ -566,11 +570,14 @@ void teco_interp(void)
 		** No.  Character input from terminal.
 		*/
 		if (ctx.flags & TECO_M_CLNF) {
+		    uint32_t code;
+
 		    ctx.flags &= ~TECO_M_CLNF;
-		    // call tecolt
-		    // m = typecode
-		    // indicate m is active with CFLG (comma flag)
-		    // ncom the result
+
+		    code = tlistn();
+		    ctx.m = decode(&code);
+		    ctx.flags != TECO_M_CFLG;
+		    ncom(code);
 		} else {
 		    ncom(tlistn());
 		}
@@ -826,6 +833,11 @@ void teco_interp(void)
 		} else {
 		    ncom(ctx.eeflg);
 		}
+		break;
+
+	    case 'G':		/* "EG" is process special function */
+		getstg(&ctx.filbuf);
+		ncom(io_support.gexit());
 		break;
 
 	    case 'H':		/* "EH" is edit help level */
@@ -1472,7 +1484,7 @@ static void getstg(out)
     out->qrg_size = 0;
     getquo();
     chr = scan();
-    while ((chr = scan()) != ctx.quote) {
+    while (chr != ctx.quote) {
 	inslen = 1;
 	insptr = &chr;
 	upper = lower = 0;
@@ -1716,7 +1728,7 @@ static void zerod(flags)
     else
 	format ="%d";
 
-    outlen = sprintf(outbuf, format, ctx.n);
+    outlen = snprintf(outbuf, sizeof(outbuf), format, ctx.n);
     if (flags == TECO_K_ZEROD_TXBUF) {
 	txadj(outlen);
 	memcpy(&ctx.txstor[ctx.p + ctx.lschsz], outbuf, outlen);

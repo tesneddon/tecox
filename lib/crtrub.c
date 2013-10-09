@@ -28,6 +28,7 @@
 **  MODIFICATION HISTORY:
 **
 **      08-NOV-2011 V1.0    Sneddon	Initial coding.
+**      06-JUN-2013 V1.0    Sneddon	Added decode.
 **--
 */
 #define MODULE TECO_CRTRUB
@@ -84,97 +85,77 @@
 **	None.
 **--
 */
-uint32_t decode(code,
-		type)
-    uint32_t *code;
-    uint32_t *type;
+uint32_t decode(cptr)
+    uint32_t *cptr;
 {
-    uint8_t chr = *code;
-    uint32_t etype = ctx.etype;
-    int32_t status = 0;
+    uint32_t code = *cptr, etype = ctx.etype, type = 0;
+    int32_t status;
 
-    if ((chr != TECO_C_ESC)
-	&& (chr != TECO_C_SS3)
-	&& (chr != TECO_C_CSI))
-	return status;
+    if ((code != TECO_C_ESC)
+	&& (code != TECO_C_SS3)
+	&& (code != TECO_C_CSI))
+	return type;
 
     ctx.etype |= TECO_M_ET_CC | TECO_M_ET_LC;
     ctx.etype &= ~TECO_M_ET_CKE;
 
-    if (chr == TECO_C_ESC) {
-	/* Fetch the next character in the escape sequence.
-	*/
-	chr = tlistn();
-	if (chr & 0x9f) {
-	    /* <escape><ctrl-char> (0)
-	    */
-	    status = 0;
-	} else {
-	    status = 1;
-	    if (chr == ']') {
-		//
-	    } else {
-		if (chr == '?') {
-		    /* <escape><?><char> (2)
-	 	    */
-		    status = 2;
-		    chr = tlistn();
-	    	} else if (chr == '0') {
-		    if ((chr < 'A') && (chr > 'Z'))
-		        status = 2;
-		}
+    switch (code) {
+    case TECO_C_ESC:
+	code = tlistn();
+	if (iscntrl(code)) {
+	    type = 0;
+	} else if (code == '[') {
+	    code = tlistn();
+	    if (isdigit(code)) {
+		int i = 0;
 
-		chr &= 0x1f; /* Trim character to 5 bits. */
+		type = 3;
+	    	do {
+		    i = (i * 10) + (code - '0');
+	    	} while (isdigit(code = tlistn()));
+		code = i;
+	    } else {
+		type = 1;
+		code = tlistn();
+	    }
+	} else if (code == '?') {
+	    type = 2;
+	    code = tlistn();
+	} else if (code == 'O') {
+	    code = tlistn();
+	    if (isupper(code)) {
+		type = 1;
+	    } else {
+		type = 2;
 	    }
 	}
+	break;
 
-	// if chr & 0x9f)
-	    // <escape><ctrl-char> (0)
-	    // status = 0
-	// else
-	    // status = 1
-	    // if (chr == '[')
-		// is <escape><[><char>
-		// beql 100$ -- this part needs to fall through to the ss3/csi handler
-	    // else if (chr == '?')
-		// <escape><?><char>
-		// status = 2
-		// chr = tlistn();
-	    // else if (chr == 'O'
-		// chr = tlistn();
-		// if (chr < 'A') && (chr > 'Z')
-		    // status = 2
-	    // 50$:    BICB    #^C<^X1F>,R2    ; Trim character to 5 bits
+    case TECO_C_SS3:
+	code = tlistn();
+	if (islower(code)) {
+	    type = 2;
+	} else {
+	    type = 1;
+	}
+	break;
 
-	//60$:    TSTW    ETYPE(R11)      ; Is control/c trap still on?
-	//        BLSS    70$             ; Yes
-	//        BICW    #TECO_M_ET$CC,(SP); No, ensure it stays off
-	//70$:    BICW    #^C<TECO_M_ET$CC!TECO_M_ET$CKE!TECO_M_ET$LC>,-
-	//                (SP)            ; Trim saved "etype"
-	//        BICW    #TECO_M_ET$CC!TECO_M_ET$CKE!TECO_M_ET$LC,-
-	//                ETYPE(R11)      ; Turn off our bits
-	//        BISL    (SP)+,ETYPE(R11); Then restore original "etype"
-	//        MOVL    #1,R0           ; Set r0=1 for decoded sequence
+    case TECO_C_CSI:
+	code = tlistn();
+	if (isdigit(code)) {
+	    int i = 0;
+
+	    type = 3;
+	    do {
+	    	i = (i * 10) + (code - '0');
+	    } while (isdigit(code = tlistn()));
+	    code = i;
+	} else {
+	    type = 1;
+	}
+	break;
     }
 
-
-// Only handle this part if we are supposed to...Need to fall through here
-// if we have not altered 'code'.
-
-//90$:    INCL    R3              ; Set code for <escape><char> (1)
-//        CMPB    R2,#SS3         ; Was initial character <ss3>?
-//        BEQL    20$             ; Yep, go check the next character...
-//100$:   BSBW    TLISTN          ; Get character following <escape><[>
-//        BSBB    120$            ; Check for digit (0-9) range
-//        BGTRU   50$             ; Not a digit, it's code 1
-//        CLRL    R3              ; Else zero our sequence value
-//110$:   MOVL    R3,R2           ; Save old value *1
-//        MULL2   #10, R3         ; Old value *10
-//        ADDL    R4,R3           ; Add new digit to old value
-//        BSBW    TLISTN          ; Get the next character
-//        BSBB    120$            ; Check for still digit (0-9) range
-//        BLEQU   110$            ; A digit, loop...
-//        MOVL    R3,R2           ; Else move sequence value to here
-//        MOVL    #3,R3           ; Code for <escape><[><digit(s)><tilde> (3)
-//        BRB     60$             ; Go exit
+    *cptr = code;
+    return type;
 }

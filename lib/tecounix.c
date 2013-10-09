@@ -6,7 +6,7 @@
 **
 **  AUTHOR:             Tim E. Sneddon
 **
-**  Copyright (C) 2011 Tim E. Sneddon <tim@sneddon.id.au>
+**  Copyright (C) 2013 Tim E. Sneddon <tim@sneddon.id.au>
 **
 **  This program is free software: you can redistribute it and/or modify
 **  it under the terms of the GNU General Public License as published by
@@ -28,10 +28,12 @@
 **      08-NOV-2011 V41.00  Sneddon	Initial coding.
 **	15-DEC-2011 V41.01  Sneddon	Originaly termios.c, now covers
 **					a broader range of support.
+**	06-JUN-2013 V41.02  Sneddon	Re-arrange getcmd.
+**	10-JUN-2013 V41.03  Sneddon	Add :EG support.
 **--
 */
 #define MODULE TECOUNIX
-#define VERSION "V41.01"
+#define VERSION "V41.03"
 #ifdef vms
 # ifdef VAX11C
 #  module MODULE VERSION
@@ -61,6 +63,7 @@
     static int32_t ejflg();
     static int32_t etflg();
     static int32_t getcmd();
+    static int32_t gexit();
     static void sigcont_handler();
 
 /*
@@ -77,6 +80,7 @@
 	ejflg,
 	etflg,
 	getcmd,
+	gexit,
     };
 
 /*
@@ -269,13 +273,115 @@ static int32_t getcmd()
 {
     int32_t i = 0;
 
-    qset(0, argv[i], strlen(argv[i++]));
-    while (i < argc) {
-	qset(1, argv[i], strlen(argv[i++]));
+    qset(0, argv[i], strlen(argv[i]));
+    while (++i < argc) {
 	qset(1, " ", 1);
+	qset(1, argv[i], strlen(argv[i]));
     }
 
     return TECO__NORMAL;
+}
+
+static int32_t gexit()
+{
+    int32_t cmdlen, status = 0, varlen;
+    uint8_t *cp, *sp;
+    uint8_t *cmd, *var;
+
+    if (!(ctx.flags & TECO_M_CLNF)) {
+	char *shell;
+
+	if ((shell = getenv("TEC_SHELL")) == 0)
+	    shell = getenv("SHELL");
+
+	cmd = malloc(ctx.filbuf.qrg_size);
+	if (cmd == 0)
+	    ERROR_MESSAGE(MEM);
+	memcpy(cmd, ctx.filbuf.qrg_ptr, ctx.filbuf.qrg_size);
+	cmd[ctx.filbuf.qrg_size] = '\0';
+
+	execl(shell, "-c", cmd);
+
+	/*
+	** The only way we will get here is if something went terribly
+	** wrong, so no need to check, just assume the worst.
+	*/
+    	ctx.syserr = errno;
+	ERROR_MESSAGE(ERR);
+    }
+
+    if (strncasecmp(cmd, "SPA", 3) == 0) {
+    } else {
+	if (strncasecmp(cmd, "INI", 3) == 0) {
+	    if (var == 0) {
+		path = getenv("TEC_INIT");
+		if (path == 0) {
+		    struct stat sb;
+
+		    if (asprintf(&path, "$%s/.tecorc", getenv("HOME")) == -1)
+			ERROR_MESSAGE(MEM);
+
+		    if (stat(path+1, &sb) != 0) {
+			free(path);
+			path = 0;
+		    }
+		} else {
+		    path = strdup(path);
+		    if (path == 0)
+			ERROR_MESSAGE(MEM);
+		}
+	    } else if (varlen == 0) {
+		// set the environment variable to an empty string so
+		// future translations won't catch ~/.tecorc
+	    } else {
+		// allocate "var=name"		
+		// set TEC_INIT to var
+	    }
+	} else if (strncasecmp(cmd, "MEM", 3) == 0) {
+	    if (var == 0) {
+		// path = getenv("TEC_MEMORY")
+		// if path == 0
+		    // stat $~/.tecomem
+		// else
+		    //
+	    } // else if varlen == 0
+		// stat ~/.tecomem
+		// if found
+		    // unlink
+	    // else
+		// symlink to ~/.tecomem
+	}
+    }
+
+// Maybe we actually need to do this with some hidden files...
+	// INI = ~/.tecinit or TEC_INIT
+	// MEM = ~/.tecmemory
+	// LIB = /usr/share/teco (or something like that) overriden by TEC_LIBRARY
+	// VTE = ${TEC_LIBRARY}/vtedit.tec overridden by TEC_VTEDIT
+
+	// SHE[LL] = TEC_SHELL or SHELL...allowing it to be used by
+	// SPA[WN] = execve(getenv("SHELL"), "-c", cmd);
+
+
+#if 0
+
+The definitive guide on MEM on UNIX...no more TEC_MEMORY!
+
+Getting:
+
+	Open ~/.tecmemory.  If there, read it in.
+
+Clearing:
+
+	If ~/.tecmemory is present.  Delete it.
+
+Setting:
+
+	Open ~/.tecmemory and write the buffer into it.
+
+#endif
+
+    return status;
 }
 
 static void sigcont_handler(signum)
@@ -285,3 +391,4 @@ static void sigcont_handler(signum)
 	tcsetattr(STDIN_FILENO, TCSANOW, &attr);
     }
 }
+

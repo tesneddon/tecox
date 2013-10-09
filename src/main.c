@@ -26,10 +26,11 @@
 **  MODIFICATION HISTORY:
 **
 **      09-OCT-2011 V41.00  Sneddon	Initial coding.
+**      06-JUN-2013 V41.01  Sneddon	Fixed silly bug in setting argc/argv.
 **--
 */
 #define MODULE TECOMAIN
-#define VERSION "V41.00"
+#define VERSION "V41.01"
 #ifdef vms
 # ifdef VAX11C
 #  module MODULE VERSION
@@ -57,7 +58,7 @@ int main(c,
 {
     uint32_t status;
 
-#ifdef unix
+#if defined(unix) || defined(__unix__)
     /*
     ** On UNIX-ish systems we use this little hack to pass the command line
     ** pointers back to io_support.getcmd.  Wish we had LIB$GET_FOREIGN for
