@@ -1,0 +1,5 @@
+lib_LTLIBRARIES = libteco.la
+libteco_la_SOURCES = tecocmd.c tecomsg.c tecounix.c crtrub.c teco.c tecoio.c \
+                     tecoutil.c
+libteco_la_CPPFLAGS = -I$(top_srcdir)/include
+
