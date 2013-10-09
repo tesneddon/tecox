@@ -209,6 +209,30 @@ uint8_t listen(isfirst)
     return chr;
 }
 
+void teco_getfl(chr)
+    uint8_t chr;
+{
+    if (ctx.filbuf.qrg_size == 0) {
+    	switch (chr) {
+	case 'I':
+	    ctx.indir = 0;
+	    //close off the file...
+	    break;
+    	}
+    } else {
+	// parse input file spec...
+
+	switch (chr) {
+	case 'I':
+	    //close_indir
+	    //r6=indir_cmd_fab,r7=cmdprm
+	    break;
+	}
+
+	// common code here...
+    }
+}
+
 void teco_delch(void)
 {
     if (ctx.qpntr->qrg_size > 0) {

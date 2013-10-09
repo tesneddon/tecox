@@ -832,6 +832,17 @@ void teco_interp(void)
 		flag = &ctx.ehelp;
 		break;
 
+	    case 'B':
+	    case 'I':
+	    case 'N':
+	    case 'R':
+	    case 'W':
+		getsrg(&ctx.filbuf);
+		irest();
+		ctx.temp = ctx.n;
+		getfl(cmd); 
+		break;
+
 	    case 'J': {		/* "EJ" is return environment characteristics */
 		int n;
 
