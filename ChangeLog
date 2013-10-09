@@ -1,0 +1,6 @@
+2013-08-15  Tim Sneddon	  <tim@sneddon.id.au>
+
+	* Version 41, Completely re-written TECO V40 in portable C.
+		      Re-written DECdocument manual in DocBook.
+		      Moved package into GNU autoconf structure.
+

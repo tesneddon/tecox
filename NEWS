@@ -1,0 +1,4 @@
+New in 41:
+* Moving to GNU autoconf structure for source.
+* Convert original DECdocument manual to DocBook.
+
