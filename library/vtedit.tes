@@ -1,0 +1,559 @@
+! ===================================================================== !
+!									!
+!	 !!VTEDIT.TEC V4-020!!						!
+!									!
+! Facility:	TECO macros						!
+!									!
+! Abstract:	This macro provides a full screen editor for TECO.	!
+!									!
+! Environment:	User mode.						!
+!									!
+! History:								!
+!									!
+!	02-Jun-1983, MHB, Version V39.00				!
+! 000 -	Original version - from RSTS/E distibution kit.			!
+!	24-Aug-1988, DBS; Version V4-001				!
+! 001 -	Modified for VMS (removed some non-VMS stuff).  Changes for	!
+!	LK201 keyboard.							!
+!	20-Dec-1990, DBS; version V4-005				!
+! 005 -	More enhancements... changed standard delimiter table.		!
+!	16-Jul-1992, DBS; Version V4-006				!
+! 006 -	Added <esc>U to allow underscoring [of the marked region]	!
+!	28-May-1993, DBS; Version V4-007				!
+! 007 -	Added <esc>G to append a signature file to the current buffer.	!
+!	Uses the logical SIG.						!
+!	12-Nov-1993, DBS; Version V4-008				!
+! 008 -	Added <esc>^D to delete mail file conversion stuff.		!
+!	20-Dec-1993, DBS; Version V4-009				!
+! 009 -	Added <esc>^W for use with vms_share'd files.			!
+!	10-Feb-1994, DBS; Version V4-010				!
+! 010 -	Added <esc>^\ to insert ">" at the start of each line - for	!
+!	replies to mail etc.  Also does a <esc>^G to append signature	!
+!	file to the end of the buffer.  (After making <esc>^G do the	!
+!	same as <esc>G.)  Nobbled <esc>^D for now - a bit dangerous.	!
+!	Nobbled <esc>^W as well.					!
+! 011 -	Made <esc>^D insert <cr><lf>"[ ... Stuff deleted ... ]"<cr><lf>	!
+!	for use with mail messages.					!
+!	07-Apr-1994, DBS; Version V4-012				!
+! 012 -	Fixed (kludged) problem with terminals higher than vt200 and	!
+!	not doing cursor addressing right at times.			!
+!	08-Apr-1992, DBS; Version V4-013				!
+! 013 -	More fixes to tidy up things to use ANSI escape sequences.	!
+! 014 -	More fixes to do more processing with mail processing		!
+!	11-Oct-1994, DBS; Version V4-015				!
+! 015 -	Made "page" forward and backward move by pagesize-1		!
+!	16-Feb-1995, DBS; Version V4-016				!
+! 016 -	Added checks to prevent the contents of L$, P$ and T$ from	!
+!	from being overwritten by ^T and ^X (I$ was already done).	!
+!	10-Mar-1995, DBS; Version V4-017				!
+! 017 -	Convert to upper/lower case now will not convert strings inside	!
+!	DOUBLE quotes (I may put code to handle single quotes as well	!
+!	as double quotes later)						!
+!	15-Mar-1995, DBS; Version V4-018				!
+! 018 -	Made <esc>^H quote each line with exclamation mark (will change	!
+!	it later to check file type and use appropriate quotes to	!
+!	comment out text, will also check for mark set...)		!
+! 019 -	Made <esc>^G be the same as <esc>^\ (due to SWIM).		!
+!	Now <esc>G gets the sig file, <esc>^G quotes the text then gets	!
+!	it.								!
+!	14-Aug-1996, DBS; Version V4-020				!
+! 020 -	<esc>^G no longer deletes any mail headers.			!
+!									!
+! Entry values: (i.e. nMI)						!
+!	none	Remember last search					!
+!	 =0	Remember last search					!
+!	>0	Simply start macro					!
+!	<0	Display help frame first				!
+!									!
+! Exit values: (i.e. MI=)						!
+!	none	Exited via CTRL/Z					!
+!	 >0	Exited via CTRL/C					!
+!	 <0	Never started (ET&512 = 0)				!
+!									!
+! Q-regs used:								!
+!	 I%	Terminal's ID						!
+!	 I$	This macro						!
+!	[M%	Formatter exception character(s)]			!
+!	[M$	Formatter]						!
+!	 0%	Left margin position					!
+!	 0$	Dispatch table						!
+!	 1%	Pre-buffered typed char					!
+!	 1$	Word delimiter table					!
+!	 2%	Non-zero => "6" will restore				!
+!	 2$	Last deleted text					!
+!	 3%	'Arg entered' flag					!
+!	 3$	Get character macro					!
+!	 4%	Start of 'BLUE key' save				!
+!	 4$	Dispatch key, prompt for string				!
+!	 5%	Numeric arg						!
+!	 5$	Print escape sequence					!
+!	 6%	Column number for within column				!
+!	 6$	Learning text						!
+!	 7%	Char typed, or -1=starting				!
+!	 7$	'BLUE key' saved text					!
+!	 8%	Scratch							!
+!	 8$	Last search arg						!
+!	 9%	Scratch							!
+!	 9$	'RED key' command					!
+!									!
+! ===================================================================== !
+
+!          +-------+-------+-------+-------+     +-------+---------------+	!
+!          | "F11" | "F12" | "F13" | "F14" |     | "Help"|     "Do"      |	!
+!          |Graph's|Select |Graph's|       |     |       |               |	!
+!          |  On   |Line Ch|  Off  | Spawn |     |  Help | TECO command* |	!
+!          +-------+-------+-------+-------+     +-------+---------------+	!
+
+!          +-------+-------+-------+-------+					!
+!          | "F17" | "F18" | "F19" | "F20" |					!
+!          | Back  |Forward|       |Save to|					!
+!          |by word|by word|       | Q q+* |					!
+!          +-------+-------+-------+-------+					!
+
+!          +-------+-------+-------+-------+  [ESC] ^A Append [no FF] text*	!
+!          | "PF1" | "PF2" | "PF3" | "PF4" |  [ESC] ^B Delete [next] word*	!
+!          | Save  | TECO* | Paste |       |        ^D Kill rest of line*	!
+!          | Text+*|command| text  |       | [ESC] ^Eq Execute [iter] Q-reg q*	!
+!          +-------+-------+-------+-------+  [ESC] ^F Forward [cont] over word* !
+! All (*)  |  "7"  |  "8"  |  "9"  |  "-"  |       ^Gq Get text from Q q	!
+! commands | Open  | Page* | Mark/ | Search|        ^K Kill line+*		!
+! take opt | line* |       | quote*| arg * |        ^N File search*		!
+! arg as:  +-------+-------+-------+-------+  [ESC] ^R Back [cont] over word*	!
+! ESC [-]  |  "4"  |  "5"  |  "6"  |  ","  |    ^T[:]q Cut text to Q q+*	!
+! <digits> | Up    | Delete|Delete/| End of|        ^U Kill start of line	!
+! <key(s)> | Line* | char* |restore| line *|  [ESC] ^V Alter screen [hold] mode* !
+!          +-------+-------+-------+-------+        ^W Set line*/re-paint	!
+! All (+)  |  "1"  |  "2"  |  "3"  |"Enter"|    ^X[:]q Save text in Q q+*	!
+! commands | Top of|Bottom | Start |       |        ^Y Yank next page*		!
+! operate  | page+*|of page|of line| Search|       ^\x Insert ASCII("x")*	!
+! from Dot +-------+-------+-------| arg * | BK SP    Go to end of line*	!
+! to Mark  |      "0"      |  "."  |       | DELETE   Delete previous*		!
+! if Mark  |  Down line*   |Search |       | ESC ESC  Repeat RED-key command*	!
+! is set   |               |again *|       | ESC F    Find front of file*	!
+!          +-------+-------+-------+-------+ ESC H    Display help frame	!
+! To Exit: ^C  [or] ^Z  Return to TECO       ESC M    Set left margin*		!
+!          ESC ^Z       Exit from TECO       ESC N    Get next word*		!
+!          ESC - ^Z     Kill output, exit    ESC W    Incremental search	!
+
+!         +-------+-------+-------+		T top left corner		!
+!         |       |       |       |		U top right corner		!
+!         | l  T  | w  Y  | k  U  |		B bottom left corner		!
+!         |       |       |       |		M bottom right corner		!
+! +-------+-------+-------+-------+-------+	F vertical line			!
+! |       |       |       |       |       |	K horizontal line		!
+! | q  F  | t  G  | n  H  | u  J  | x  K  |	H intersecting lines		!
+! |       |       |       |       |       |	Y,G,N and J are border lines	!
+! +-------+-------+-------+-------+-------+		with opposing lines	!
+!         |       |       |       |						!
+!         | m  B  | v  N  | j  M  |						!
+!         |       |       |       |						!
+!         +-------+-------+-------+						!
+
+[0 0,0X0 10U0 [0 EDU0 [0 ETU0 [0 ^D 0ED 0,32ET ^TU0 32,0ET Q0"L @O!SKPCHK! '
+0:W-6"E 0,0X0 :@EG/LIB/"S G* ^YX0 ^YK ' :@EI/^EQ0VTEDIT.V05/"S @O!VT05! '
+:Q0"E @^U0%LB:[1,2]% -1EJ-4"E @^U0%$% ' -1EJ-1024"E @^U0%SYS$LIBRARY:% '
+-1EJ-7"E @^U0%SY:% ' :@EI/^EQ0VTEDIT.V05/"S @O!VT05! ' '
+@^A/%Can't find file "VTEDIT.V05" for your VT05
+/ ' !VT05!   ]0 Q0ET ]0 Q0ED ]0 Q0^R ]0 ^B^[
+0"N !SKPCHK! ]0 Q0ET ]0 Q0ED ]0 Q0^R ]0 '
+@^UI$[0 [1 [2 [3 [4 [5 [6 [7 [8 [9 +0U7 0,0X4 7:WU4 [4 Q4"N 0,7:W^[ '
+10U4 [4 ETU4 [4 EUU4 [4 EDU4 [4
+^D ET&512"E @^A/?Sorry, no interactive scope is available
+/ @^U0/-1/ @O!BAD! ' 128,32768#16#8#1ET -1EU 1,0ED
+@^U0%.ABCDEFGHI.KLMN.PQRSTUVWXYZ[\...%
+32@^U1// 9:@^U1// 44:@^U1// 13:@^U1// 10:@^U1// @:^U1%_([<+-*/\="';%
+0,0X3 0QM"E 0:@^U3// '
+:@^U3/				! start load of 3$ !
+#32768U9 3U7
+ET"L
+	0U7
+	Q1"L Q1&127U7 Q9#64U9 '
+	Q7"N
+		0U1
+	|
+	Q1"G
+		Q1-1Q6U7 %1^[
+		Q7&128"N
+			Q7"L
+				0U1 0U7
+			|
+			.U1 G6 -D
+			Q7&127-2"G Q7-1@I%% '
+			Q1,.X6 Q1,.K 0Q6U7 2U1 -1W
+			'
+		'
+	'
+	Q7"E
+		Q9&8"N
+			QM,Q9:WU7
+		|
+		0QM"E
+			Q9#64U9
+		'
+		Q9:WU7
+		'
+		Q7"L 0U2 0U4 0U6 0U3 1U5 Q7&255U7 '
+	'
+	'
+'
+Q7&255-255"E 0U1 -1U7 '
+Q1"L Q7:@^U6%% '
+Q7
+/				! end load of 3$ !
+@^U5/				! start load of 5$ !
+U9
+Q9&96"E
+	0U1
+|
+27^T
+Q9"A
+	^^[^T
+	Q9-^^H"E @^A%1;1% '
+	Q9-^^K"E @^A%0% '
+'
+'
+Q9^T
+/				! end load of 5$ !
+0U0 0U1 0,0X6 0,0X7 0,0X8 Q7"E G_ ^YX8 ^YK ' 0,0X9
+0,4:W^[ 0,6:W^[ ^^=M5 -1UI Q7"L -1U7 !HLP! .U4 J
+@I%Type any ---------------------------------  [ESC] ^A Append [no FF] text*
+key to   | "PF1" | "PF2" | "PF3" | "PF4" |  [ESC] ^B Delete [next] word*
+start    | Save  | TECO* | Paste |       |        ^D Kill rest of line*
+macro    | Text+*|command| text  |       | [ESC] ^Eq Execute [iter] Q-reg q*
+         |-------------------------------|  [ESC] ^F Forward [cont] over word*
+All (*)  |  "7"  |  "8"  |  "9"  |  "-"  |       ^Gq Get text from Q q
+commands | Open  | Page* | Mark/ | Search|        ^K Kill line+*
+take opt | line* |       | quote*| arg * |        ^N File search*
+arg as:  |-------------------------------|  [ESC] ^R Back [cont] over word*
+ESC [-]  |  "4"  |  "5"  |  "6"  |  ","  |    ^T[:]q Cut text to Q q+*
+<digits> | Up    | Delete|Delete/| End of|        ^U Kill start of line
+<key(s)> | Line* | char* |restore| line *|  [ESC] ^V Alter screen [hold] mode*
+         |-------------------------------|        ^W Set line*/re-paint
+All (+)  |  "1"  |  "2"  |  "3"  |"Enter"|    ^X[:]q Save text in Q q+*
+commands | Top of|Bottom | Start |       |        ^Y Yank next page*
+operate  | page+*|of page|of line| Search|       ^\x Insert ASCII("x")*
+from Dot |-----------------------| arg * | BK SP    Go to end of line*
+to Mark  |      "0"      |  "."  |       | DELETE   Delete previous*
+if Mark  |  Down line*   |Search |       | ESC ESC  Repeat RED-key command*
+is set   |               |again *|       | ESC F    Find front of file*
+         --------------------------------- ESC H    Display help frame
+To Exit: ^C  [or] ^Z  Return to TECO       ESC M    Set left margin*
+         ESC ^Z       Exit from TECO       ESC N    Get next word*
+         ESC - ^Z     Kill output, exit    ESC W    Incremental search%
+2:W-23< 13@I// 10@I// > .U8 J 3L 5C Q7"F -L 6D @I%resume% L 7D @I%editing% '
+0Q3"E J 2L 6D @I%edit  % L 7D @I%       % 7R GM ^SC 2D :@S%^ES%^[ ^SC :QM-2D '
+0,0X2 3:WU2 [2 4:WU2 [2 5:WU2 [2 6:WU2 0,3:W^[ 0,4:W^[ 0,5:W^[ 64M3^[
+Q2,6:W^[ ]2 Q2,5:W^[ ]2 Q2,4:W^[ ]2 Q2,3:W^[ 0,Q8K Q4J '
+QI"L ^^<M5 27^T @^A%[0c% ' -1W
+< 0U2 !B! 0U4 0U6 !C! 0U3 1U5 !D! ET; 0M3^[ !E! ET;
+Q7-32"L Q7Q0U9 @O!^EU9C! '
+Q7-127"E .-Q5"L .U5 ' .-Q5+1U2 @O!DEL! '
+!.C! !IC! !LC! !PC! !QC! !SC! 0Q3"N Q7@I// F< ' MM 0U2 0U4 0U6 0U3 1U5 @O!E!
+!MC! 64M3-10"N @O!ERR! ' 0U3 @^U2//
+!CRL! Q5< 13@I// 10@I// > Q5*Q3R
+!LMG! 9Q0-^^I"E M2 F< '
+!TAB! Q0U2 Q2"G Q2/8U2 Q2< 9@I// > Q2*8-Q0U2 ' -Q2< 32@I// > M2 F<
+![C! 64M3-32"L Q7Q0U9 @O!^EU9CE! '
+ Q7-^^O"E ETU8 0,4ET 64M3^[ Q8&4"E 4,0ET '
+  Q7"A Q7&32"E Q7-^^M"N @O!?E! ' ' ' @O!??E! '
+ Q7-^^?"E 64M3^[ !??E! Q7&31Q0U9 @O!^EU9?E! '
+ Q7-^^["E 64M3"D Q7-^^0U4 @O!SIZ! ' Q7-^^?"N @O!?E! '
+  0U5 < 64M3"D Q5*10+Q7-^^0U5 F< ' 0; >
+  Q5,6U5-1"E Q7-^^;"E 64M3-^^0"E 4U5 ' ' '
+  < Q7"D | Q7-^^;"N 0; ' ' 64M3^[ > Q7&95-^^C"E Q5UI 4U5 @O!CID! '
+  F< '
+ Q7-^^/"E 64M3"A 0UI Q7-^^Z"E 2UI ' QIU5 @O!CID! ' F< '
+ Q7"A !?E! Q7&31Q0U9 @O!^EU9E! '
+ Q7-^^-"E 64M3"D @^U4/-Q5/ @O!EXP! ' Q7-21"E F< ' -1U3 -1U5 @O!E! '
+ Q7"D @^U4/+Q5/ | @O!ERR! '
+!EXP! 10U3 Q7-^^0U5 0U8
+!VAL! :Q4-3"G ^^HM5 ^^KM5 13^T @^A/Radix / Q3:= @^A/, Expression /
+ Q3-10"E Q8:= | Q3-8"E Q8:== | Q8:=== ' ' 2Q4^T '
+!CHR! 0U7 :Q4-3"G Q3^R Q5\ ^D ^YT ^YK ^^KM5 -^S< ^^DM5 > 32U7 '
+ Q7#64M3"D Q3-8"E Q7-^^7"G 7M5 @O!CHR! ' ' Q5*Q3+Q7-^^0U5 @O!CHR! '
+ Q3-16"E Q7"A Q7&95-^^G"L Q5*Q3+(Q7&95)-^^A+10U5 @O!CHR! ' ' '
+ Q7-^^^"E 0U7 :Q4-3"G 32U7 ' Q7#64M3-21"E @O!CHR! ' Q7"A Q7&95U7 '
+  Q7-^^."E .U5 | Q7-^^Z"E ZU5 | Q7-^^^"E 0U7 :Q4-3"G 32U7 ' Q7#64M3U5 |
+  Q7-^^D"E 10U3 | Q7-^^O"E 8U3 | Q7-^^X"E 16U3 | 7M5 @O!CHR! ' ' ' ' ' '
+   :Q4-3"E G4 3R @I/Q8/ .-2,.+3X4 .-2,.+3K ' @O!VAL! '
+ Q7-21"E :Q4-3"G -2W ' F< ' Q7-127"E :Q4-3"G 0U5 @O!VAL! ' '
+ M4U8 0U5 Q7-^^+"E @^U4/Q8+Q5/ |
+ Q7-^^-"E @^U4/Q8-Q5/ | Q7-^^*"E @^U4/Q8*Q5/ |
+ Q7-^^/"E @^U4*Q8/Q5* | Q7-^^#"E @^U4/Q8#Q5/ |
+ Q7-^^&"E @^U4/Q8&Q5/ | Q7-^^="E @^U4/Q8+Q5/ |
+ :Q4-3"G -2W ' -1U3 Q8U5 @O!E! ' ' ' ' ' ' ' @O!VAL!
+!M?E! @^U2/Q5:@S%^EQ8%/ @^U4%Buffer% @O!SAG!
+!N?E! @^U2/Q5:@S%^EQ8%/ 0U6
+!SRH! Q5"L 0U2 .U3 < Q3J Q2-1:@S%^EQ8%; .-Q3"L 0; ' -1%2^[ -1%5^[ > Q3J '
+ Q5U7 Q5"N M2U7 ' Q7"U 7M5 Q6"E 32768U6 ' ' Q6"N Q6W '
+ Q7"S 4:W"E 0U2 0U4 0U6 0U3 1U5 ET;
+ ^SC .+1,4:W^[ -^SC 64M3^[ 0,4:W^[ @O!E! ' ' F<
+!P?E! Q5L F<
+!Q?E! Q5U2 Q3"F 0U2 4:W"N 4:W-1U2 0,4:W^[ ' '
+ Q2"L 0U2 ' Q2-Z"G ZU2 ' Q2J F<
+!R?E! ZJ F<
+!S?E! 0L F<
+!T?E! -Q5L F<
+!U?E! Z-.-Q5"L Z-.U5 ' Q5+.+1U2 @O!DEL!
+!V?E! Q2"N G2 Q2"L ^SC ' F< ' .+^S+1U2
+!DEL! Q2-1"L @O!ERR! ' Q2-1-Z"G @O!ERR! '
+ Q2-1,.X2 Q2-1,.K .-Q2+1U2 Q2"E %2^[ ' @O!B!
+!W?E! 2U3 @^U2// 0^Q"N 0U3 @^U2/0L Q5*2R/ ' @O!CRL!
+!X?E! @EW// G* ^YK ^S"E @O!ERR! ' @ER// G* ^YK ^S"E @O!ERR! ' 0,6:W^[ Q5P F<
+!Y?E! Q3"T Q5@I// | 4:W-1-."E 7M5 32768W 0,4:W^[ | .+1,4:W^[ ' ' F<
+!AE! !BE! Q7&2-1*Q5U5 Q6"E 0U7 .U8 0L
+ Q8-.%6< 0A-32"L 0A-27"N 0A-9"E 6-(Q7&7)%6^[ -2U7 ' %6^[ %7^[ ' ' %7^[ C > '
+ Q5L -Q6U9 0U7 Q6< .-Z; 0A-32"L 0A-13"E 0; '
+ 0A-27"N 0A-9"E 6-(Q7&7)%9^[ -2U7 ' %7^[ %9^[ ' ' %7^[ C %9"G R ' Q9; >
+ 0U2 0U4 @O!C!
+!CE! Z-.-Q5"L Z-.U5 ' Q5C F<
+!DE! .-Q5"L .U5 ' Q5R F<
+![CE! -1W -2U6 128#64M3"L @O!CM9! '
+ Q7-^^A"E @O!UPS! ' Q7-^^B"E @O!DNS! '
+ Q7-^^C"E @O!FOR! ' Q7-^^D"E @O!BAK! '
+ Q7-^^Q"E @O!EQE! '
+ Q7-^^?"N Q7-^^["N Q7-^^O"N Q7#32768U1 @O!CM9! ' ' '
+ 64M3"A Q7&95U7 ' Q7-^^V"E -^S< -.; R > F< '
+ Q7-^^Q"E @O!EQE! '
+ @^U2/L/ Q7-^^T"E @^U2/-L/ '
+ Q7-^^A"E !UPS! @^U2/-(2:W*Q5)+1L 1/ '
+ Q7-^^B"E !DNS! @^U2/2:W*Q5-1L 1/ '
+ Q7-^^C"E !FOR! @^U2/.-Z"N C '/ '
+ Q7-^^D"E !BAK! @^U2/."N R '/ '
+ < M2-1; -1W 128#64M3; -.; .-Z; > Q7"L 7M5 32768W ' F<
+!CM9! ^^9U7
+!CMD! 0,0X2 Q3"L @^U2/Q5/ ' Q3"G Q5"N @^U2/Q5/ ' :@^U2/</ '
+ :@^U2%M% Q7:@^U2// Q3"G :@^U2/>/ '
+!XEQ! -Q6"G ^^HM5 ' ]4 Q4ED ]4 Q4EU ]4 Q4ET ]4 Q4^R M2^[
+ 10U4 [4 ETU4 [4 EUU4 [4 EDU4 [4
+ ^D 128,32768#16#8#1ET -1EU 1,0ED Q6"N Q6W ' F<
+!WE! Q5"E G8 ^YX2 ^YK .U2 :@S/^EQ2/"U Q2J @O!ERR! ' ^SC '
+ 4:WU6 Q5"E 1U5 | @^U2// '
+ < @S/^EQ2/ ^SC .U2 .U3 0U4 .+1,4:W^[ -^SC
+  ET; 64M3^[ ET;
+   Q7-1"E Q3-Z"N %3^[ ' |
+   Q7-8"E -2U5 |
+   Q7-21"E @^U2// 0; |
+   Q7-26"E 0; |
+   Q7-27"E 0; |
+   Q7-127"E :Q2"N G2 ^Y-1X2 ^YK | 7M5 32768W ' Q2J F< |
+   Q7-9"N Q7-32"L 7M5 32768W Q2J F< ' '
+   -1U4 Q7:@^U2// ' ' ' ' ' '
+  Q3J Q5,1U5:@S/^EQ2/"U 7M5 32768W Q4"T G2 ^Y-1X2 ^YK ' Q2J | ^SC '
+ > Q6,4:W^[ ET; :Q2"N G2 ^YX8 ^YK ' Q7-27"E 0U2 0U4 0U6 0U3 1U5 @O!E! ' F<
+!AC! @^U2/< ^E"T .U9 ZJ 12@I%% Q9J ' / @O!APN!
+!BC! .U9 Q5< -.; R @-S/^N^EG1/; R @-S/^EG1/; > .+1U2 Q9J @O!DEL!
+!ZC! Q5+1"E HK EK :@EG%SYM TECO_OUTPUT_KILLED -1%^[
+         @^U4%Output killed, e% @O!XIT!'
+     @^U0// @O!XM0!
+!CC! 0;
+!DC! Q5^QU2 Q2"G Q2-1A-10"E -1%2"G Q2-1A-13"E -1%2^[ ' ' ' ' .+1%2^[ @O!DEL!
+!ECE! -Q3U3
+!EC! 64M3"A -1W -2U6 @O!CMD! ' @O!ERR!
+!FC! Q5< @S/^EG1/; @S/^N^EG1/; R > ."E ZJ ' F<
+!GC! 64M3-^^*"N Q7-^^_"N Q7"R | @O!ERR! ' ' ' @^U2%G% Q7:@^U2// M2 F<
+!L?E!
+!HC! Q5L ."N -1A-10"E R ' ' ."N -1A-13"E R ' ' F<
+!KC! Q5^Q+.+1U2 Q3"F 4:W"N 4:WU2 0,4:W^[ ' ' @O!DEL!
+!NC! @EW// G* ^YK ^S"E @O!ERR! ' @ER// G* ^YK ^S"E @O!ERR! '
+ @^U2/Q5:@N%^EQ8%/ @^U4%File% @O!SAG!
+!RC! Q5< -.; R @-S/^N^EG1/; R @-S/^EG1/; > F<
+!TC! !XC! Q7U6
+ @^U2/Q2-1,./ 64M3-^^:"E :@^U2/:/ 64M3^[ '
+ Q7"A (Q7&95-^^I)*(Q7&95-^^L)*(Q7&95-^^P)*(Q7&95-^^T)+ ' 0"E @O!ERR! '
+ :@^U2%X% Q7:@^U2// .+1U2 Q5L Q3"F 4:W"N Q2-1J 4:WU2 0,4:W^[ ' '
+ .U7 Q2-1,.X4 Q2-1,.K G4 Q7J M2 ^^T&31-Q6"E @O!DEL! ' F<
+!UC! 0^Q+.+1U2 @O!DEL!
+!VCE! 5U2 Q3"F @^U2/Q8"E -1U8 | 0U8 '/ | @^U2/Q5U8/ ' @O!PRM!
+!VC! Q3"F 3U2 @^U2/Q6^_U6/ @O!PRM! '
+ Q5"L 2U2 1:WU3 -Q5U4 0:WU5
+  Q4-1"E 24U4 Q5-4"E Q3-80"G QI-4"E 14U4 ' ' ' '
+  Q4-10"L @O!ERR! ' Q4-24"G @O!ERR! '
+  Q5-4"N Q4-24"N @O!ERR! ' @O!SCP! '
+  Q4U7 2:W-Q4< %7^[ 27^T ^^[^T Q7/10+^^0^T Q7-((Q7/10)*10)+^^0^T @^A/;1H/
+   ^^KM5 > ^^HM5 @O!SCP! '
+ Q5#6-6"N 1U2 Q5U3 2:WU4 0:WU5
+  Q3&1"N @O!ERR! ' Q3-10"L @O!ERR! ' Q3-132"G @O!ERR! '
+  Q5-4"N Q3-80"G @O!ERR! ' '
+  Q3-80"G Q4-14"G QI-4"E 14U4 ' ' '
+  Q5"N ^^<M5 27^T @^A/[?3/ Q3-80"G ^^H+32^T | ^^L+32^T ' '
+  @O!SCP! '
+ 0U2 80U3 24U4 Q5-6"E @O!ERR! '
+  Q5-4"E 1:W-80"G 132U3 QI-4"E 14U4 ' ' '
+!SCP! @^U2/Q3,1:W^[ Q4,2:W^[ Q5,0:W^[/ @O!PRM!
+!WC! Q3"T 32767U2 @^U2/Q5W/ | -1U2 @^U2// '
+!PRM! 3:WU6 4:WU7 5:WU8 6:WU9 M2 Q6,3:W^[ Q7,4:W^[ Q8,5:W^[ Q9,6:W^[
+ Q2-2"G F< '
+ 0:W"N ^^<M5
+  27^T @^A/[1;1H/ 27^T @^A/[1;/ 2:W/10+^^0^T 2:W-((2:W/10)*10)+^^0^T ^^R+32^T
+  Q2+1"N 27^T @^A/[1;1H/ 27^T @^A/[24B/ 27^T @^A/#5/ 27^T @^A/[132C/
+   27^T @^A/[6/ ^^N+32^T '
+  27^T @^A/[1;1H/ '
+ ^^=M5 -1W Q2"L -1EJ-4"E 2,0ET 0,2ET ' 27^T @^A%[0c% 32768W ' F<
+!YC! !YE! Q5"G @ER// G* ^YK ^S"E @O!ERR! ' @^U2/Q5< Y >/
+ ED&2"E @EW// G* ^YK ^S"N @^U2/Q5< Z"N 0U3 ' Q3; Y >/ ' '
+ -1U3 M2 0,6:W^[ Q3"F @O!ERR! '
+ | ]4 Q4#2ED Q5"E 2,0ED ' EDU4 [4 1,0ED ' F<
+!\C! Q5U7 Q3"F 64M3^[ ' @^U2/Q7\/ 32768U6 @O!XEQ!
+!EE! Q5"L <-1:P;> :P^[ 0J | <:P;> -1:P^[ ZJ ' F<
+!FE! @EW// G* ^YX2 ^YK ^S"E @O!ERR! ' .U4 J 2:W< 13@I// 10@I// > J 2:W/2-4L
+  3:WU2 5:WU9 0,3:W^[ 0,4:W^[ 0,5:W^[ -1W Q2,3:W^[ Q9,5:W^[ 0,6:W^[
+  J 2:WK Q4J 13^T 1,0ET 13^T 0,0X4 1:W/2-30< :@^U4% % >
+ Q3"T Q5"L | :G4 @^A/Marking position "/ :G2 @^A/"/
+  @I%~~/\~~% 13@I%% 10@I%% 13^T 10^T ' '
+ Q5"G :G4 @^A/Closing out file "/ :G2 @^A/"/ EC 13^T 10^T '
+ Q5"L | ZJ .U2 G2 Q2J :@FS%;^ED%%"S < ::@FS%^ED%%; > ' Q2J Q2,ZX2
+  Q5"E ZJ @I%/FIND% ' :G4 @^A/Remembering file "/ Q2,ZT @^A/"/
+  [1 0,0X1 :@EG/MEM/"S ZJ G* ^SC 0A-36"N ZK Q2,ZX1 :@EG/MEM ^EQ1/^[ |
+  .+1,ZX1 ZK F| ' | :Q1"E -1EJ-1024"E @EN/*.*/ :@EN//"S
+  ZJ .U1 G* Q1J @S/[/ Q1,.-1K @FS/./]/ Q1J @S/]/ Q1,.X1 Q1,ZK ' '
+  :@^U1%TECF% 0EJ+100\ .-2,.:X1 -3D :@^U1%.TMP%
+  -1EJ-4"E :@^U1%<60>/MODE:#0000% | -1EJ-7"N :@^U1%;1/-CR% ' ' '
+  EA :@EW/^EQ1/"S Q2,ZPW ' EF @EW// ' ]1 Q2,ZK 13^T 10^T '
+ Q5"E 0,1ET @^U4%Position marked, e% @O!XIT! '
+ Q5"G :G4 @^A/Re-editing  file "/ :G2 @^A/"/ :@EB/^EQ2/"U 0,1ET 7M5
+  @I/?Can't find file "/ G2 HX4 HK :@^U4%", e% @O!XIT! ' Y 0,6:W^[ 13^T 10^T '
+ Q3"T Q5"N :G4 @^A/Finding mark  in "/ @ER// :G* @^A/"/ ^XU2 -1^X :@FN%~~/\~~
+%%"U 0,1ET 7M5 13^T 1,0ET ' Q2^X 13^T 10^T ' '
+ 0,1ET F<
+!HE! 0U7 @O!GOH!
+!LE! Q1"E 32768U1 0,0X6 F< '
+ Q1"G @O!ERR! '
+ 0U1 G6 ^Y-2X6 ^YK :Q6"E 7M5 32768W ' F<
+!IE! Q3"F 1U5 ' Q5*4%0^[ 0U3
+!ICE! Q3"T @O!ERR! '
+ 0L ::@FS/^ES//^[ @^U2// @O!TAB!
+!ME! Q3"T Q5U0 | 0U0 .U2 0L 0U6
+ < .-Q2; %0^[ 0A-32"L 0A-9"E Q0#7U0 ' %0^[ ' C > '
+ @^U0%.ABCDEFGH..KLMN.PQRSTUVWXYZ[\...%
+ 0L ::@FS/^ES//^[ @^U2// @O!LMG!
+!NE! .U7 Q5"L
+ -Q5< -1U9 -.; .U7 R -@S/^EG1/; .-Q7"G Q7J ' .U7 2R -@S/^N^EG1/;
+  C ::@S/^N^EG1/"U R .U9 0A-44"E %9^[ ' 2R -:@S/^EG1/"U J ' .U8
+  Q8,Q9X4 Q7J G4 .-Z"N 0A-13"N 32@I// ' ' Q7J
+  Q8,Q9K .U7 Q8J < -.; -1A-32"N -1A-9"N 0; ' ' -D >
+  < -.; .-Z; 0A-32"N 0A-9"N 0; ' ' D >
+  ."E .-Z"N 0A-13"E K ' ' ' ."N .-Z"N -1A-10"E 0A-13"E K ' ' ' '
+  :@S/^N^EG1/; ' Q9+1"E 2R ' R .U7 > |
+ Q5< @S/^EG1/; -1A-44"E 32@I// ' .U7 ::@FS/^ES//^[
+  -1A-13"E R -1A-10"N 32@I// ' '
+  0A-13"N -1A-32"N -1A-9"N R 32@I// ' ' ' .U7 ::@S/^N^EG1/:; @S/^N^EG1/;
+  R .U8 :@S/^EG1/"U ZJ ' -1A-44"E C '
+  .-Z"N R ' Q8,.X4 Q8,.K < ::@FS/^ES//; > ::@S/^M/"S 0L K ' Q7J G4 .U7 > '
+ Q7J F<
+!PE! 4:W"N 4:W-1,.X7 4:W-1,.K G7 0,4:W^[ F< '
+ Q4"E .+1U4 ' Q5L Q4-1,.X7 Q4-1,.K G7
+ 0U2 0U6 0U3 1U5 ET; ^S+.+1,4:W^[ 64M3^[ 0,4:W^[ @O!E!
+!RE! G7 F<
+!TE! Q3"F 32@^U1// 9:@^U1// 44:@^U1// 13:@^U1// 10:@^U1// 
+ @:^U1%_([<+-*/\="';% |
+ Q5"E :@^U1%()+-*^\!=:<>/% |
+ Q5"L @^U1// |
+ Q5:@^U1// ' ' ' F<
+!XE! Q1"E :Q6"N Q5"G Q5-128"L .U1 G6 -1A&128"N -D ' Q5-1"G Q5#128@I// '
+ Q1,.X6 Q1,.K 1U1 F< ' ' ' ' @O!ERR!
+!ACE! @^U2/< /
+!APN! Q5"E 1U5 :@^U2/1:/ ' :@^U2/A^[ ^E"F ^N:; ' >/ Q5"L M2 | Q5M2 ' F<
+!BCE! .U9 Q5< @S/^EG1/; @S/^N^EG1/; R > ."E ZJ ' .+1U2 Q9J @O!DEL!
+!FCE! < :@S/^EG1/"U ZJ 0; ' :@S/^N^EG1/"U ZJ 0; ' R -1W 128#64M3; > F<
+!NCE! ED&2"E @EW// G* ^YK ^S"N @O!ERR! ' ' @ER// G* ^YK ^S"E @O!ERR! '
+ @^U2/Q5:@_%^EQ8%/ @^U4%Destructive file% @O!SAG!
+!RCE! < -.; R @-S/^N^EG1/; R @-S/^EG1/; -1W 128#64M3; > F<
+!ZCE! @^U4%E% @EW// G* ^YK ^S"E Z"N @O!ERR! ' @^U4%No output, e% ' @O!XIT!
+!CID! 80U3 24U4 Q5-4"E 1:W-80"G 132U3 QI-4"E 14U4 ' ' '
+ 0:W-Q5"N Q5-2"E 4U5 ' 0U2 @O!SCP! '
+ Q5"E 1:W-Q3"N 1U2 @O!SCP! ' 2:W-Q4"N 2U2 @O!SCP! ' |
+ Q5-2"E ^^<M5 ' 27^T @^A/[1;1H/
+ 27^T @^A/[24B/ 27^T @^A/#5/ 27^T @^A/[132C/ 27^T @^A/[6/ ^^N+32^T
+ 27^T @^A/[1;1H/ Q5-2"E 27^T @^A/[?2/ ^^L+32^T ' 32768W ' F<
+!SIZ! 64M3"D Q4*10+Q7-^^0U4 @O!SIZ! ' Q7-126"E @O!TILD! ' Q7-^^;"N F< '
+ 0U3 < 64M3"D Q3*10+Q7-^^0U3 > ' Q7-^^R"N F< ' 0:WU5
+ 1:W-Q3-1"L 2:W-Q4"E Q3-81"L F< ' Q5-4"E 1:W-80"G F< ' ' ' '
+ Q3-10"L 80U3 ' Q3-132"G 132U3 ' Q4-10"L 24U4 ' Q4-24"G 24U4 '
+ Q5-4"N Q3-80"G 80U3 ' Q4-24"N 24U4 ' | Q3-80"G Q4-14"G QI-4"E 14U4 ' ' ' '
+ 1U2 @O!SCP!
+!TILD! Q4-1"E @O!M?E! ' Q4-2"E @O!RE! ' Q4-3"E 0U4 @O!PE! '
+ Q4-4"E @O!Y?E! ' Q4-5"E @O!UPS! ' Q4-6"E @O!DNS! '
+ Q4-23"E @27I%% @I%(0% F< '
+ Q4-24"E 64M3^[ Q7"V Q7-32U7 '
+	Q7-^^T"E @I%l% F< ' Q7-^^Y"E @I%w% F< ' Q7-^^U"E @I%k% F< '
+	Q7-^^G"E @I%t% F< ' Q7-^^H"E @I%n% F< ' Q7-^^J"E @I%u% F< '
+	Q7-^^B"E @I%m% F< ' Q7-^^N"E @I%v% F< ' Q7-^^M"E @I%j% F< '
+	Q7-^^F"E @I%q% F< ' Q7-^^K"E @I%x% F< ' @Q7I%% F< '
+ Q4-25"E @27I%% @I%(B% F< '
+ Q4-26"E 27^T @^A%[2J% :[S .US 16^R 0EJ\ ^D QS,.XS QS,.K
+         @:EG%SPAWN/PROMPT="...teco> "/PROCESS="son of ^EQS"%^[:]S @O!WC! F< '
+ Q4-28"E @O!HE! ' Q4-29"E @O!QE! '
+ Q4-31"E @O!RC! ' Q4-32"E @O!FC! '
+ Q4-34"E @O!XC! '
+ @O!ERR!
+!EQE! -Q3U3
+!QE! @^U4%Command: % [0 0U0 @^U0/Q7+2"E ^Y-2X9 | ^YX9 '/ [0 @^U0/G9/ @O!STG!
+!SAG! Q5"L :@^U4% reverse% ' :@^U4% search: % [0 -1U0 @^U0/^Y-2X8/ [0 @^U0/G8/
+!STG! -1W .U8 ZJ .U4 M0 ^SU0 2U6
+< !F0! ^^HM5 ^^KM5 10^T ^^KM5 13^T 1,0ET 13^T :G4 2U7 10@^U0// Q4J
+   < .U9 :@S/^EQ0/; Q9,.T 0,1ET ^^KM5 13^T 1,0ET 13^T %7^[ > Q9,ZX0
+   Q7-Q6"L 0,1ET Q6-Q7< 13^T 10^T ^^KM5 > Q6-Q7< ^^AM5 > 13^T 1,0ET
+   13^T Q7-2"E :G4 ' | Q7U6 ' :G0
+  !F1! ZJ 64#32M3@I//
+   Q7-3"E 0,32768ET 0U7 @O!F9! '
+   Q7-10"E Q0"L @O!F8! '
+    13^T 10^T 0,1ET ^^KM5 13^T 1,0ET 13^T %6^[ @O!F1! '
+   Q7-21"E 0U7 @O!F9! '
+   Q7-27"E Z-Q4-1+Q0"G -2A-27"E -1U7 @O!F9! ' ' '
+   Q7"A Q7&95-^^N"E Z-Q4-2+Q0"G -3A-27"E -2A-^^?"N -2A-^^O"N @O!F2! ' '
+    0,1ET ^^DM5 ^^KM5 -2D 27@I// -1U7 @O!F9! !F2! ' ' ' '
+   Q7-127"E -D 0U0 Z-Q4"N -1AU7 -D Q7-27"E 32U7 ' 0,1ET Q7-32"L @O!F0! '
+    ^^DM5 ^^KM5 1,0ET ' @O!F1! '
+   Q0"L Z-Q4-2+Q0"G @O!F8! ' -Z+Q4-Q0A-27"N @O!F8! '
+    Z-Q4-1+Q0"G -Z+Q4+1-Q0A-^^?"N -Z+Q4+1-Q0A-^^O"N @O!F8! ' ' ' '
+  !F7! Q7^T @O!F1!
+  !F8! Q4J -Q0D 0U0 0,1ET @O!F0!
+  !F9! -Q6-1U6 0,1ET ^^HM5 Q7"F Q6W | Q0"L -2U7 ' ' Q4,ZX4 Q4,ZK Q8J 0; >
+ ]0 Q7"F ]0 F< ' G4 M0 ^YK Q0 ]0 "T @O!SRH! ' @O!CM9!
+!SE! Q3"F 0Q3U5 ' Q5"N 0QM"N @O!ERR! ' '
+ .U2 ZJ .U3 G3 Q3J
+ ::@FS/^@//^[ Q5"N 0@I// '
+ Q3J ZX3 ZK Q2J F<
+!LCE! 4:W"E @O!ERR! '		! convert to lowercase			!
+ .U.S 4:W-1U.A .U.Z Q.Z-Q.A"L .U.A 4:W-1U.Z '
+ Q.AJ 0U.F <.-Q.Z; (0A-^^")"E Q.F"E 1U.F | 0U.F ' '
+ 0A"W Q.F"E @0A+32I%% D | C ' | C ' > Q.SJ 0,4:W^[ F<
+!UCE! 4:W"E @O!ERR! '		! convert to upper case			!
+ .U.S 4:W-1U.A .U.Z Q.Z-Q.A"L .U.A 4:W-1U.Z '
+ Q.AJ 0U.F <.-Q.Z; (0A-^^")"E Q.F"E 1U.F | 0U.F ' '
+ 0A"V Q.F"E @0A-32I%% D | C ' | C ' > Q.SJ 0,4:W^[ F<
+!UE!				! underline (marked region)		!
+ 4:W"E 0U.S .U.A .+1U.Z | 1U.S 4:W-1U.A .U.Z Q.Z-Q.A"L .U.A 4:W-1U.Z ''
+ Q.AJ Q.Z-Q.A< 0A&127-31"G 0A&127-127"N .-Z"N @95I%% @8I%% ''' .-Z"L C '>
+ Q.S"N 0,4:W^[ ' F<
+!DCE! 0L @13I%% @10I%% @I%    [ ... stuff deleted ... ]%
+ @13I%% @10I%% @13I%% @10I%% 2R F<
+!WCE! @O!ERR!
+! ^[ <L.-Z; 0A-^^X"E F<' 0A-^^V"E F<' 0A-^^$"E F<'
+     0A-^^+"E 0;' 0A-32"E 0;' -1A-10"E -D -1A-13"E -D F<'' 0;>  F< !
+!GCE!
+!\CE! 0J <^N"E A | 0;'>
+ 0J <@I%>% L .-Z;>		! F< flow on the get the signature file	!
+!GE! ZJ EP :@ER%SIG%"S A @13I%% @10I%% 2R @ER// | @ER// @O!ERR! ' F<
+!HCE! Q5"L 0J L <0A-^^!"E D ' L .-Z;>
+ | 0J L <@I%!% L .-Z;> ' F<	! quote each line with exclamation mark	!
+
+!.CE! !CCE! !KCE! !MCE!
+!PCE! !QCE! !SCE! !TCE! !XCE! !YCE!
+!.E! !KE! !VE! !ZE! ![E! !\E!
+!.?E! !A?E! !B?E! !C?E! !D?E! !E?E! !F?E!
+!G?E! !H?E! !I?E! !K?E! !Z?E! ![?E! !\?E!
+!ERR! 7M5 32768W F<
+>
+@^U0/1/ !XM0! 0U7 0"N !GOH! @O!HLP! !XIT! -1U7 '
+8,16ET ^^>M5 27^T
+@^A/[24;1H/ 10^T 10^T 13^T
+^^KM5 13^T 1,0ET 13^T
+Q7"T @EW// G* ^S"N :@^U4%xiting with % ^Y:X4 ^YK | :@^U4%xiting...% ' :G4 EX '
+!BAD! ]4 Q4ED ]4 Q4EU ]4 Q4ET ]4 Q4^R
+]4 Q4"N Q4,7:W^[ ' ]9 ]8 ]7 ]6 ]5 ]4 ]3 ]2 ]1 M0 ]0
+$  [0 [1 10U0 0U1 ^D ET&128"E @^A/VTEDIT.TEC loaded into Q-Reg I
+/ ' ET&(512#128)-(512#128)"E 1U1 Z#^E"E -1U1 @EW// G* Z"N HK 1U1 ' @ER// G*
+Z"N HK 1U1 Y ' ' 128,0ET ' Q0^R  @EI//
+Q1"E ]1 ]0 | Q1 ]1 ]0 MI ' 

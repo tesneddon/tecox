@@ -1,0 +1,9 @@
+		       TECO - Text Editor and COrrector
+
+	This code branch contains the TECO macros that are distributed as
+part of the TECO software.  This includes marcos such as:
+
+    * KEYSTROKE - report keypress sequence as seen by TECO
+    * PI - calculate Pi
+    * TECO - builtin TECO initialization file
+    * VTEDIT - video terminal editor

@@ -1,0 +1,96 @@
+<appendix label="app_unix">
+  <title>UNIX Operating Characteristics</title>
+
+  <para>
+    This section relates to all UNIX and UNIX-like systems.  This includes
+    such systems as BSD, Linux and Solaris.
+  </para>
+
+  <section label="app_unix_sta">
+    <title>Startup</title>
+    <para>
+      UNIX supports most of the standard invocation commands, namely:
+    </para>
+    <table>
+      <tbody>
+        <row><entry/><entry>teco</entry></row>
+        <row><entry/><entry>teco filespec</entry></row>
+        <row><entry/><entry>teco filespec=filespec</entry></row>
+	<row><entry/><entry>take filespec</entry></row>
+        <row><entry/><entry>mung filespec</entry></row>
+        <row><entry/><entry>mung filespec,text</entry></row>
+      </tbody>
+    </table>
+    <para>
+      The only difference from the standard command set is
+      <command>make</command>.  On UNIX systems <command>make</command> and
+      similar names (e.g. <command>nmake</command> and
+      <command>gmake</command>) refer to software system build system.  To
+      avoid confusion the <command>make</command> command has be renamed
+      <command>take</command> for t[eco m]ake.
+    </para>
+  </section>
+
+  <section label="app_unix_ini">
+    <title>Initialization</title>
+    <para>
+      TECO performs initialization by attempting to translate the environment
+      variable TEC_INIT (see ... for more information).  If the name does not
+      translate, no special initialization is done.  If it translates
+      to a string of the from "$filespec" (where "$" is a dollar sign),
+      TECO executes the TECO commands in the specified file during
+      initialization.  If <envar>TEC_INIT</envar> translates to any other
+      string, TECO executes that string as TECO commands during initialization.  The
+      original command line is available in the text buffer when the user
+      initialization commands execute.  Generally, you would set user
+      private modes and/or flags at this time.  This is also the normal
+      place to detect, strip off and do something appropriate with user
+      private qualifiers.
+    </para>
+    <para>
+      TECO's memory is controlled by both the environment variable
+      <envar>TEC_MEMORY</envar> and the symbolic link
+      <filename class="symlink">~/.tecomem</filename>.  The memory is located
+      using the TECO special function MEM (see ... for further details).  If
+      the returned string is of the form "$filespec", TECO uses the specified
+      file for its memory.  Otherwise, TECO uses the string itself as the
+      memory.
+    </para>
+    <para>
+      These four environment variables (<envar>TEC_INIT</envar>,
+      <envar>TEC_MEMORY</envar>, <envar>TEC_VTEDIT</envar> and
+      <envar>TEC_LIBRARY</envar>) are the information holders corresponding
+      to the four standard :EG commands INI, MEM, VTE and LIB respectively
+      (see <xref linkend="app_unix_eg"/>).
+    </para>
+  </section>
+
+  <section label="app_unix_wld">
+    <title>Wildcard Lookup</title>
+    <para>
+      Describe unix implementation...
+    </para>
+  </section>
+
+  <section label="app_unix_exi">
+    <title>Exiting from TECO</title>
+    <para> ... </para>
+  </section>
+
+  <!-- put in app_unix_ctc, app_unix_cty here -->
+
+  <!-- exit and go -->
+
+  <section label="app_unix_osf">
+    <title>Operating System Functions</title>
+    <para>
+      ..descrine th way MEM, etc. work...
+    </para>
+  </section>
+
+  <!-- flag handling... -->
+
+  <!-- q-registers... -->
+
+  <!-- callable teco...move this into the main manual -->
+</appendix>
