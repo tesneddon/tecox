@@ -37,7 +37,8 @@
 **	01-FEB-2012 V41.06  Sneddon   Moving external routine declarations in
 **				      here as well.
 **	07-MAR-2012 V41.07  Sneddon   Added x86-64/amd64.
-**	09-OCT-2013 V41.08  Sneddon   Replaced [u]intXX_t with C99 [u]intmax_t
+**	09-OCT-2013 V41.08  Sneddon   Replaced [u]intXX_t with C99 [u]intmax_t.
+**				      Also removed TECO_K_WORD_SIZE.
 **--
 */
 #ifndef __TECODEF_LOADED
@@ -107,13 +108,7 @@
  *			1	Darwin
  * 13   x86-64		0	GNU/Linux
  */
-#if (!defined(TECO_K_WORD_SIZE))
-# error "TECO word size has not been defined"
-#endif
 #if (defined(vax) || defined(VAX) || defined(__vax) || defined(__VAX))
-# if (TECO_K_WORD_SIZE != 32)
-#  error "unsupported word size for VAX architecture"
-# endif
 # define TECO_K_ARCH 4
 # if (defined(vms) || defined(VMS) || defined(__vms) || defined(__VMS))
 #  define TECO_K_OS 0
@@ -138,17 +133,10 @@
 #  error "unknown OS on VAX architecture"
 # endif
 #elif (defined(__alpha) || defined(__ALPHA) || defined(__Alpha_AXP))
-# if ((TECO_K_WORD_SIZE != 32) && (TECO_K_WORD_SIZE != 64))
-#  error "unsupported word size for Alpha architecture"
-# endif
 # define TECO_K_ARCH 5
 # if (defined(vms) || defined(VMS) || defined(__vms) || defined(__VMS))
 #  define TECO_K_OS 0
 #  include <inttypes.h>
-#  if (TECO_K_WORD_SIZE == 32)
-#   undef TECO_K_ARCH
-#   define TECO_K_ARCH 4
-#  endif
 # elif (defined(__OpenBSD__))
 #  define TECO_K_OS 1
 # elif ((defined(__digital__) && defined(__unix__)) || defined(__osf__))
@@ -159,17 +147,10 @@
 #  error "unknown OS on Alpha architecture"
 # endif
 #elif (defined(ia64) || defined(__ia64) || defined(__ia64__))
-# if ((TECO_K_WORD_SIZE != 32) && (TECO_K_WORD_SIZE != 64))
-#  error "unsupported word size for IA-64 architecture"
-# endif
 # define TECO_K_ARCH 6
 # if (defined(vms) || defined(VMS) || defined(__vms) || defined(__VMS))
 #  define TECO_K_OS 0
 #  include <inttypes.h>
-#  if (TECO_K_WORD_SIZE == 32)
-#   undef TECO_K_ARCH
-#   define TECO_K_ARCH 4
-#  endif
 # elif (defined(__hpux))
 #  define TECO_K_OS 1
 # else
