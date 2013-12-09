@@ -849,10 +849,10 @@ void teco_interp(void)
 	    case 'N':
 	    case 'R':
 	    case 'W':
-		getsrg(&ctx.filbuf);
+		getstg(&ctx.filbuf);
 		irest();
 		ctx.temp = ctx.n;
-		getfl(cmd); 
+		teco_getfl(cmd); 
 		break;
 
 	    case 'J': {		/* "EJ" is return environment characteristics */
