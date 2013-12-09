@@ -300,14 +300,24 @@ static int32_t gexit()
 	memcpy(cmd, ctx.filbuf.qrg_ptr, ctx.filbuf.qrg_size);
 	cmd[ctx.filbuf.qrg_size] = '\0';
 
-	execl(shell, "-c", cmd, (char *) 0);
+    	switch (fork()) {
+	default:
+    	    wait((int *)0);
+	    exit(EXIT_SUCCESS);
+	    break;
 
-	/*
-	** The only way we will get here is if something went terribly
-	** wrong, so no need to check, just assume the worst.
-	*/
-    	ctx.syserr = errno;
-	ERROR_MESSAGE(ERR);
+	case 0:
+	    execl(shell, shell, "-c", cmd, (char *) 0);
+
+	case -1:
+	    /*
+	    ** The only way we will get here is if something went terribly
+	    ** wrong, so no need to check, just assume the worst.
+	    */
+    	    ctx.syserr = errno;
+	    ERROR_MESSAGE(ERR);
+	    break;
+	}
     }
 
     if (strncasecmp(cmd, "SPA", 3) == 0) {
