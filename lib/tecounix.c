@@ -300,7 +300,7 @@ static int32_t gexit()
 	memcpy(cmd, ctx.filbuf.qrg_ptr, ctx.filbuf.qrg_size);
 	cmd[ctx.filbuf.qrg_size] = '\0';
 
-	execl(shell, "-c", cmd);
+	execl(shell, "-c", cmd, (char *) 0);
 
 	/*
 	** The only way we will get here is if something went terribly
@@ -312,74 +312,9 @@ static int32_t gexit()
 
     if (strncasecmp(cmd, "SPA", 3) == 0) {
     } else {
-	if (strncasecmp(cmd, "INI", 3) == 0) {
-	    if (var == 0) {
-		path = getenv("TEC_INIT");
-		if (path == 0) {
-		    struct stat sb;
-
-		    if (asprintf(&path, "$%s/.tecorc", getenv("HOME")) == -1)
-			ERROR_MESSAGE(MEM);
-
-		    if (stat(path+1, &sb) != 0) {
-			free(path);
-			path = 0;
-		    }
-		} else {
-		    path = strdup(path);
-		    if (path == 0)
-			ERROR_MESSAGE(MEM);
-		}
-	    } else if (varlen == 0) {
-		// set the environment variable to an empty string so
-		// future translations won't catch ~/.tecorc
-	    } else {
-		// allocate "var=name"		
-		// set TEC_INIT to var
-	    }
-	} else if (strncasecmp(cmd, "MEM", 3) == 0) {
-	    if (var == 0) {
-		// path = getenv("TEC_MEMORY")
-		// if path == 0
-		    // stat $~/.tecomem
-		// else
-		    //
-	    } // else if varlen == 0
-		// stat ~/.tecomem
-		// if found
-		    // unlink
-	    // else
-		// symlink to ~/.tecomem
-	}
+    	char *name, *value = "";
+    	name = value;
     }
-
-// Maybe we actually need to do this with some hidden files...
-	// INI = ~/.tecinit or TEC_INIT
-	// MEM = ~/.tecmemory
-	// LIB = /usr/share/teco (or something like that) overriden by TEC_LIBRARY
-	// VTE = ${TEC_LIBRARY}/vtedit.tec overridden by TEC_VTEDIT
-
-	// SHE[LL] = TEC_SHELL or SHELL...allowing it to be used by
-	// SPA[WN] = execve(getenv("SHELL"), "-c", cmd);
-
-
-#if 0
-
-The definitive guide on MEM on UNIX...no more TEC_MEMORY!
-
-Getting:
-
-	Open ~/.tecmemory.  If there, read it in.
-
-Clearing:
-
-	If ~/.tecmemory is present.  Delete it.
-
-Setting:
-
-	Open ~/.tecmemory and write the buffer into it.
-
-#endif
 
     return status;
 }
