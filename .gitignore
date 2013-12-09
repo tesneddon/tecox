@@ -23,6 +23,9 @@ ylwrap
 *~
 *.o
 *.lo
+*.la
 .deps
 .dirstamp
 tecox
+.libs
+libtool
