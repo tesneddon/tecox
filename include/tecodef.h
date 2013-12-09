@@ -41,6 +41,7 @@
 **	09-OCT-2013 V41.08A Sneddon   Replaced [u]intXX_t with C99 [u]intmax_t.
 **				      Also removed TECO_K_WORD_SIZE.
 **	11-JUN-2013 V41.09  Sneddon   Add gexit to IO_SUPPORT.
+**	09-DEC-2013 V41.10  Sneddon   Add version macros in here.
 **--
 */
 #ifndef __TECODEF_LOADED
@@ -50,6 +51,12 @@
 #include <setjmp.h>
 #include <signal.h>
 #include <stdio.h>
+
+/*
+** TECO Version Macros.
+*/
+#define TECO_K_VERSION 41
+#define TECO_T_VERSION "V41"
 
 /* TECO operating system and processor architecture constants.
  *
