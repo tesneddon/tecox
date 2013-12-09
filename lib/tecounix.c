@@ -307,7 +307,7 @@ static int32_t gexit()
 	    break;
 
 	case 0:
-	    execl(shell, shell, "-c", cmd, (char *) 0);
+	    execlp(shell, shell, "-c", cmd, (char *) 0);
 
 	case -1:
 	    /*
