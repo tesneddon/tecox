@@ -69,6 +69,7 @@
 **
 **--
 */
+#if 0
 int teco$start(flag)
     int *flag;
 {
@@ -79,3 +80,4 @@ int teco$start(flag)
 
     return clean_up_and_start();
 }
+#endif
