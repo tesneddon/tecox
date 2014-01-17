@@ -321,9 +321,45 @@ static int32_t gexit()
     }
 
     if (strncasecmp(cmd, "SPA", 3) == 0) {
+    	//
     } else {
-    	char *name, *value = "";
-    	name = value;
+    	char *name = ctx.filbuf.qrg_ptr, *value = "";
+
+	// split it up...
+
+    	if (strncasecmp(cmd, "INI", 3) == 0) {
+    	    // we can only retrieve this.  Other functions have no change.
+    	    // actually, will remove and set TEC_INIT.
+    	} else if (strncasecmp(cmd, "MEM", 3) == 0) {
+    	    char *memenv;
+
+    	    memenv = getenv("TEC_MEMORY");
+    	    if (value == 0) {
+    	    	// look for TEC_MEMORY
+		// if found
+		    // return it
+		// else
+		    // look for ~/.tec_memory
+    	    	    // if found
+    	    	    	// return it
+    	    } else if (value[0] == '\0') {
+    	    	// if TEC_MEMORY, unsetenv
+    	    	// if ~/.tec_memory, unlink it
+    	    } else {
+    	    	// if TEC_MEMORY
+    	    	    // return it
+    	    	// else if ~/.tec_memory
+    	    	    // return it
+    	    }
+    	} else if (strncasecmp(cmd, "ENV", 3) == 0) {
+    	    if (value == 0) {
+    	    	// getenv and return
+    	    } else if (value[0] == '\0') {
+    	    	// unsetenv and return
+    	    } else {
+    	    	// setenv to value and return
+    	    }
+    	}
     }
 
     return status;
