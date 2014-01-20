@@ -42,7 +42,8 @@
 **				      Also removed TECO_K_WORD_SIZE.
 **	11-JUN-2013 V41.09  Sneddon   Add gexit to IO_SUPPORT.
 **	09-DEC-2013 V41.10  Sneddon   Add version macros in here.
-**	20-JAN-2013 V41.11  Sneddon   Add [u]intmax_t for VAXC.
+**	20-JAN-2013 V41.11  Sneddon   Add [u]intmax_t for VAXC.  Removed mem
+**				      zone stuff.
 **--
 */
 #ifndef __TECODEF_LOADED
@@ -360,13 +361,6 @@
 #define TECO_K_QSKP_IREST 1		/* Restore quote to ESC		    */
 #define TECO_K_QSKP_SAVE 2		/* Save quote before processing and */
 					/*  restore before return	    */
-
-/* Memory zone identifiers.
- */
-#define TECO_K_ZONE_GLOBAL 0
-#define TECO_K_ZONE_LOCAL 1
-
-#define TECO_K_INITIAL_ZMAX 8192
 
 #define TECO_T_HELP_CMD "HELP"
 #define TECO_K_HELP_SIZE (sizeof(TECO_T_HELP_CMD)-1)
