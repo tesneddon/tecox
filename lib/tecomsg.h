@@ -1,26 +1,41 @@
-/*+
- * Title:	tecomsg.h
- *
- * Version:	V1-001
- *
- * Facility:	TECO, Text Editor and COrrector.
- *
- * Abstract:	Message definitions.
- *
- * Environment:	GNU/Linux x86 user mode.
- *		OpenBSD VAX./x86 user mode.
- *		OpenVMS VAX/Alpha/I64 user mode.
- *
- * Author:	Tim E. Sneddon.
- *
- * History:
- *
- *		06-Mar-2005, TES; Version V1-001
- *	001 -	Created.
--*/
-
+/*
+**++
+**  MODULE DESCRIPTION:
+**
+**      This include contains definitions of message numbers.
+**
+**  AUTHOR:             Tim E. Sneddon
+**
+**  Copyright (C) 2014 Tim E. Sneddon <tim@sneddon.id.au>
+**
+**  This program is free software: you can redistribute it and/or modify
+**  it under the terms of the GNU General Public License as published by
+**  the Free Software Foundation, either version 3 of the License, or
+**  (at your option) any later version.
+**
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU General Public License for more details.
+**
+**  You should have received a copy of the GNU General Public License
+**  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+**
+**  CREATION DATE:      06-MAR-2005
+**
+**  MODIFICATION HISTORY:
+**
+**      06-MAR-2005 V41.00  Sneddon     Initial coding.
+**      20-JAN-2014 V41.01  Sneddon     Fixed module header.  Added three
+**					'info' messages.
+**--
+*/
 #ifndef __TECOMSG_LOADED
 #define __TECOMSG_LOADED 1
+
+#define TECO__MEM_PAG    3
+#define TECO__DISK_QUOT  2
+#define TECO__SEAR_ITER  1
 
 #define TECO__NORMAL	 0
 
