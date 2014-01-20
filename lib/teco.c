@@ -100,6 +100,7 @@
     static void push();
     static void pop();
     static void poplcl();
+    static void search();
 
 /*
 ** Macro Definitions
@@ -181,6 +182,11 @@ do { \
 #define OP_AND  4
 #define OP_OR   5
 
+#define SUR_FAIL 0x8000
+#define SUR_OK   0x4000
+#define SUR_REV  0x2000
+#define SUR_BND  0x1000			/* Bounded search flag */
+#define SUR_NPG  0x0800
 
 /*
 ** Global Storage
@@ -406,9 +412,8 @@ void teco_interp(void)
 {
     uint8_t chr, *end = ctx.scanp + ctx.qlengt;
 
-    while (ctx.scanp < end) {
-	chr = scan();
-
+    chr = scan();
+    do {
 	switch (chr) {
 	default:
 	    if ((int8_t)chr < 0) {
@@ -1062,6 +1067,63 @@ void teco_interp(void)
 	    break;
 	}
 
+    	case 'S':
+    	case 's': {		/* "S" is search */
+    	    uint32_t status;
+
+    	    if (ctx.flags & TECO_M_REPFLG) {
+    	    	ctx.flags &= ~TECO_M_REPFLG;
+    	    	skpquo();
+    	    	if (status & SUR_OK) {
+    	    	    // do some jigger-pokery and call .sch.r();
+    	    	}
+    	    }
+    	    irest();
+    	    ncom(status & SUR_OK ? TECO__TRUE : TECO__FALSE);
+            if (!(ctx.flags & (TECO_M_CLNF|TECO_M_CLN2F))) {
+                if (ctx.itrst) {
+                    uint32_t tflg = ctx.flags & TECO_M_TFLG;
+                    ctx.flags &= ~TECO_M_TFLG;
+                    if (tstnxt(';')) {
+                        ctx.scanp--;
+                        ctx.flags |= tflg;
+                        ctx.flags &= ~(TECO_M_CLNF|TECO_M_CLN2F);
+                        break;
+                    } else if (tstnxt(':')) {
+                        if (tstnxt(';')) {
+                            ctx.scanp -= 2;
+                            ctx.flags |= tflg;
+                            ctx.flags &= ~(TECO_M_CLNF|TECO_M_CLN2F);
+                            break;
+                        } else {
+                            ctx.scanp--;
+                        }
+                    }
+                    ctx.flags |= tflg;
+                    ctx.flags &= ~TECO_M_NFLG;
+                    if (ctx.n == TECO__TRUE)
+                        break;
+                    /* TODO: crlfno(); */
+                    ERROR_MESSAGE(SEAR_ITER);
+                    chr =';';
+                    continue;
+                }
+                ctx.flags &= ~TECO_M_NFLG;
+                if (ctx.n >= 0) {
+                    ERROR_MESSAGE(SRH);// ...need to supply the search string?
+                }
+                if (ctx.esflag == 0) {
+                    ctx.flags &= ~(TECO_M_CLNF|TECO_M_CLN2F);
+                    break;
+                }
+                ctx.flags &= ~(TECO_M_NFLG|TECO_M_CFLG);
+                chr = 'V';
+                continue;
+            }
+            ctx.flags &= ~(TECO_M_CLNF|TECO_M_CLN2F);
+            break;
+        }
+
 	case 'T':
 	case 't':		/* "T" is the printer */
 	    gettx();
@@ -1071,7 +1133,7 @@ void teco_interp(void)
 	case 'U':
 	case 'u':		/* "U" is q-reg number setter */
 	    if (!(ctx.flags & TECO_M_NFLG))
-		ERROR_MESSAGE(NAU); 
+		ERROR_MESSAGE(NAU);
 	    ctx.flags &= ~TECO_M_NFLG;
 	    qref(0, scnupp());
 	    ctx.qnmbr->qrg_value = ctx.n;
@@ -1200,7 +1262,9 @@ void teco_interp(void)
 
 	if (ctx.flags & ~TECO_M_NFLG)
 	    ctx.n = 0;
-    }
+
+	chr = scan();
+    } while (ctx.scanp < end);
 
     if (ctx.mpdcnt != 0) {
 	QRGDEF *lclptr = ctx.lclptr;
