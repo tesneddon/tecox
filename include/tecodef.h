@@ -42,6 +42,7 @@
 **				      Also removed TECO_K_WORD_SIZE.
 **	11-JUN-2013 V41.09  Sneddon   Add gexit to IO_SUPPORT.
 **	09-DEC-2013 V41.10  Sneddon   Add version macros in here.
+**	20-JAN-2013 V41.11  Sneddon   Add [u]intmax_t for VAXC.
 **--
 */
 #ifndef __TECODEF_LOADED
@@ -134,6 +135,8 @@
     typedef unsigned short int uint16_t;
     typedef int int32_t;
     typedef unsigned int uint32_t;
+    typedef int intmax_t;
+    typedef int uintmax_t;
 #  endif
 # elif (defined(__OpenBSD__))
 #  define TECO_K_OS 1
