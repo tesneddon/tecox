@@ -100,7 +100,7 @@
     static void push();
     static void pop();
     static void poplcl();
-    static void search();
+    static uint32_t search();
 
 /*
 ** Macro Definitions
@@ -412,8 +412,13 @@ void teco_interp(void)
 {
     uint8_t chr, *end = ctx.scanp + ctx.qlengt;
 
+#if 0
     chr = scan();
     do {
+#else
+    while (ctx.scanp < end) {
+	chr = scan();
+#endif
 	switch (chr) {
 	default:
 	    if ((int8_t)chr < 0) {
@@ -602,7 +607,12 @@ void teco_interp(void)
 
 	case TECO_C_ESC:	/* "ESC" simply eats everything */
 	    if (tstnxt(chr)) {
+    	    	/*
+    	    	** We have reached the end of the command, skip to the end
+    	    	** and take our leave...
+     	    	*/
 		skpset(TECO_C_NUL, TECO_C_NUL);
+    	    	continue;
 	    } else {
 		ctx.flags &= ~(TECO_M_CFLG | TECO_M_OFLG |
 			       TECO_M_CLNF | TECO_M_CLN2F |
@@ -1263,8 +1273,12 @@ void teco_interp(void)
 	if (ctx.flags & ~TECO_M_NFLG)
 	    ctx.n = 0;
 
+#if 0
 	chr = scan();
     } while (ctx.scanp < end);
+#else
+    }
+#endif
 
     if (ctx.mpdcnt != 0) {
 	QRGDEF *lclptr = ctx.lclptr;
@@ -1881,6 +1895,86 @@ static void poplcl(lclptr)
 	    free(lclptr[i].qrg_ptr);
     }
     if (lclptr != qreg_local) free(lclptr);
+}
+
+static uint32_t search()
+{
+
+    uint8_t *cp, *end;
+    int32_t hits, limit, flags;
+
+    if ((limit = ctx.m) < 0) {
+        limit *= -1;
+        flags |= SUR_REV;
+    }
+    if (ctx.flags & TECO_M_CFLG) {
+        ctx.flags &= ~TECO_M_CFLG;
+        flags |= SUR_BND;
+    } else {
+        limit = 0;
+        /*
+        ** Is this an old style 'no move' search??
+        */
+        if (ctx.flags & TECO_M_CLN2F) {
+            /*
+            ** Yup, set bound for no movement and set
+            ** bound search flag.
+            */
+            limit++;
+            flags |= SUR_BND;
+        }
+    }
+    getn();
+    getstg(&ctx.schbuf);
+    if (ctx.n == 0) ERROR_MESSAGE(ISA);
+    cp = ctx.p + ctx.txstor;            // R3
+    end = ctx.zz + ctx.txstor;          // 8(SP)
+    hits = ctx.n;                       // SP
+#if 0
+    if (hits < 0) {
+        direction = -1;
+        flags |= SUR_REV;
+        if (!(flags & SUR_BND)) {
+            flags |= SUR_NPG;
+        }
+        hits *= -1;
+    } else {
+        direction = 1;                  // 4(SP)
+    }
+    ctx.lschsz = 0;
+
+    do {
+        // sp = ctx.schbuf.arg_ptr;
+        // send = sp + ctx.schbuf.qrg_size;
+        // ctln = -1;
+        while (cp < end) {
+            if (++ctln != 0) {
+                goto 120$;
+            } else {
+                if (cp
+            }
+        }
+    } while (--hits != 0);
+
+    // does it match end of string?
+    flags |= SUR_FAIL;
+    if (!(flags & SUR_BND)
+    	&& !(ctx.edit & TECO_M_ED_SRH)) {
+            r5 = 0;
+            ctx.p = r5;
+        }
+    }
+#endif
+    return flags;
+
+
+/*
+    hits                //   (SP)
+    dir                 //  4(SP)
+    end                 //  8(SP)
+    limit               // 12(SP)
+    flags               // 16(SP)
+*/
 }
 
 /*
