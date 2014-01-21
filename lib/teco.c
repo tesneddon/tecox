@@ -57,10 +57,12 @@
 **	09-JUN-2013 V41.07  Sneddon	Switch to snprintf. Change to :^T.
 **					Fix definition of tecocmd.
 **	11-JUN-2013 V41.08  Sneddon	Add EG and fixe bug in getstg.
+**	21-JAN-2014 V41.09  Sneddon	Fix rather glaring bug in number
+**					handler.
 **--
 */
 #define MODULE TECO
-#define VERSION "V41.08"
+#define VERSION "V41.09"
 #ifdef vms
 # ifdef VAX11C
 #  module MODULE VERSION
@@ -641,13 +643,16 @@ void teco_interp(void)
 	    default:  ctx.nopr = OP_ADD; break;
 	    }
 
-	    /* Save any current number in accumulator and clear pending numbers.
+	    /*
+    	    ** Save any current number in accumulator and clear
+    	    ** pending numbers.
 	    */
 	    ctx.nacc = ctx.n;
 	    ctx.np = 0;
 
-	    /* Indicate operator pending, but no number pending.  Actual
-	    ** computation is handled by ncom.
+	    /*
+    	    ** Indicate operator pending, but no number pending.
+    	    ** Actual computation is handled by ncom.
 	    */
 	    ctx.flags &= ~TECO_M_NFLG;
 	    ctx.flags |= TECO_M_OFLG;
@@ -718,23 +723,29 @@ void teco_interp(void)
 	    if (i > 9)
 		i -= ('A' - 10) - '0';
 
-	    ctx.np *= 4;
-	    switch (ctx.nmrbas) {
-	    case RADIX_HEX: ctx.np += ctx.np;
-	    case RADIX_OCT: np = 0;
-	    case RADIX_DEC: ctx.np += np;
+    	    if (ctx.flags & TECO_M_NFLG) {
+    	    	ctx.flags &= ~TECO_M_NFLG;
+
+	    	ctx.np *= 4;
+	    	switch (ctx.nmrbas) {
+	    	case RADIX_HEX: ctx.np += ctx.np;
+	    	case RADIX_OCT: np = 0;
+	    	case RADIX_DEC: ctx.np += np;
+	    	}
+
+	    	/*
+    	    	** Save np, so it can be restored following ncom and flip
+    	    	** operator flag so ncom correctly calculates accumulated
+		** numbers.
+	        */
+	    	np = (ctx.np * 2) + i;
+		ctx.flags |= TECO_M_OFLG;
+		ncom(np);
+		ctx.np = np;
+	    } else {
+	    	ncom(i);
+	    	ctx.np = i;
 	    }
-
-	    ctx.np += ctx.np + i;
-
-	    /*
-	    ** Save np, so it can be restored following ncom.  This is in
-	    ** case we have not finished parsing the number.
-	    */
-	    np = ctx.np;
-	    ncom(ctx.np);
-	    ctx.np = np;
-
 	    break;
 	}
 
