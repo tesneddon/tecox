@@ -59,6 +59,7 @@
 **	11-JUN-2013 V41.08  Sneddon	Add EG and fixe bug in getstg.
 **	21-JAN-2014 V41.09  Sneddon	Fix rather glaring bug in number
 **					handler.
+**	22-JAN-2014 V41.10  Sneddon	Added conditional support.
 **--
 */
 #define MODULE TECO
@@ -430,6 +431,13 @@ void teco_interp(void)
 	    ERROR_MESSAGE(NYI);
 	    break;
 
+    	case TECO_C_NUL:
+    	case TECO_C_LF:
+    	case TECO_C_CR:
+    	case TECO_C_SPACE:
+    	case TECO_C_DEL:	/* Non-command characters */
+    	    break;
+
 	case TECO_C_SOH: {	/* "^A" is output message to terminal */
 	    int len;
 
@@ -627,6 +635,91 @@ void teco_interp(void)
 	    ctx.quote = chr;
 	    skpquo();
 	    break;
+
+    	case '"': {		/* '"' is the conditional */
+	    uint8_t cmd;
+	    uint32_t success = 0;
+
+    	    if (!(ctx.flags & TECO_M_NFLG))
+    	    	ERROR_MESSAGE(NAQ);
+
+    	    ctx.flags &= ~TECO_M_NFLG;
+
+    	    cmd = scnupp();
+    	    switch (cmd) {
+    	    default:
+    	    	ERROR_MESSAGE(IQC);
+    	    	break;
+
+    	    case 'A':		/* "A" is a-z */
+    	    	success = isalpha(ctx.n);
+    	    	break;
+
+    	    case 'D':		/* "D" is 0-9 */
+    	    	success = isdigit(ctx.n);
+    	    	break;
+
+    	    case 'E':		/* "E" is ok if = */
+    	    case 'F':		/* "F" is false (0) */
+    	    case 'U':		/* "U" is unsuccessful (0) */
+    	    case '=':		/* "=" is ok if = */
+    	    	success = ctx.n == 0;
+    	    	break;
+
+    	    case 'G':		/* "G" is ok if > */
+    	    case '>':		/* ">" is ok if > */
+    	    	success = ctx.n > 0;
+    	    	break;
+
+    	    case 'L':		/* "L" is ok if < */
+    	    case 'S':		/* "S" is successful (-1) */
+    	    case 'T':		/* "T" is true (-1) */
+    	    case '<':		/* "<" is ok if < */
+    	    	success = ctx.n < 0;
+    	    	break;
+
+    	    case 'N':		/* "N" is okay if <> */
+    	    	success = ctx.n != 0;
+    	    	break;
+
+    	    case 'C':		/* "C" is symbol character */
+    	    case 'R':		/* "R" is a-z, 0-9 */
+    	    	success = isalnum(ctx.n);
+    	    	break;
+
+    	    case 'V':		/* "V" is lower case a-z */
+     	    	success = islower(ctx.n);
+    	    	break;
+
+    	    case 'W':		/* "W" is upper case a-z */
+    	    	success = isupper(ctx.n);
+    	    	break;
+    	    }
+
+    	    if (!success) {
+    	    	/*
+    	    	** Conditional failed.  Attempt to find "|" (else).  If
+    	    	** not found, just jump to "'" (end if);
+    	    	*/
+    	    	ctx.cndn = 0;
+    	    	do {
+    	    	    skpset(TECO_C_VBR, TECO_C_APS);
+    	    	} while (ctx.cndn != 0);
+    	    }
+    	    break;
+    	}
+
+    	case '\'':		/* "'" is the end of a conditional */
+    	    ctx.flags &= ~TECO_M_NFLG;
+    	    irest();
+    	    break;
+
+    	case '|':		/* "vertical bar" is skip to next ' */
+    	    ctx.cndn = 0;
+    	    do {
+     	    	skpset(TECO_C_APS, TECO_C_NUL);
+    	    } while (ctx.cndn != 0);
+    	    break;
 
 	case '&':		/* "&" is logical 'and' */
 	case '#':		/* "#" is logical or */
@@ -878,7 +971,7 @@ void teco_interp(void)
 		getstg(&ctx.filbuf);
 		irest();
 		ctx.temp = ctx.n;
-		teco_getfl(cmd); 
+		io_support.getfl(cmd);
 		break;
 
 	    case 'J': {		/* "EJ" is return environment characteristics */
@@ -1022,7 +1115,7 @@ void teco_interp(void)
 
 	    getstg(&ctx.tagbuf);
 	    tag = ctx.tagbuf.qrg_ptr;
-	    taglen = tag + ctx.tagbuf.qrg_size;
+	    taglen = ctx.tagbuf.qrg_size;
 	    if (ctx.flags & TECO_M_NFLG) {
 		uint8_t *tend, *tp;
 
@@ -1267,18 +1360,6 @@ void teco_interp(void)
 	case '^':		/* "^" means next is control character */
 	    ctx.flags2 |= TECO_M_MAKCTL;
 	    break;
-
-	case '`':		/* "`" */
-	    ctx.flags &= ~TECO_M_NFLG;
-	    break;
-
-	case '|':		/* "|" is skip to next ' */
-	    ctx.cndn = 0;
-	    do {
-		skpset('|', '\000');
-	    } while (ctx.cndn != 0);
-	    break;
-
 	}
 
 	if (ctx.flags & ~TECO_M_NFLG)
