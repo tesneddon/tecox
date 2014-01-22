@@ -61,6 +61,7 @@
 **					handler.
 **	22-JAN-2014 V41.10  Sneddon	Added conditional and iteration
 **					support. Add "I".
+**	23-JAN-2014 V41.11  Sneddon	Fixed bug in ")" handling.
 **--
 */
 #define MODULE TECO
@@ -821,10 +822,13 @@ void teco_interp(void)
 	    break;
 
 	case ')':		/* ")" is end of expression */
-	    if ((!ctx.flags & TECO_M_OFLG) || !ctx.pcnt)
+	    if ((!ctx.flags & TECO_M_NFLG) || !ctx.pcnt)
 		ERROR_MESSAGE(NAP);
+
 	    ctx.pcnt--;
 	    pop(TECO_K_PDL_PAREN);
+
+    	    ctx.flags |= TECO_M_OFLG;
 	    ncom(ctx.n);
 	    break;
 
