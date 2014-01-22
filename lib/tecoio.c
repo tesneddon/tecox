@@ -134,7 +134,7 @@ void teco_type(oflags,
 	    io_support.output(chr);
 	}
     }
-}
+} /* teco_type */
 
 uint8_t listen(isfirst)
     const uint32_t isfirst;
@@ -143,18 +143,8 @@ uint8_t listen(isfirst)
     uint32_t isdelim = 0;
     int32_t status;
 
-    // if (ctx.indir)
-	// chr = teco_fs_listen();
-
-    /*
-    ** Has the secondary input channel been closed due to EOF?
-    */
+    io_support.input(&chr);
     if (!ctx.indir) {
-	/*
-	** Yes.  Begin listening on the terminal...
-	*/
-	io_support.input(&chr);
-
 	if (ctx.etype & TECO_M_ET_GRV) {
 	    if (chr == ctx.eeflg) {
 		chr = TECO_C_GRV;
@@ -174,7 +164,8 @@ uint8_t listen(isfirst)
 		}
 	    } else {
 		/*
-		** Does the command register have enough characters to be a 'HELP' command?
+		** Does the command register have enough characters to be
+    	    	** a 'HELP' command?
 		*/
 		if (ctx.qpntr->qrg_size >= 4) {
 		    /* Yes.  Attempt to determine...
@@ -207,31 +198,7 @@ uint8_t listen(isfirst)
     }
 
     return chr;
-}
-
-void teco_getfl(chr)
-    uint8_t chr;
-{
-    if (ctx.filbuf.qrg_size == 0) {
-    	switch (chr) {
-	case 'I':
-	    ctx.indir = 0;
-	    //close off the file...
-	    break;
-    	}
-    } else {
-	// parse input file spec...
-
-	switch (chr) {
-	case 'I':
-	    //close_indir
-	    //r6=indir_cmd_fab,r7=cmdprm
-	    break;
-	}
-
-	// common code here...
-    }
-}
+} /* listen */
 
 void teco_delch(void)
 {
@@ -244,7 +211,7 @@ void teco_delch(void)
 
 	ctx.qpntr->qrg_size--;
     }
-}
+} /* teco_delch */
 
 uint8_t tlistn(void)
 {
@@ -265,4 +232,4 @@ uint8_t tlistn(void)
 
     ctx.etype = etype;
     return chr;
-}
+} /* tlistn */
