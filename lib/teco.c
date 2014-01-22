@@ -60,7 +60,7 @@
 **	21-JAN-2014 V41.09  Sneddon	Fix rather glaring bug in number
 **					handler.
 **	22-JAN-2014 V41.10  Sneddon	Added conditional and iteration
-**					support.
+**					support. Add "I".
 **--
 */
 #define MODULE TECO
@@ -521,7 +521,7 @@ void teco_interp(void)
 
 	    len = (ctx.scanp - ctx.oscanp) - 1;
 	    txadj(len);
-	    memcpy(&ctx.txstor[ctx.p + ctx.lschsz], ctx.oscanp, len);
+	    memcpy(&ctx.txstor[ctx.p+ctx.lschsz], ctx.oscanp, len);
 	    *ctx.oscanp = saved;
 	    break;
 	}
@@ -1129,6 +1129,29 @@ void teco_interp(void)
 	    ctx.n = ctx.zz;
 	    ctx.flags |= TECO_M_CFLG | TECO_M_NFLG;
 	    break;
+
+    	case 'I':
+    	case 'i': {		/* "I" is insert text */
+    	    uint8_t *ptr;
+    	    uint32_t len;
+
+    	    skpquo();
+    	    ptr = ctx.oscanp;
+    	    len = (ctx.scanp - ctx.oscanp) -1;
+
+    	    if (ctx.flags & TECO_M_NFLG) {
+    	    	ctx.flags &= ~TECO_M_NFLG;
+
+    	    	if (len != 0) ERROR_MESSAGE(IAA);
+
+    	    	ptr = (uint8_t *)&ctx.n;
+    	    	len = 1;
+    	    }
+
+    	    txadj(len);
+    	    memcpy(&ctx.txstor[ctx.p+ctx.lschsz], ptr, len);
+    	    break;
+    	}
 
 	case 'J':		/* "J" is move pointer */
 	case 'j':
