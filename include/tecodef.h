@@ -44,6 +44,7 @@
 **	09-DEC-2013 V41.10  Sneddon   Add version macros in here.
 **	20-JAN-2013 V41.11  Sneddon   Add [u]intmax_t for VAXC.  Removed mem
 **				      zone stuff.
+**	21-JAN-2014 V41.12  Sneddon   Add getfl to IO_SUPPORT.
 **--
 */
 #ifndef __TECODEF_LOADED
@@ -654,6 +655,7 @@
     	int32_t (*etflg)    ();		/* inform terminal of ET flag       */
     	int32_t (*getcmd)   ();		/* get command line into Q-reg Z    */
 	int32_t (*gexit)    ();		/* process special functions	    */
+   	int32_t (*getfl)    ();	    	/* get files opened		    */
     } IO_SUPPORT;
 
 /*
