@@ -59,7 +59,8 @@
 **	11-JUN-2013 V41.08  Sneddon	Add EG and fixe bug in getstg.
 **	21-JAN-2014 V41.09  Sneddon	Fix rather glaring bug in number
 **					handler.
-**	22-JAN-2014 V41.10  Sneddon	Added conditional support.
+**	22-JAN-2014 V41.10  Sneddon	Added conditional and iteration
+**					support.
 **--
 */
 #define MODULE TECO
@@ -721,6 +722,53 @@ void teco_interp(void)
     	    } while (ctx.cndn != 0);
     	    break;
 
+    	case '<':		/* "<" starts an interation */
+    	    push(TECO_K_PDL_ITR);
+    	    ctx.itrst = ctx.scanp;
+    	    if (ctx.flags & TECO_M_NFLG) {
+    	    	ctx.flags &= ~TECO_M_NFLG;
+    	    	ctx.itrcnt = ctx.n;
+    	    } else {
+    	    	ctx.itrcnt = 0;
+    	    }
+    	    break;
+
+    	case '>':		/* ">" ends an iteration */
+    	    if (ctx.itrst == 0)
+    	    	ERROR_MESSAGE(BNI);
+
+    	    if (ctx.itrcnt != 0) {
+    	    	if (--ctx.itrcnt == 0) {
+    	    	    pop(TECO_K_PDL_ITR);
+    	    	} else {
+    	    	    ctx.scanp = ctx.itrst;
+    	    	}
+    	    } else {
+    	    	ctx.scanp = ctx.itrst;
+    	    }
+
+    	    ctx.flags &= ~(TECO_M_CFLG | TECO_M_OFLG | TECO_M_NFLG |
+    	    	    	   TECO_M_CLNF | TECO_M_CLN2F);
+    	    irest();
+    	    break;
+
+	case ';':		/* ";" is special iteration end */
+	    if (!ctx.itrst)
+		ERROR_MESSAGE(SNI);
+	    if (!(ctx.flags & TECO_M_NFLG))
+		ERROR_MESSAGE(NAS);
+	    if (ctx.flags * TECO_M_CLNF)
+		ctx.n = -ctx.n;
+	    if (ctx.n < 0) {
+		ctx.flags &= ~(TECO_M_CFLG  | TECO_M_OFLG | TECO_M_CLNF |
+			       TECO_M_CLN2F | TECO_M_NFLG);
+		irest();
+	    } else {
+		skpset(TECO_C_RAB, TECO_C_NUL);
+		pop(TECO_K_PDL_ITR);
+	    }
+	    break;
+
 	case '&':		/* "&" is logical 'and' */
 	case '#':		/* "#" is logical or */
 	case '*':		/* "*" is multiplication */
@@ -848,23 +896,6 @@ void teco_interp(void)
 	    if (tstnxt(chr)) {
 		ctx.flags |= TECO_M_CLN2F;
 		ctx.flags &= ~TECO_M_CLNF;
-	    }
-	    break;
-
-	case ';':		/* ";" is special iteration end */
-	    if (!ctx.itrst)
-		ERROR_MESSAGE(SNI);
-	    if (!(ctx.flags & TECO_M_NFLG))
-		ERROR_MESSAGE(NAS);
-	    if (ctx.flags * TECO_M_CLNF)
-		ctx.n = -ctx.n;
-	    if (ctx.n < 0) {
-		ctx.flags &= ~(TECO_M_CFLG  | TECO_M_OFLG | TECO_M_CLNF |
-			       TECO_M_CLN2F | TECO_M_NFLG);
-		irest();
-	    } else {
-		skpset(TECO_C_RAB, TECO_C_NUL);
-		pop(TECO_K_PDL_ITR);
 	    }
 	    break;
 
@@ -1041,6 +1072,42 @@ void teco_interp(void)
 
 	    break;
 	}
+
+    	case 'F':
+    	case 'f': {		/* "F" is prefix for special searches */
+    	    uint8_t cmd = scnupp();
+
+    	    switch (cmd) {
+    	    default:
+    	    	ERROR_MESSAGE(IFC);
+    	    	break;
+
+    	    case '<':		/* "F<" flows to iteration's start */
+    	    	if (ctx.itrst == 0) {
+    	    	    ctx.scanp = ctx.qcmnd->qrg_ptr;
+    	    	} else {
+    	    	    ctx.scanp = ctx.itrst;
+    	    	}
+    	    	break;
+
+    	    case '>':		/* "F>" flows to iteration's end */
+    	    	if (ctx.itrst != 0) {
+    	    	    if (--ctx.itrcnt == 0) {
+    	    	   	skpset(TECO_C_RAB, TECO_C_NUL);
+     	    	    	trace(TECO_C_RAB);
+    	    	    } else {
+    	    	    	ctx.scanp = ctx.itrst;
+    	    	    	ctx.flags &= ~(TECO_M_CFLG | TECO_M_OFLG  |
+    	    	    	    	       TECO_M_CLNF | TECO_M_CLN2F |
+   	    	    	    	       TECO_M_NFLG);
+    	    	    	irest();
+    	    	    }
+    	    	} else {
+    	    	    skpset(TECO_C_NUL, TECO_C_NUL);
+    	    	}
+    	    }
+    	    break;
+    	}
 
 	case 'G':
 	case 'g':		/* "G" is get q-reg into text */
