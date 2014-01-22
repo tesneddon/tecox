@@ -30,10 +30,11 @@
 **					a broader range of support.
 **	06-JUN-2013 V41.02  Sneddon	Re-arrange getcmd.
 **	10-JUN-2013 V41.03  Sneddon	Add :EG support.
+**	21-JAN-2014 V41.04  Sneddon	Add EI and base getfl support.
 **--
 */
 #define MODULE TECOUNIX
-#define VERSION "V41.03"
+#define VERSION "V41.04"
 #ifdef vms
 # ifdef VAX11C
 #  module MODULE VERSION
@@ -42,15 +43,34 @@
 # endif
 #endif
 #include <errno.h>
+#include <limits.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <termios.h>
 #include <unistd.h>
+
+    struct UNIT {
+    	FILE *fptr;
+    	char path[PATH_MAX];
+    };
+    typedef struct UNIT *FILEHANDLE;
+
+#define OS_MODULE_BUILD
 #include "tecodef.h"
 #include "tecomsg.h"
 #include "globals.h"
+
+#define IOERR(err) \
+do { \
+    if (err == ENOENT) { \
+    	ERROR_MESSAGE(FNF); \
+    } else { \
+    	ctx.syserr = err; \
+    	ERROR_MESSAGE(ERR); \
+    } \
+} while (0)
 
 /*
 ** Forward Declarations
@@ -64,7 +84,9 @@
     static int32_t etflg();
     static int32_t getcmd();
     static int32_t gexit();
+    static int32_t getfl();
     static void sigcont_handler();
+    static void close_indir();
 
 /*
 ** Global Storage.
@@ -81,6 +103,7 @@
 	etflg,
 	getcmd,
 	gexit,
+    	getfl,
     };
 
 /*
@@ -90,6 +113,7 @@
     static int ctrlz_cnt = 0;
     struct termios attr;
     struct termios pattr;
+    struct UNIT indir_cmd;
 
 static int32_t init(void)
 {
@@ -123,13 +147,11 @@ static int32_t init(void)
 	    if (tcsetattr(STDIN_FILENO, TCSANOW, &attr) == 0) {
 		status = TECO__NORMAL;
 	    } else {
-		status = TECO__ERR;
-		ctx.syserr = errno;
+    	    	IOERR(errno);
 	    }
 	}
     } else {
-	status = TECO__ERR;
-	ctx.syserr = errno;
+    	IOERR(errno);
     }
 
     ctx.etype |= TECO_M_ET_LC; // Should this be in crtrub?
@@ -144,8 +166,7 @@ static int32_t restore(void)
     fflush(stdout);
 
     if (tcsetattr(STDIN_FILENO, TCSANOW, &pattr) != 0) {
-	status = TECO__ERR;
-	ctx.syserr = errno;
+    	IOERR(errno);
     }
 
     return status;
@@ -162,33 +183,38 @@ static int32_t input(chr)
 	*/
 	*chr = TECO_C_LF;
     } else {
-	*chr = getc(stdin);
-	if ((status = ferror(stdin)) == 0) {
-	    /*
-	    ** Modify immediate exit character if UNIX specific ^D
-	    ** (instead of ^Z) support enabled.
-	    */
-	    if (ctx.etype & TECO_M_ET_UNIX)
-		xitchr = TECO_C_EOT;
+    	if (ctx.indir == 0) {
+	    *chr = fgetc(stdin);
+	    if ((status = ferror(stdin)) == 0) {
+	    	/*
+	    	** Modify immediate exit character if UNIX specific ^D
+	    	** (instead of ^Z) support enabled.
+	    	*/
+	    	if (ctx.etype & TECO_M_ET_UNIX)
+		    xitchr = TECO_C_EOT;
 
-	    if (*chr == xitchr) {
-		if (ctx.temp == xitchr)
-		    ctrlz_cnt++;
-		else
-		    ctrlz_cnt = 1;
+	    	if (*chr == xitchr) {
+		    if (ctx.temp == xitchr)
+		    	ctrlz_cnt++;
+		    else
+		    	ctrlz_cnt = 1;
 
-		if (ctrlz_cnt >= TECO_K_CTRLZ_MAX)
-		    exit(TECO__NORMAL);
-	    }
-
-	    status = TECO__NORMAL;
-	} else if (status == -1) {
-	    status = TECO__ERR;
-	    ctx.syserr = errno;
+		    if (ctrlz_cnt >= TECO_K_CTRLZ_MAX)
+		    	exit(TECO__NORMAL);
+	    	}
+	    	status = TECO__NORMAL;
+	    } else if (status == -1) {
+    	    	IOERR(errno);
+	    } else {
+    	    	IOERR(EIO);
+    	    }
 	} else {
-	    status = TECO__ERR;
-	    ctx.syserr = EIO;
-	}
+	    *chr = fgetc(indir_cmd.fptr);
+    	    if (*chr == EOF) {
+    	    	close_indir();
+    	    	status = input(chr);
+    	    }
+    	}
     }
 
     return (int32_t)status;
@@ -199,11 +225,7 @@ static int32_t output(chr)
 {
     int status = TECO__NORMAL;
 
-    if (putc(chr, stdout) == EOF) {
-	status = TECO__ERR;
-	ctx.syserr = EIO;
-    }
-
+    if (putc(chr, stdout) == EOF) IOERR(errno);
     return (int32_t)status;
 }
 
@@ -363,6 +385,47 @@ static int32_t gexit()
     }
 
     return status;
+}
+
+static int32_t getfl(chr)
+    uint8_t chr;
+{
+
+    if (ctx.filbuf.qrg_size == 0) {
+        switch (chr) {
+        case 'I':
+    	    close_indir();  // make from the one below...
+            break;
+        }
+    } else {
+    	char path[PATH_MAX];
+
+    	// parse input file spec...drop path into null term storage
+    	//  also, never copy more than PATH_MAX...
+    	memcpy(path, ctx.filbuf.qrg_ptr, ctx.filbuf.qrg_size);
+    	path[ctx.filbuf.qrg_size] = '\0';
+
+    	switch (chr) {
+    	case 'I':
+    	    close_indir();
+     	    indir_cmd.fptr = fopen(path, "r");
+    	    if (indir_cmd.fptr == 0) IOERR(errno);
+    	    ctx.indir = 1;
+    	    break;
+    	}
+
+    	// if success -- make this more general when we add other files...
+    	    strcpy(indir_cmd.path, path);
+    }
+
+    return TECO__NORMAL;
+}
+
+static void close_indir() {
+    if (ctx.indir != 0) {
+        if (fclose(indir_cmd.fptr) != 0) IOERR(errno);
+    	ctx.indir = 0;
+    }
 }
 
 static void sigcont_handler(signum)
