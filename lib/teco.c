@@ -62,7 +62,8 @@
 **	22-JAN-2014 V41.10  Sneddon	Added conditional and iteration
 **					support. Add "I".
 **	23-JAN-2014 V41.11  Sneddon	Fixed bug in ")" handling.  Fixed
-**					some flag test bugs and tidy up/
+**					some flag test bugs and tidy up.
+**					Rewrite number getter, '\'.
 **--
 */
 #define MODULE TECO
@@ -861,7 +862,7 @@ void teco_interp(void)
 	case '2':
 	case '1':
 	case '0': {
-	    int32_t np = ctx.np, i = chr - '0';
+	    intmax_t np = ctx.np, i = chr - '0';
 
 	    /*
 	    ** Correct a hexidecimal digit.
@@ -1388,18 +1389,63 @@ void teco_interp(void)
 	    break;
 	}
 
-	case '\\': {		/* "\" is number inserter/getter */
-	    int32_t n = 0, np = 0, radadj = 0;
-	    uint32_t nopr = OP_ADD, p = ctx.p;
-
+	case '\\':		/* "\" is number inserter/getter */
 	    ctx.lschsz = 0;
 	    if (ctx.flags & TECO_M_NFLG) {
-		/*
-		** Insert number into text.
-		*/
 		ctx.flags &= ~TECO_M_NFLG;
 		zerod(TECO_K_ZEROD_TXBUF);
 	    } else {
+    	    	intmax_t np = 0;
+
+    	    	ncom(0);
+    	    	if (ctx.p >= ctx.zz) break;
+		if (ctx.txstor[ctx.p] == '-') {
+		    ctx.nopr = OP_SUB;
+		    ctx.p++;
+    	    	    ctx.lschsz--;
+    	    	} else {
+    	    	    ctx.nopr = OP_ADD;
+		    if (ctx.txstor[ctx.p] == '+') {
+    	    	    	ctx.p++;
+    	    	    	ctx.lschsz--;
+    	    	    }
+		}
+
+		while (ctx.p < ctx.zz) {
+    	    	    uint8_t c = ctx.txstor[ctx.p];
+    	    	    intmax_t i;
+
+    	    	    if (ctx.nmrbas == RADIX_HEX) {
+    	    	        c = toupper(c);
+    	    	    	if ((c <= 'A') && (c >= 'F')) {
+    	    	    	    if (!isdigit(c)) break;
+   	   	    	}
+    	    	    } else {
+    	    	    	if (!isdigit(c)) break;
+    	    	    	if ((ctx.nmrbas == RADIX_OCT) && (c >= '8')) {
+    	    	    	    break;
+    	    	    	}
+    	    	    }
+
+    	    	    i = c - '0';
+    	    	    if (i > 9)
+    	    	    	i -= ('A' - 10) - '0';
+
+	    	    ctx.np *= 4;
+	    	    switch (ctx.nmrbas) {
+	    	    case RADIX_HEX: ctx.np += ctx.np;
+	    	    case RADIX_OCT: np = 0;
+	    	    case RADIX_DEC: ctx.np += np;
+    	    	    }
+	    	    np = (ctx.np * 2) + i;
+		    ctx.flags |= TECO_M_OFLG;
+		    ncom(np);
+		    ctx.np = np;
+
+    	    	    ctx.p++;
+    	    	    ctx.lschsz--;
+    	    	}
+#if 0
 		if (ctx.p < ctx.zz) {
 		    if (ctx.txstor[ctx.p] == '-') {
 			nopr = OP_SUB;
@@ -1412,8 +1458,12 @@ void teco_interp(void)
 		while (ctx.p < ctx.zz) {
 		    np = n;
 		    n = ctx.txstor[ctx.p] - '0';
-		    if (n > 9)
+		    if (n > 9) {
 			n -= ('A' - 10) -'0';
+    	    	    } else {
+    	    	    	if (!isdigit(ctx.txstor[ctx.p]))
+    	    	    	    break;
+    	    	    }
             	    radadj = np * 4;
 		    if (ctx.nmrbas == RADIX_HEX) {
 			radadj += radadj;
@@ -1427,9 +1477,9 @@ void teco_interp(void)
 		ctx.lschsz = p - ctx.p;
 
 		ncom(nopr == OP_SUB ? -n : n);
+#endif
 	    }
 	    break;
-	}
 
 	case ']': {		/* "]" is q-reg pop */
 	    QRGDEF *qpdl = ctx.qpdl;
@@ -1532,7 +1582,7 @@ static uint32_t tstnxt(chr)
 }
 
 static void ncom(n)
-    int32_t n;
+    intmax_t n;
 {
     ctx.np = 0;
 
@@ -1557,7 +1607,7 @@ static void ncom(n)
 
 static void nlines(void)
 {
-    int32_t n;
+    intmax_t n;
     uint32_t p;
 
     getn();
@@ -1714,7 +1764,7 @@ static void skpset(trm1,
 }
 
 static void gettx(void) {
-    int32_t n = 0;
+    intmax_t n = 0;
 
     if (ctx.flags & TECO_M_CFLG) {
     	ctx.flags &= ~TECO_M_CFLG | TECO_M_NFLG;
