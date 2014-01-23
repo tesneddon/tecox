@@ -61,7 +61,8 @@
 **					handler.
 **	22-JAN-2014 V41.10  Sneddon	Added conditional and iteration
 **					support. Add "I".
-**	23-JAN-2014 V41.11  Sneddon	Fixed bug in ")" handling.
+**	23-JAN-2014 V41.11  Sneddon	Fixed bug in ")" handling.  Fixed
+**					some flag test bugs and tidy up/
 **--
 */
 #define MODULE TECO
@@ -143,7 +144,7 @@ do { \
 
 #define getn() \
 do { \
-    if (ctx.flags & ~TECO_M_NFLG) \
+    if (!(ctx.flags & TECO_M_NFLG)) \
 	ncom(1); \
     ctx.flags &= ~TECO_M_NFLG; \
 } while (0)
@@ -258,7 +259,7 @@ int32_t teco(void)
 	    if (ctx.flags2 & TECO_M_EXITEND) break;
 	    ctx.etype &= ~TECO_M_ET_XIT;
 
-	    if (ctx.edit & ~TECO_M_ED_WCH) {
+	    if (!(ctx.edit & TECO_M_ED_WCH)) {
 		// do WATCH update...
 	    }
 
@@ -607,7 +608,7 @@ void teco_interp(void)
 	    break;
 
 	case '\037':		/* "CTRL/_" is the unary complement operator */
-	    if (ctx.flags & ~TECO_M_NFLG)
+	    if (!(ctx.flags & TECO_M_NFLG))
 		ERROR_MESSAGE(NAB);
 
 	    ctx.n = ~ctx.n;
@@ -1456,7 +1457,7 @@ void teco_interp(void)
 	    break;
 	}
 
-	if (ctx.flags & ~TECO_M_NFLG)
+	if (!(ctx.flags & TECO_M_NFLG))
 	    ctx.n = 0;
 
 #if 0
@@ -1566,18 +1567,19 @@ static void nlines(void)
 	/* Go forward 'n' lines.
 	*/
 	while ((ctx.p < ctx.zz) && (n > 0)) {
-	    if ((ctx.txstor[ctx.p] >= TECO_C_LF) && (ctx.txstor[ctx.p] <= TECO_C_FF))
+	    if ((ctx.txstor[ctx.p] >= TECO_C_LF)
+    	    	&& (ctx.txstor[ctx.p] <= TECO_C_FF)) {
 		n--;
+    	    }
 	    ctx.p++;
 	}
     } else if (n < 0) {
 	/* Go back 'n' lines.
 	*/
 	while (ctx.p > 0) {
-	    if ((ctx.txstor[ctx.p] >= TECO_C_LF) && (ctx.txstor[ctx.p] <= TECO_C_FF)) {
-		n++;
-		if (n > 0)
-		    break;
+	    if ((ctx.txstor[ctx.p] >= TECO_C_LF)
+    	    	&& (ctx.txstor[ctx.p] <= TECO_C_FF)) {
+		if (++n > 0) break;
 	    }
 	    ctx.p--;
 	}
@@ -1714,15 +1716,13 @@ static void skpset(trm1,
 static void gettx(void) {
     int32_t n = 0;
 
-    if (ctx.flags & ~TECO_M_CFLG) {
+    if (ctx.flags & TECO_M_CFLG) {
+    	ctx.flags &= ~TECO_M_CFLG | TECO_M_NFLG;
+    } else {
 	ctx.m = ctx.p;
-
 	nlines();
-
 	ctx.n = ctx.p;
 	ctx.p = ctx.m;
-    } else {
-	ctx.flags &= ~(TECO_M_CFLG | TECO_M_NFLG);
     }
 
     if (ctx.n < ctx.m) {
@@ -1867,7 +1867,7 @@ static void qref(additional,
 	/*
 	** No.  Could it be a "special" additional register?
 	*/
-	if (additional && (qrg_flags & ~TECO_M_QRG_LOCAL)) {
+	if (additional && !(qrg_flags & TECO_M_QRG_LOCAL)) {
 	    /*
 	    ** Yes.  Let's check...
 	    */
@@ -1920,7 +1920,7 @@ void txadj(size)
     } else if (extent > 0) {
 	if (extent > ctx.curfre) {
 	    txstor = realloc(ctx.txstor, ctx.zmax + extent);
-	    if (!txstor)
+	    if (txstor == 0)
 		ERROR_MESSAGE(MEM);
 
 	    ctx.txstor = txstor;
@@ -1931,7 +1931,8 @@ void txadj(size)
 	ctx.zz += extent;
 	ctx.curfre -= extent;
 
-	memmove(&ctx.txstor[ctx.p], &ctx.txstor[ctx.p+extent], ctx.zz - ctx.p);
+	memmove(&ctx.txstor[ctx.p], &ctx.txstor[ctx.p+extent],
+    	    	ctx.zz - ctx.p);
 
 	ctx.p += extent;
 	ctx.lschsz = -extent;
@@ -1995,7 +1996,7 @@ static void zerod(flags)
     outlen = snprintf(outbuf, sizeof(outbuf), format, ctx.n);
     if (flags == TECO_K_ZEROD_TXBUF) {
 	txadj(outlen);
-	memcpy(&ctx.txstor[ctx.p + ctx.lschsz], outbuf, outlen);
+	memcpy(&ctx.txstor[ctx.p+ctx.lschsz], outbuf, outlen);
     } else {
 	prinb(outbuf, outlen);
     }
