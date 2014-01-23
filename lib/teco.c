@@ -63,7 +63,8 @@
 **					support. Add "I".
 **	23-JAN-2014 V41.11  Sneddon	Fixed bug in ")" handling.  Fixed
 **					some flag test bugs and tidy up.
-**					Rewrite number getter, '\'.
+**					Rewrite number getter, '\'.  Fix bug
+**					in 0L.
 **--
 */
 #define MODULE TECO
@@ -1180,9 +1181,9 @@ void teco_interp(void)
 	case 'L':
 	case 'l':		/* "L" is advance n lines */
 	    nlines();
-	    if (ctx.n == 0) {
-		ctx.p = 0;
-	    }
+	    //if (ctx.n == 0) {
+	    //	ctx.p = 0;
+	    //}
 	    break;
 
 	case 'M':
@@ -1623,13 +1624,16 @@ static void nlines(void)
     	    }
 	    ctx.p++;
 	}
-    } else if (n < 0) {
+    } else if (n <= 0) {
 	/* Go back 'n' lines.
 	*/
 	while (ctx.p > 0) {
 	    if ((ctx.txstor[ctx.p] >= TECO_C_LF)
     	    	&& (ctx.txstor[ctx.p] <= TECO_C_FF)) {
-		if (++n > 0) break;
+		if (++n > 0) {
+    	    	    ctx.p++;
+    	    	    break;
+    	    	}
 	    }
 	    ctx.p--;
 	}
