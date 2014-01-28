@@ -285,6 +285,7 @@
 #define TECO_C_VT	'\v'	/* ASCII VERTICAL TAB			    */
 #define TECO_C_FF	'\f'	/* ASCII FORM FEED			    */
 #define TECO_C_CR	'\r'	/* ASCII CARRIAGE RETURN		    */
+#define TECO_C_DLE	'\020'	/* ASCII DATA LINK ESCAPE		    */
 #define TECO_C_DC1 	'\021'	/* ASCII DEVICE CONTROL 1 (XON)	(CONTROL/Q) */
 #define TECO_C_DC2	'\022'	/* ASCII DEVICE CONTROL 2 (CONTROL/R)	    */
 #define TECO_C_NAK	'\025'	/* ASCII NEGATIVE ACK. (CONTROL/U)	    */
@@ -293,6 +294,8 @@
 #define TECO_C_EM	'\031'	/* ASCII END OF MEDIUM (CONTROL/Y)	    */
 #define TECO_C_SUB	'\032'	/* ASCII SUBSTITUTE (CONTROL/Z)    	    */
 #define TECO_C_ESC	'\033'	/* ASCII ESCAPE (ALSO CALLED ALTMODE)	    */
+#define TECO_C_FS	'\034'	/* ASCII FIELD SEPARATOR		    */
+#define TECO_C_GS	'\035'	/* ASCII GROUP SEPARATOR		    */
 #define TECO_C_SPACE	' '	/* ASCII SPACE				    */
 #define TECO_C_APS	'\''	/* ASCII APOSTROPHE			    */
 #define TECO_C_LAB	'<'	/* ASCII LEFT ANGLE BRACKET		    */

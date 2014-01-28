@@ -65,10 +65,11 @@
 **					some flag test bugs and tidy up.
 **					Rewrite number getter, '\'.  Fix bug
 **					in 0L.
+**	28-JAN-2014 V41.12  Sneddon	Add illegal commands.
 **--
 */
 #define MODULE TECO
-#define VERSION "V41.09"
+#define VERSION "V41.12"
 #ifdef vms
 # ifdef VAX11C
 #  module MODULE VERSION
@@ -435,6 +436,18 @@ void teco_interp(void)
 	    }
 	    ERROR_MESSAGE(NYI);
 	    break;
+
+    	case TECO_C_BEL:
+    	case TECO_C_VT:
+    	case TECO_C_DLE:
+    	case TECO_C_FS:
+    	case TECO_C_GS:
+    	case '$':
+    	case '}':
+    	case '{':
+    	case '~':
+    	    ERROR_MESSAGE(ILL);
+    	    break;
 
     	case TECO_C_NUL:
     	case TECO_C_LF:
