@@ -65,7 +65,7 @@
 **					some flag test bugs and tidy up.
 **					Rewrite number getter, '\'.  Fix bug
 **					in 0L.
-**	28-JAN-2014 V41.12  Sneddon	Add illegal commands.
+**	28-JAN-2014 V41.12  Sneddon	Add illegal commands and ^U.
 **--
 */
 #define MODULE TECO
@@ -622,6 +622,33 @@ void teco_interp(void)
 	    }
 	    break;
 
+    	case '\025': {	    	/* "CTRL/U" is q-reg text insert */
+    	    uint8_t append = 0, chr, *ptr;
+    	    intmax_t len;
+
+    	    qref(0, scnupp());
+    	    skpquo();
+
+    	    ptr = ctx.oscanp;
+    	    len = (ctx.scanp - ctx.oscanp) - 1;
+
+    	    if (ctx.flags & TECO_M_NFLG) {
+    	    	if (len == 0)
+    	    	    ERROR_MESSAGE(IIA);
+    	    	chr = (uint8_t) ctx.n;
+    	    	ptr = &chr;
+    	    	len = 1;
+    	    }
+
+    	    if (ctx.flags & TECO_M_CLNF)
+    	    	append = 1;
+
+    	    qset(append, ptr, len);
+
+    	    ctx.flags &= ~(TECO_M_NFLG | TECO_M_CLNF);
+    	    break;
+    	}
+
 	case '\037':		/* "CTRL/_" is the unary complement operator */
 	    if (!(ctx.flags & TECO_M_NFLG))
 		ERROR_MESSAGE(NAB);
@@ -778,7 +805,7 @@ void teco_interp(void)
 		ERROR_MESSAGE(SNI);
 	    if (!(ctx.flags & TECO_M_NFLG))
 		ERROR_MESSAGE(NAS);
-	    if (ctx.flags * TECO_M_CLNF)
+	    if (ctx.flags & TECO_M_CLNF)
 		ctx.n = -ctx.n;
 	    if (ctx.n < 0) {
 		ctx.flags &= ~(TECO_M_CFLG  | TECO_M_OFLG | TECO_M_CLNF |
