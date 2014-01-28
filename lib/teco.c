@@ -445,7 +445,7 @@ void teco_interp(void)
     	case '$':
     	case '}':
     	case '{':
-    	case '~':
+    	case '~':		/* Illegal command characters */
     	    ERROR_MESSAGE(ILL);
     	    break;
 
