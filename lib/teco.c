@@ -732,6 +732,10 @@ void teco_interp(void)
     	    if (ctx.flags & TECO_M_NFLG) {
     	    	ctx.flags &= ~TECO_M_NFLG;
     	    	ctx.itrcnt = ctx.n;
+    	    	if (ctx.n <= 0) {
+		    skpset(TECO_C_RAB, TECO_C_NUL);
+		    pop(TECO_K_PDL_ITR);
+    	     	}
     	    } else {
     	    	ctx.itrcnt = 0;
     	    }
@@ -1625,9 +1629,11 @@ static void nlines(void)
 	    ctx.p++;
 	}
     } else if (n <= 0) {
-	/* Go back 'n' lines.
+	/*
+    	** Go back 'n' lines.
 	*/
 	while (ctx.p > 0) {
+    	    ctx.p--;
 	    if ((ctx.txstor[ctx.p] >= TECO_C_LF)
     	    	&& (ctx.txstor[ctx.p] <= TECO_C_FF)) {
 		if (++n > 0) {
@@ -1635,7 +1641,6 @@ static void nlines(void)
     	    	    break;
     	    	}
 	    }
-	    ctx.p--;
 	}
     }
 }

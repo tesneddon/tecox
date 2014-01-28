@@ -408,7 +408,7 @@
     	uint32_t	mpdcnt;		/* MACRO PUSHDOWN COUNTER	    */
     	QRGDEF		*lclptr;	/* LOCAL LEVEL Q-REG ARRAY POINTER  */
     	uint8_t		*itrst;		/* ITERATION START		    */
-    	uint32_t	itrcnt;		/* ITERATION COUNT		    */
+    	int32_t		itrcnt;		/* ITERATION COUNT		    */
     	uint32_t	nopr;		/* ARITHMETIC OPERATOR		    */
     	int32_t		nacc;		/* EXPRESSION ACCUMULATOR	    */
     	uint32_t	flags;		/* Flags word			    */
