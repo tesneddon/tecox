@@ -1010,7 +1010,7 @@ void teco_interp(void)
 		    bzchk(ctx.n);
 		    ctx.p += ctx.n;
 	    	} else {
-		    ctx.n *= -1;
+		    ctx.n = -ctx.n;
 		}
 	    	txadj(ctx.n);
 	    }
@@ -1199,8 +1199,12 @@ void teco_interp(void)
     	    	len = 1;
     	    }
 
-    	    txadj(len);
-    	    memcpy(&ctx.txstor[ctx.p+ctx.lschsz], ptr, len);
+    	    if (len == 0) {
+    	    	ctx.lschsz = 0;
+    	    } else {
+    	    	txadj(len);
+    	    	memcpy(&ctx.txstor[ctx.p+ctx.lschsz], ptr, len);
+    	    }
     	    break;
     	}
 
@@ -2000,8 +2004,44 @@ static void qref(additional,
 }
 
 void txadj(size)
-    const int32_t size;
+    int32_t size;
 {
+
+#if 1
+    if (size < 0) {
+	size = -size;
+
+	if ((ctx.p + size) > ctx.zz)
+	    ERROR_MESSAGE(DTB);
+
+	memmove(ctx.txstor+ctx.p, ctx.txstor+ctx.p+size,
+	        ctx.zz - (ctx.p + size));
+
+	ctx.zz -= size;
+	ctx.curfre += size;
+    } else if (size > 0) {
+    	if (size > ctx.curfre) {
+    	    const uint32_t extent = size + 100;
+    	    uint8_t *txstor;
+
+    	    txstor = realloc(ctx.txstor, ctx.zmax + extent);
+    	    if (txstor == 0)
+    	    	ERROR_MESSAGE(MEM);
+
+    	    ctx.txstor = txstor;
+    	    ctx.zmax += extent;
+    	    ctx.curfre += extent;
+    	}
+
+    	memmove(ctx.txstor+ctx.p+size, ctx.txstor+ctx.p, size);
+
+    	ctx.curfre -= size;
+    	ctx.zz += size;
+    	ctx.p += size;
+	ctx.lschsz = -size;
+    }
+
+#else
     int32_t extent = size;
     uint8_t *txstor;
 
@@ -2011,7 +2051,7 @@ void txadj(size)
 	if ((ctx.p + extent) > ctx.zz)
 	    ERROR_MESSAGE(DTB);
 
-	memcpy(&ctx.txstor[ctx.p], &ctx.txstor[ctx.p+extent],
+	memmove(&ctx.txstor[ctx.p], &ctx.txstor[ctx.p+extent],
 	       ctx.zz - (ctx.p + extent));
 
 	ctx.zz -= extent;
@@ -2038,6 +2078,7 @@ void txadj(size)
     } else {
 	ctx.lschsz = 0;
     }
+#endif
 }
 
 void qset(append,
@@ -2094,7 +2135,9 @@ static void zerod(flags)
 
     outlen = snprintf(outbuf, sizeof(outbuf), format, ctx.n);
     if (flags == TECO_K_ZEROD_TXBUF) {
+printf("1z=%d,outlen=%d\n", ctx.zz, outlen);
 	txadj(outlen);
+printf("2z=%d,outlen=%d\n", ctx.zz, outlen);
 	memcpy(&ctx.txstor[ctx.p+ctx.lschsz], outbuf, outlen);
     } else {
 	prinb(outbuf, outlen);
