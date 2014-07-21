@@ -66,10 +66,11 @@
 **                                      Rewrite number getter, '\'.  Fix bug
 **                                      in 0L.
 **      28-JAN-2014 V41.12  Sneddon     Add illegal commands and ^U.
+**      22-JUL-2014 V41.13  Sneddon     Fix skpset() over < >.
 **--
 */
 #define MODULE TECO
-#define VERSION "V41.12"
+#define VERSION "V41.13"
 #ifdef vms
 # ifdef VAX11C
 #  module MODULE VERSION
@@ -782,9 +783,9 @@ void teco_interp(void)
             break;
 
         case '>':               /* ">" ends an iteration */
-            if (ctx.itrst == 0)
+            if (ctx.itrst == 0) {
                 ERROR_MESSAGE(BNI);
-
+            }
             if (ctx.itrcnt != 0) {
                 if (--ctx.itrcnt == 0) {
                     pop(TECO_K_PDL_ITR);
@@ -1711,7 +1712,8 @@ static void skpset(trm1,
 
     irest();
 
-    /* Check that if we're processing to end of string that we haven't
+    /*
+    ** Check that if we're processing to end of string that we haven't
     ** run out of command buffer.
     */
     if ((trm1 == TECO_C_NUL) && (ctx.scanp >= (ctx.qcmnd->qrg_ptr + ctx.qcmnd->qrg_size)))
@@ -1721,90 +1723,96 @@ static void skpset(trm1,
 
     chr = scnupp();
     while ((chr != trm1) && (chr != trm2)) {
-        /* Are we processing to end of string?
+        /*
+        ** Are we processing to end of string?
         */
         if (trm1 == TECO_C_NUL) {
-            /* Yes.  Exit if we've reached the end.
+            /*
+            ** Yes.  Exit if we've reached the end.
             */
             if (ctx.scanp >= (ctx.qcmnd->qrg_ptr + ctx.qcmnd->qrg_size))
                 break;
+            chr = scnupp();
         } else {
-            switch (chr) {
-            default:
-                break;
-
-            case TECO_C_SOH:    /* SKIP QUOTED STRING USING CURRENT CHARACTER */
-            case '!':
-                ctx.quote =chr;
-                skpquo();
-                break;
-
-            case '@':           /* SET THE SPECIAL QUOTED STRING FLAG */
-                ctx.flags |= TECO_M_QFLG;
-                break;
-
-            case '"':           /* INTO ONE MORE CONDITIONAL, SKIP ONE CHARACTER */
-                chr = scnupp();
-                ctx.cndn++;
-                break;
-
-            case TECO_C_APS:    /* END A CONDITIONAL */
-                ctx.cndn--;
-                break;
-
-            case 'E':           /* PROCESS "E" COMMANDS */
-                chr = scnupp();
-                if ((chr == '_') || (chr == 'W') || (chr == 'R')
-                 || (chr == 'N') || (chr == 'I') || (chr == 'G')
-                 || (chr == 'B'))
-                    skpquo();
-                break;
-
-            case TECO_C_NAK:    /* SKIP Q-REG NAME (,QUOTED STRING) */
-            case 'G':
-            case 'M':
-            case 'Q':
-            case 'U':
-            case 'X':
-            case ']':
-            case '[':
-                chr = scnupp();
-                if (chr == '.')
-                    chr = scnupp();
-
-                /* If not processing a ^U then break here.  Otherwise continue
-                ** on to process the quoted string argument.
-                */
-                if (chr != TECO_C_NAK)
+            do {
+                switch (chr) {
+                default:
                     break;
 
-            case TECO_C_TAB:    /* SKIP QUOTED STRING */
-            case 'I':
-            case 'N':
-            case 'O':
-            case 'S':
-            case '_':
-                skpquo();
-                break;
+                case TECO_C_SOH: /* SKIP QUOTED STRING USING CURRENT CHARACTER */
+                case '!':
+                    ctx.quote =chr;
+                    skpquo();
+                    break;
 
-            case '^':           /* RE-CHECK NEXT AS A CONTROL CHARACTER */
-                ctx.flags2 |= TECO_M_MAKCTL;
-                break;
+                case '@':        /* SET THE SPECIAL QUOTED STRING FLAG */
+                    ctx.flags |= TECO_M_QFLG;
+                    break;
 
-            case TECO_C_LAB:    /* SIGNAL START OF AN ITERATION */
-                itrdep++;
-                break;
+                case '"':        /* INTO ONE MORE CONDITIONAL, SKIP ONE CHARACTER */
+                    chr = scnupp();
+                    ctx.cndn++;
+                    break;
 
-            case TECO_C_RAB:    /* SIGNAL END OF AN ITERATION */
-                if (itrdep == 0)
-                    ERROR_MESSAGE(BNI);
+                case TECO_C_APS: /* END A CONDITIONAL */
+                    ctx.cndn--;
+                    break;
 
-                itrdep--;
-                break;
-            }
+                case 'E':        /* PROCESS "E" COMMANDS */
+                    chr = scnupp();
+                    if ((chr == '_') || (chr == 'W') || (chr == 'R')
+                     || (chr == 'N') || (chr == 'I') || (chr == 'G')
+                     || (chr == 'B'))
+                        skpquo();
+                    break;
+
+                case TECO_C_NAK: /* SKIP Q-REG NAME (,QUOTED STRING) */
+                case 'G':
+                case 'M':
+                case 'Q':
+                case 'U':
+                case 'X':
+                case ']':
+                case '[':
+                    chr = scnupp();
+                    if (chr == '.')
+                        chr = scnupp();
+
+                    /*
+                    ** If not processing a ^U then break here.  Otherwise
+                    ** continue on to process the quoted string argument.
+                    */
+                    if (chr != TECO_C_NAK)
+                        break;
+
+                case TECO_C_TAB: /* SKIP QUOTED STRING */
+                case 'I':
+                case 'N':
+                case 'O':
+                case 'S':
+                case '_':
+                    skpquo();
+                    break;
+
+                case '^':        /* RE-CHECK NEXT AS A CONTROL CHARACTER */
+                    ctx.flags2 |= TECO_M_MAKCTL;
+                    break;
+
+                case TECO_C_LAB: /* SIGNAL START OF AN ITERATION */
+                    itrdep++;
+                    break;
+
+                case TECO_C_RAB: /* SIGNAL END OF AN ITERATION */
+                    if (itrdep == 0)
+                        ERROR_MESSAGE(BNI);
+                    itrdep--;
+                    break;
+                }
+
+                chr = scnupp();
+            } while (itrdep != 0);
         }
 
-        chr = scnupp();
     }
 
     /* Restore flags to original state.  However, make sure to save
