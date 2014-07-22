@@ -66,7 +66,8 @@
 **                                      Rewrite number getter, '\'.  Fix bug
 **                                      in 0L.
 **      28-JAN-2014 V41.12  Sneddon     Add illegal commands and ^U.
-**      22-JUL-2014 V41.13  Sneddon     Fix skpset over < > and %.
+**      22-JUL-2014 V41.13  Sneddon     Fix skpset over < >, % and correct
+**                                      bug in handling of ^U.
 **--
 */
 #define MODULE TECO
@@ -1705,7 +1706,7 @@ static void skpset(trm1,
     const uint8_t trm1;
     const uint8_t trm2;
 {
-    uint8_t chr;
+    uint8_t chr, cmd;
     uint32_t flags = ctx.flags;
     uint16_t flags2 = ctx.flags2;
     uint32_t itrdep = 0;
@@ -1735,7 +1736,7 @@ static void skpset(trm1,
             chr = scnupp();
         } else {
             do {
-                switch (chr) {
+                switch (cmd = chr) {
                 default:
                     break;
 
@@ -1783,7 +1784,7 @@ static void skpset(trm1,
                     ** If not processing a ^U then break here.  Otherwise
                     ** continue on to process the quoted string argument.
                     */
-                    if (chr != TECO_C_NAK)
+                    if (cmd != TECO_C_NAK)
                         break;
 
                 case TECO_C_TAB: /* SKIP QUOTED STRING */
