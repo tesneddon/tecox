@@ -68,10 +68,11 @@
 **      28-JAN-2014 V41.12  Sneddon     Add illegal commands and ^U.
 **      22-JUL-2014 V41.13  Sneddon     Fix skpset over < >, % and correct
 **                                      bug in handling of ^U.
+**      23-JUL-2014 V41.14  Sneddon     Correct operator order typo.
 **--
 */
 #define MODULE TECO
-#define VERSION "V41.13"
+#define VERSION "V41.14"
 #ifdef vms
 # ifdef VAX11C
 #  module MODULE VERSION
@@ -1830,7 +1831,7 @@ static void gettx(void) {
     intmax_t n = 0;
 
     if (ctx.flags & TECO_M_CFLG) {
-        ctx.flags &= ~TECO_M_CFLG | TECO_M_NFLG;
+        ctx.flags &= ~(TECO_M_CFLG | TECO_M_NFLG);
     } else {
         ctx.m = ctx.p;
         nlines();
