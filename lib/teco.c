@@ -66,7 +66,7 @@
 **                                      Rewrite number getter, '\'.  Fix bug
 **                                      in 0L.
 **      28-JAN-2014 V41.12  Sneddon     Add illegal commands and ^U.
-**      22-JUL-2014 V41.13  Sneddon     Fix skpset() over < >.
+**      22-JUL-2014 V41.13  Sneddon     Fix skpset over < > and %.
 **--
 */
 #define MODULE TECO
@@ -1741,7 +1741,7 @@ static void skpset(trm1,
 
                 case TECO_C_SOH: /* SKIP QUOTED STRING USING CURRENT CHARACTER */
                 case '!':
-                    ctx.quote =chr;
+                    ctx.quote = chr;
                     skpquo();
                     break;
 
@@ -1774,6 +1774,7 @@ static void skpset(trm1,
                 case 'X':
                 case ']':
                 case '[':
+                case '%':
                     chr = scnupp();
                     if (chr == '.')
                         chr = scnupp();
