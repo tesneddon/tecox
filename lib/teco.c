@@ -68,7 +68,8 @@
 **      28-JAN-2014 V41.12  Sneddon     Add illegal commands and ^U.
 **      22-JUL-2014 V41.13  Sneddon     Fix skpset over < >, % and correct
 **                                      bug in handling of ^U.
-**      23-JUL-2014 V41.14  Sneddon     Correct operator order typo.
+**      23-JUL-2014 V41.14  Sneddon     Correct operator order typo.  Correct
+**                                      bug in txadj when expanding.
 **--
 */
 #define MODULE TECO
@@ -2017,8 +2018,6 @@ static void qref(additional,
 void txadj(size)
     int32_t size;
 {
-
-#if 1
     if (size < 0) {
         size = -size;
 
@@ -2044,52 +2043,13 @@ void txadj(size)
             ctx.curfre += extent;
         }
 
-        memmove(ctx.txstor+ctx.p+size, ctx.txstor+ctx.p, size);
+        memmove(ctx.txstor+ctx.p+size, ctx.txstor+ctx.p, ctx.zz - ctx.p);
 
         ctx.curfre -= size;
         ctx.zz += size;
         ctx.p += size;
         ctx.lschsz = -size;
     }
-
-#else
-    int32_t extent = size;
-    uint8_t *txstor;
-
-    if (extent < 0) {
-        extent = -extent;
-
-        if ((ctx.p + extent) > ctx.zz)
-            ERROR_MESSAGE(DTB);
-
-        memmove(&ctx.txstor[ctx.p], &ctx.txstor[ctx.p+extent],
-               ctx.zz - (ctx.p + extent));
-
-        ctx.zz -= extent;
-        ctx.curfre += extent;
-    } else if (extent > 0) {
-        if (extent > ctx.curfre) {
-            txstor = realloc(ctx.txstor, ctx.zmax + extent);
-            if (txstor == 0)
-                ERROR_MESSAGE(MEM);
-
-            ctx.txstor = txstor;
-            ctx.zmax += extent;
-            ctx.curfre += extent;
-        }
-
-        ctx.zz += extent;
-        ctx.curfre -= extent;
-
-        memmove(&ctx.txstor[ctx.p], &ctx.txstor[ctx.p+extent],
-                ctx.zz - ctx.p);
-
-        ctx.p += extent;
-        ctx.lschsz = -extent;
-    } else {
-        ctx.lschsz = 0;
-    }
-#endif
 }
 
 void qset(append,
@@ -2146,9 +2106,7 @@ static void zerod(flags)
 
     outlen = snprintf(outbuf, sizeof(outbuf), format, ctx.n);
     if (flags == TECO_K_ZEROD_TXBUF) {
-printf("1z=%d,outlen=%d\n", ctx.zz, outlen);
         txadj(outlen);
-printf("2z=%d,outlen=%d\n", ctx.zz, outlen);
         memcpy(&ctx.txstor[ctx.p+ctx.lschsz], outbuf, outlen);
     } else {
         prinb(outbuf, outlen);
