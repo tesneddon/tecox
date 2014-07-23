@@ -45,6 +45,7 @@
 **      20-JAN-2013 V41.11  Sneddon   Add [u]intmax_t for VAXC.  Removed mem
 **                                    zone stuff.
 **      21-JAN-2014 V41.12  Sneddon   Add getfl to IO_SUPPORT.
+**      24-JUL-2014 V41.13  Sneddon   Expanded tabs. Remove old code.
 **--
 */
 #ifndef __TECODEF_LOADED
@@ -258,7 +259,7 @@
         uint16_t        qrg_size;       /* Q-register's size                */
         uint16_t        qrg_alloc;      /* Q-register's space alloc         */
         uint8_t         qrg_flags;      /* Q-register flags                 */
-#define TECO_M_QRG_REF 0x1              /* Has been pushed                  */
+#define TECO_M_QRG_REF   0x1            /* Has been pushed                  */
 #define TECO_M_QRG_LOCAL 0x2            /* It's a local q-register          */
         uint8_t         qrg_num;        /* Original q-reg number            */
         uint16_t        qrg_space;      /* Spare                            */
@@ -314,20 +315,13 @@
 #define TECO__TRUE -1
 #define TECO__FALSE 0
 
-/* Flags that control the behaviour of the teco_scan() routine.
- */
-#define TECO_M_SCAN_NONE   0x0
-#define TECO_M_SCAN_UPPER  0x1
-#define TECO_M_SCAN_LOWER  0x2
-#define TECO_M_SCAN_TSTNXT 0x4
-#define TECO_M_SCAN_INTERP 0x8
-
 /*
 ** Flags to control the behaviour of push/pop
 */
 #define TECO_K_PDL_ITR 0
 #define TECO_K_PDL_MACRO 1
 #define TECO_K_PDL_PAREN 2
+
     typedef struct _pdldef {            /* Push-down list block             */
         struct _pdldef  *next;          /* Pointer to next block in stack   */
         uint32_t        type;           /* Tyep of block PAREN,MACRO,ITR    */
@@ -341,8 +335,9 @@
         QRGDEF          *lclptr;
     } PDLDEF;
 
-/* Flags to control the behaviour of teco_qref().
- */
+/*
+** Flags to control the behaviour of teco_qref().
+*/
 #define TECO_K_QREF_NORMAL 0
 #define TECO_K_QREF_EXTENDED 1
 
@@ -451,61 +446,61 @@
         uint32_t        evflag;         /* EDIT VERIFY FLAG                 */
         uint32_t        euflag;         /* CASE FLAGGING FLAG               */
         uint32_t        etype;          /* EDIT TYPEOUT FLAG                */
-#define TECO_M_ET_BIN 0x1               /*    +1., output in binary (image) */
+#define TECO_M_ET_BIN   0x1             /*    +1., output in binary (image) */
                                         /*         mode                     */
-#define TECO_M_ET_CRT 0x2               /*    +2., do scope type rubout on  */
+#define TECO_M_ET_CRT   0x2             /*    +2., do scope type rubout on  */
                                         /*         control/u                */
-#define TECO_M_ET_LC 0x4                /*    +4., accept lower case input  */
-#define TECO_M_ET_NCH 0x8               /*    +8., no echo during input for */
+#define TECO_M_ET_LC    0x4             /*    +4., accept lower case input  */
+#define TECO_M_ET_NCH   0x8             /*    +8., no echo during input for */
                                         /*         ctrl/t                   */
-#define TECO_M_ET_CCO 0x10              /*   +16., cancel control/o on      */
+#define TECO_M_ET_CCO   0x10            /*   +16., cancel control/o on      */
                                         /*         output                   */
-#define TECO_M_ET_CKE 0x20              /*   +32., return -1 if error/no    */
+#define TECO_M_ET_CKE   0x20            /*   +32., return -1 if error/no    */
                                         /*         input on ctrl/t          */
-#define TECO_M_ET_DET 0x40              /*   +64., detach and detached flag */
-#define TECO_M_ET_XIT 0x80              /*  +128., "no prompt yet" flag     */
-#define TECO_M_ET_TRU 0x100             /*  +256., truncate long output     */
+#define TECO_M_ET_DET   0x40            /*   +64., detach and detached flag */
+#define TECO_M_ET_XIT   0x80            /*  +128., "no prompt yet" flag     */
+#define TECO_M_ET_TRU   0x100           /*  +256., truncate long output     */
                                         /*         lines                    */
-#define TECO_M_ET_IAS 0x200             /*  +512., interactive scope        */
+#define TECO_M_ET_IAS   0x200           /*  +512., interactive scope        */
                                         /*         available for "watch"    */
-#define TECO_M_ET_RFS 0x400             /* +1024., refresh scope available  */
-#define TECO_M_TECO8 0x800              /* +2048., reserved for TECO-8      */
-#define TECO_M_ET_UNIX 0x800            /* +2048., enable UNIX mode on UNIX */
-#define TECO_M_ET_8BT 0x1000            /* +4096., terminal is an 8-bit     */
+#define TECO_M_ET_RFS   0x400           /* +1024., refresh scope available  */
+#define TECO_M_TECO8    0x800           /* +2048., reserved for TECO-8      */
+#define TECO_M_ET_UNIX  0x800           /* +2048., enable UNIX mode on UNIX */
+#define TECO_M_ET_8BT   0x1000          /* +4096., terminal is an 8-bit     */
                                         /*         terminal                 */
-#define TECO_M_ET_GRV 0x2000            /* +1892., accept "`" as escape     */
+#define TECO_M_ET_GRV   0x2000          /* +1892., accept "`" as escape     */
                                         /*         during command input     */
-#define TECO_M_ET_UNU 0x4000            /*+16384., unused                   */
-#define TECO_M_ET_CC 0x8000             /*+32768., allow program trap       */
+#define TECO_M_ET_UNU   0x4000          /*+16384., unused                   */
+#define TECO_M_ET_CC    0x8000          /*+32768., allow program trap       */
                                         /*         control/c                */
         uint32_t        esflag;         /* EDIT SEARCH FLAG                 */
         uint32_t        ehelp;          /* EDIT HELP LEVEL                  */
         uint32_t        edit;           /* EDIT LEVEL FLAG                  */
-#define TECO_M_ED_CTL 0x1               /*  +1., don't allow "^" as meaning */
+#define TECO_M_ED_CTL   0x1             /*  +1., don't allow "^" as meaning */
                                         /*       control character          */
-#define TECO_M_ED_TNK 0x2               /*  +2., allow yanks, etc. to       */
+#define TECO_M_ED_TNK   0x2             /*  +2., allow yanks, etc. to       */
                                         /*       clobber text buffer        */
-#define TECO_M_ED_EXP 0x4               /*  +4., don't allow arbitrary      */
+#define TECO_M_ED_EXP   0x4             /*  +4., don't allow arbitrary      */
                                         /*       expansion(s)               */
 #define TECO_M_ED_TECO8 0x8             /*  +8., not used by TECO-11        */
-#define TECO_M_ED_SRH 0x10              /* +16., don't reset "dot" on       */
+#define TECO_M_ED_SRH   0x10            /* +16., don't reset "dot" on       */
                                         /*       search failure             */
-#define TECO_M_ED_IMD 0x20              /* +32., allow immediate mode       */
+#define TECO_M_ED_IMD   0x20            /* +32., allow immediate mode       */
                                         /*       commands                   */
-#define TECO_M_ED_INC 0x40              /* +64., only move "dot" by one on  */
+#define TECO_M_ED_INC   0x40            /* +64., only move "dot" by one on  */
                                         /*       iterative search           */
-#define TECO_M_ED_WCH 0x80              /*+128., don't allow automatic "w"  */
+#define TECO_M_ED_WCH   0x80            /*+128., don't allow automatic "w"  */
                                         /*       command before prompt      */
         uint16_t        sflg;           /* SEARCH MODE FLAG                 */
         uint16_t        eeflg;          /* Alternate escape character       */
         uint16_t        flags2;         /* SECONDARY FLAG WORD              */
-#define TECO_M_FFFLAG 0x1               /* FORM FEED FLAG                   */
-#define TECO_M_EOFLAG 0x2               /* END-OF-FILE FLAG                 */
-#define TECO_M_EXITOK 0x4               /* EXIT WITH DIRY BUFFER IS OKAY    */
-#define TECO_M_EXITEND 0x8              /* EXIT AT END OF COMMAND           */
-#define TECO_M_EGINH 0x10               /* Inhibit EG exits                 */
-#define TECO_M_OUTDNE 0x20              /* Output was done (screen dirty)   */
-#define TECO_M_MAKCTL 0x40              /* Make next character read into a  */
+#define TECO_M_FFFLAG   0x1             /* FORM FEED FLAG                   */
+#define TECO_M_EOFLAG   0x2             /* END-OF-FILE FLAG                 */
+#define TECO_M_EXITOK   0x4             /* EXIT WITH DIRY BUFFER IS OKAY    */
+#define TECO_M_EXITEND  0x8             /* EXIT AT END OF COMMAND           */
+#define TECO_M_EGINH    0x10            /* Inhibit EG exits                 */
+#define TECO_M_OUTDNE   0x20            /* Output was done (screen dirty)   */
+#define TECO_M_MAKCTL   0x40            /* Make next character read into a  */
                                         /*  control character               */
         uint8_t         symspc;         /* EXTRA SYMBOL SPECIAL CHARACTER   */
         uint8_t         nmrbas;         /* RADIX (  0=>DECIMAL,             */
