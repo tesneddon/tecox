@@ -2,7 +2,7 @@
 **++
 **  MODULE DESCRIPTION:
 **
-**	This module contains the UNIX specific code for TECO.
+**      This module contains the UNIX specific code for TECO.
 **
 **  AUTHOR:             Tim E. Sneddon
 **
@@ -25,12 +25,12 @@
 **
 **  MODIFICATION HISTORY:
 **
-**      08-NOV-2011 V41.00  Sneddon	Initial coding.
-**	15-DEC-2011 V41.01  Sneddon	Originaly termios.c, now covers
-**					a broader range of support.
-**	06-JUN-2013 V41.02  Sneddon	Re-arrange getcmd.
-**	10-JUN-2013 V41.03  Sneddon	Add :EG support.
-**	21-JAN-2014 V41.04  Sneddon	Add EI and base getfl support.
+**      08-NOV-2011 V41.00  Sneddon     Initial coding.
+**      15-DEC-2011 V41.01  Sneddon     Originaly termios.c, now covers
+**                                      a broader range of support.
+**      06-JUN-2013 V41.02  Sneddon     Re-arrange getcmd.
+**      10-JUN-2013 V41.03  Sneddon     Add :EG support.
+**      21-JAN-2014 V41.04  Sneddon     Add EI and base getfl support.
 **--
 */
 #define MODULE TECOUNIX
@@ -52,8 +52,8 @@
 #include <unistd.h>
 
     struct UNIT {
-    	FILE *fptr;
-    	char path[PATH_MAX];
+        FILE *fptr;
+        char path[PATH_MAX];
     };
     typedef struct UNIT *FILEHANDLE;
 
@@ -65,10 +65,10 @@
 #define IOERR(err) \
 do { \
     if (err == ENOENT) { \
-    	ERROR_MESSAGE(FNF); \
+        ERROR_MESSAGE(FNF); \
     } else { \
-    	ctx.syserr = err; \
-    	ERROR_MESSAGE(ERR); \
+        ctx.syserr = err; \
+        ERROR_MESSAGE(ERR); \
     } \
 } while (0)
 
@@ -95,15 +95,15 @@ do { \
     int argc = 0;
     char **argv = 0;
     IO_SUPPORT io_support = {
-	init,
-	restore,
-	output,
-	input,
-	ejflg,
-	etflg,
-	getcmd,
-	gexit,
-    	getfl,
+        init,
+        restore,
+        output,
+        input,
+        ejflg,
+        etflg,
+        getcmd,
+        gexit,
+        getfl,
     };
 
 /*
@@ -128,30 +128,30 @@ static int32_t init(void)
     sigaction(SIGCONT, &action, NULL);
 
     if (isatty(STDIN_FILENO)) {
-	if (tcgetattr(STDIN_FILENO, &pattr) == 0) {
-	    attr = pattr;
+        if (tcgetattr(STDIN_FILENO, &pattr) == 0) {
+            attr = pattr;
 
-	    attr.c_lflag &= ~(ICANON | ECHO);
-	    attr.c_iflag |= ISIG;
-	    attr.c_iflag &= ~(IGNCR | ICRNL | INLCR);
+            attr.c_lflag &= ~(ICANON | ECHO);
+            attr.c_iflag |= ISIG;
+            attr.c_iflag &= ~(IGNCR | ICRNL | INLCR);
 #ifdef VDSUSP
-	    attr.c_cc[VDSUSP] = _POSIX_VDISABLE;
+            attr.c_cc[VDSUSP] = _POSIX_VDISABLE;
 #endif
 
-	    /*
-	    ** If UNIX terminal mode is enabled set interrupt as ^Z
-	    ** else set to default TECO ^Y.
-	    */
-	    attr.c_cc[VSUSP] = (ctx.flags & TECO_M_ET_UNIX) ? TECO_C_SUB : TECO_C_EM;
+            /*
+            ** If UNIX terminal mode is enabled set interrupt as ^Z
+            ** else set to default TECO ^Y.
+            */
+            attr.c_cc[VSUSP] = (ctx.flags & TECO_M_ET_UNIX) ? TECO_C_SUB : TECO_C_EM;
 
-	    if (tcsetattr(STDIN_FILENO, TCSANOW, &attr) == 0) {
-		status = TECO__NORMAL;
-	    } else {
-    	    	IOERR(errno);
-	    }
-	}
+            if (tcsetattr(STDIN_FILENO, TCSANOW, &attr) == 0) {
+                status = TECO__NORMAL;
+            } else {
+                IOERR(errno);
+            }
+        }
     } else {
-    	IOERR(errno);
+        IOERR(errno);
     }
 
     ctx.etype |= TECO_M_ET_LC; // Should this be in crtrub?
@@ -166,7 +166,7 @@ static int32_t restore(void)
     fflush(stdout);
 
     if (tcsetattr(STDIN_FILENO, TCSANOW, &pattr) != 0) {
-    	IOERR(errno);
+        IOERR(errno);
     }
 
     return status;
@@ -178,43 +178,43 @@ static int32_t input(chr)
     int status, xitchr = TECO_C_SUB;
 
     if (ctx.temp == TECO_C_CR) {
-	/*
-	** All CRs get translated to CR/LFs, so return the LF portion.
-	*/
-	*chr = TECO_C_LF;
+        /*
+        ** All CRs get translated to CR/LFs, so return the LF portion.
+        */
+        *chr = TECO_C_LF;
     } else {
-    	if (ctx.indir == 0) {
-	    *chr = fgetc(stdin);
-	    if ((status = ferror(stdin)) == 0) {
-	    	/*
-	    	** Modify immediate exit character if UNIX specific ^D
-	    	** (instead of ^Z) support enabled.
-	    	*/
-	    	if (ctx.etype & TECO_M_ET_UNIX)
-		    xitchr = TECO_C_EOT;
+        if (ctx.indir == 0) {
+            *chr = fgetc(stdin);
+            if ((status = ferror(stdin)) == 0) {
+                /*
+                ** Modify immediate exit character if UNIX specific ^D
+                ** (instead of ^Z) support enabled.
+                */
+                if (ctx.etype & TECO_M_ET_UNIX)
+                    xitchr = TECO_C_EOT;
 
-	    	if (*chr == xitchr) {
-		    if (ctx.temp == xitchr)
-		    	ctrlz_cnt++;
-		    else
-		    	ctrlz_cnt = 1;
+                if (*chr == xitchr) {
+                    if (ctx.temp == xitchr)
+                        ctrlz_cnt++;
+                    else
+                        ctrlz_cnt = 1;
 
-		    if (ctrlz_cnt >= TECO_K_CTRLZ_MAX)
-		    	exit(TECO__NORMAL);
-	    	}
-	    	status = TECO__NORMAL;
-	    } else if (status == -1) {
-    	    	IOERR(errno);
-	    } else {
-    	    	IOERR(EIO);
-    	    }
-	} else {
-	    *chr = fgetc(indir_cmd.fptr);
-    	    if (*chr == EOF) {
-    	    	close_indir();
-    	    	status = input(chr);
-    	    }
-    	}
+                    if (ctrlz_cnt >= TECO_K_CTRLZ_MAX)
+                        exit(TECO__NORMAL);
+                }
+                status = TECO__NORMAL;
+            } else if (status == -1) {
+                IOERR(errno);
+            } else {
+                IOERR(EIO);
+            }
+        } else {
+            *chr = fgetc(indir_cmd.fptr);
+            if (*chr == EOF) {
+                close_indir();
+                status = input(chr);
+            }
+        }
     }
 
     return (int32_t)status;
@@ -250,40 +250,40 @@ static int32_t etflg(n)
 //  terminal...
 
     // if (isatty(STDIN_FILENO)) {
-	// can we find out if we have been daemonized?
-	// also we are most likely detached if stdin is not a tty...
+        // can we find out if we have been daemonized?
+        // also we are most likely detached if stdin is not a tty...
 
     // check that we are not running in the background...
 
     // conn_check
-	// retrieve (via call to termios) the current attr
-	// extract the DETACH setting and
-	//  then apply it to TECO_M_ET_DET in ctx.etype
-	// we will need to maintain our own flag that is updated by
-	// signal handler calls that catch SIGSTOP and SIGCONT
+        // retrieve (via call to termios) the current attr
+        // extract the DETACH setting and
+        //  then apply it to TECO_M_ET_DET in ctx.etype
+        // we will need to maintain our own flag that is updated by
+        // signal handler calls that catch SIGSTOP and SIGCONT
 
     // cancel ctrl/o?
-	// yup, so set ctlofg
-	// termios does support the concept of ^O.  However, neither Linux
-	//  or POSIX support it (maybe HP-UX and Solaris?).  Need to implement
-	//  the code anyway...setting/clearing ^O is done with FLUSHO
-	//  in c_lflag...
+        // yup, so set ctlofg
+        // termios does support the concept of ^O.  However, neither Linux
+        //  or POSIX support it (maybe HP-UX and Solaris?).  Need to implement
+        //  the code anyway...setting/clearing ^O is done with FLUSHO
+        //  in c_lflag...
     // retrieve current bits an xor them to get changes
 
     // fetch current terminal characteristics...
 
     if (n & TECO_M_ET_DET) {
-	kill(getpid(), SIGSTOP);
-	ctx.flags2 |= TECO_M_OUTDNE;
+        kill(getpid(), SIGSTOP);
+        ctx.flags2 |= TECO_M_OUTDNE;
     }
 
     if (n & TECO_M_ET_TRU) {
-	// call TECO_TRULN
-	// set wrap
+        // call TECO_TRULN
+        // set wrap
     }
 
     if (n & TECO_M_ET_8BT) {
-	// enable 8 bit mode...
+        // enable 8 bit mode...
     }
 
 /* TODO: just a dud status for the moment... */
@@ -297,8 +297,8 @@ static int32_t getcmd()
 
     qset(0, argv[i], strlen(argv[i]));
     while (++i < argc) {
-	qset(1, " ", 1);
-	qset(1, argv[i], strlen(argv[i]));
+        qset(1, " ", 1);
+        qset(1, argv[i], strlen(argv[i]));
     }
 
     return TECO__NORMAL;
@@ -311,77 +311,77 @@ static int32_t gexit()
     uint8_t *cmd, *var;
 
     if (!(ctx.flags & TECO_M_CLNF)) {
-	char *shell;
+        char *shell;
 
-	if ((shell = getenv("TEC_SHELL")) == 0)
-	    shell = getenv("SHELL");
+        if ((shell = getenv("TEC_SHELL")) == 0)
+            shell = getenv("SHELL");
 
-	cmd = malloc(ctx.filbuf.qrg_size);
-	if (cmd == 0)
-	    ERROR_MESSAGE(MEM);
-	memcpy(cmd, ctx.filbuf.qrg_ptr, ctx.filbuf.qrg_size);
-	cmd[ctx.filbuf.qrg_size] = '\0';
+        cmd = malloc(ctx.filbuf.qrg_size);
+        if (cmd == 0)
+            ERROR_MESSAGE(MEM);
+        memcpy(cmd, ctx.filbuf.qrg_ptr, ctx.filbuf.qrg_size);
+        cmd[ctx.filbuf.qrg_size] = '\0';
 
-    	switch (fork()) {
-	default:
-    	    wait((int *)0);
-	    exit(EXIT_SUCCESS);
-	    break;
+        switch (fork()) {
+        default:
+            wait((int *)0);
+            exit(EXIT_SUCCESS);
+            break;
 
-	case 0:
-	    execlp(shell, shell, "-c", cmd, (char *) 0);
+        case 0:
+            execlp(shell, shell, "-c", cmd, (char *) 0);
 
-	case -1:
-	    /*
-	    ** The only way we will get here is if something went terribly
-	    ** wrong, so no need to check, just assume the worst.
-	    */
-    	    ctx.syserr = errno;
-	    ERROR_MESSAGE(ERR);
-	    break;
-	}
+        case -1:
+            /*
+            ** The only way we will get here is if something went terribly
+            ** wrong, so no need to check, just assume the worst.
+            */
+            ctx.syserr = errno;
+            ERROR_MESSAGE(ERR);
+            break;
+        }
     }
 
     if (strncasecmp(cmd, "SPA", 3) == 0) {
-    	//
+        //
     } else {
-    	char *name = ctx.filbuf.qrg_ptr, *value = "";
+        char *name = ctx.filbuf.qrg_ptr, *value = "";
 
-	// split it up...
+        // split it up...
 
-    	if (strncasecmp(cmd, "INI", 3) == 0) {
-    	    // we can only retrieve this.  Other functions have no change.
-    	    // actually, will remove and set TEC_INIT.
-    	} else if (strncasecmp(cmd, "MEM", 3) == 0) {
-    	    char *memenv;
+        if (strncasecmp(cmd, "INI", 3) == 0) {
+            // we can only retrieve this.  Other functions have no change.
+            // actually, will remove and set TEC_INIT.
+        } else if (strncasecmp(cmd, "MEM", 3) == 0) {
+            char *memenv;
 
-    	    memenv = getenv("TEC_MEMORY");
-    	    if (value == 0) {
-    	    	// look for TEC_MEMORY
-		// if found
-		    // return it
-		// else
-		    // look for ~/.tec_memory
-    	    	    // if found
-    	    	    	// return it
-    	    } else if (value[0] == '\0') {
-    	    	// if TEC_MEMORY, unsetenv
-    	    	// if ~/.tec_memory, unlink it
-    	    } else {
-    	    	// if TEC_MEMORY
-    	    	    // return it
-    	    	// else if ~/.tec_memory
-    	    	    // return it
-    	    }
-    	} else if (strncasecmp(cmd, "ENV", 3) == 0) {
-    	    if (value == 0) {
-    	    	// getenv and return
-    	    } else if (value[0] == '\0') {
-    	    	// unsetenv and return
-    	    } else {
-    	    	// setenv to value and return
-    	    }
-    	}
+            memenv = getenv("TEC_MEMORY");
+            if (value == 0) {
+                // look for TEC_MEMORY
+                // if found
+                    // return it
+                // else
+                    // look for ~/.tec_memory
+                    // if found
+                        // return it
+            } else if (value[0] == '\0') {
+                // if TEC_MEMORY, unsetenv
+                // if ~/.tec_memory, unlink it
+            } else {
+                // if TEC_MEMORY
+                    // return it
+                // else if ~/.tec_memory
+                    // return it
+            }
+        } else if (strncasecmp(cmd, "ENV", 3) == 0) {
+            if (value == 0) {
+                // getenv and return
+            } else if (value[0] == '\0') {
+                // unsetenv and return
+            } else {
+                // setenv to value and return
+            }
+        }
     }
 
     return status;
@@ -394,28 +394,28 @@ static int32_t getfl(chr)
     if (ctx.filbuf.qrg_size == 0) {
         switch (chr) {
         case 'I':
-    	    close_indir();  // make from the one below...
+            close_indir();  // make from the one below...
             break;
         }
     } else {
-    	char path[PATH_MAX];
+        char path[PATH_MAX];
 
-    	// parse input file spec...drop path into null term storage
-    	//  also, never copy more than PATH_MAX...
-    	memcpy(path, ctx.filbuf.qrg_ptr, ctx.filbuf.qrg_size);
-    	path[ctx.filbuf.qrg_size] = '\0';
+        // parse input file spec...drop path into null term storage
+        //  also, never copy more than PATH_MAX...
+        memcpy(path, ctx.filbuf.qrg_ptr, ctx.filbuf.qrg_size);
+        path[ctx.filbuf.qrg_size] = '\0';
 
-    	switch (chr) {
-    	case 'I':
-    	    close_indir();
-     	    indir_cmd.fptr = fopen(path, "r");
-    	    if (indir_cmd.fptr == 0) IOERR(errno);
-    	    ctx.indir = 1;
-    	    break;
-    	}
+        switch (chr) {
+        case 'I':
+            close_indir();
+            indir_cmd.fptr = fopen(path, "r");
+            if (indir_cmd.fptr == 0) IOERR(errno);
+            ctx.indir = 1;
+            break;
+        }
 
-    	// if success -- make this more general when we add other files...
-    	    strcpy(indir_cmd.path, path);
+        // if success -- make this more general when we add other files...
+            strcpy(indir_cmd.path, path);
     }
 
     return TECO__NORMAL;
@@ -424,7 +424,7 @@ static int32_t getfl(chr)
 static void close_indir() {
     if (ctx.indir != 0) {
         if (fclose(indir_cmd.fptr) != 0) IOERR(errno);
-    	ctx.indir = 0;
+        ctx.indir = 0;
     }
 }
 
@@ -432,7 +432,7 @@ static void sigcont_handler(signum)
     int signum;
 {
     if (isatty(STDIN_FILENO)) {
-	tcsetattr(STDIN_FILENO, TCSANOW, &attr);
+        tcsetattr(STDIN_FILENO, TCSANOW, &attr);
     }
 }
 
