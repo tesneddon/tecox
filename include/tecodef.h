@@ -139,7 +139,7 @@
     typedef int int32_t;
     typedef unsigned int uint32_t;
     typedef int intmax_t;
-    typedef int uintmax_t;
+    typedef unsigned int uintmax_t;
 #  endif
 # elif (defined(__OpenBSD__))
 #  define TECO_K_OS 1
