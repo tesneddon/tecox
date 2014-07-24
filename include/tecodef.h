@@ -367,6 +367,9 @@
 #define TECO_K_CTRLZ_MAX 3
 #define TECO_K_ESC_MAX 2
 
+/*
+** Radix control flags.
+*/
 #define RADIX_DEC 0                     /* Decimal radix                    */
 #define RADIX_OCT 1                     /* Octal radix                      */
 #define RADIX_HEX 2                     /* Hexidecimal radix                */
