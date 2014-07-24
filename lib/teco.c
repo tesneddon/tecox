@@ -70,10 +70,11 @@
 **                                      bug in handling of ^U.
 **      23-JUL-2014 V41.14  Sneddon     Correct operator order typo.  Correct
 **                                      bug in txadj when expanding.
+**      25-JUL-2014 V41.15  Sneddon     Add ?
 **--
 */
 #define MODULE TECO
-#define VERSION "V41.14"
+#define VERSION "V41.15"
 #ifdef vms
 # ifdef VAX11C
 #  module MODULE VERSION
@@ -831,6 +832,14 @@ void teco_interp(void)
             } else {
                 skpset(TECO_C_RAB, TECO_C_NUL);
                 pop(TECO_K_PDL_ITR);
+            }
+            break;
+
+        case '?':               /* "?" is the trace flip/flop  */
+            if (ctx.flags & TECO_M_TFLG) {
+                ctx.flags &= ~TECO_M_TFLG;
+            } else {
+                ctx.flags |= TECO_M_TFLG;
             }
             break;
 
