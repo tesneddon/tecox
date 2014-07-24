@@ -125,12 +125,25 @@ do { \
         ERROR_MESSAGE(POP); \
 } while (0)
 
+/*
+** Clear the colon flag and preset with TECO__TRUE
+** if it is found.
+*/
 #define chkclo() \
 do { \
     if (ctx.flags & TECO_M_CLNF) { \
         ctx.flags &= ~TECO_M_CLNF; \
-        ncom(-1); \
+        ncom(TECO__TRUE); \
     } \
+} while (0)
+
+/*
+** Clear any incoming number and check for colon.
+*/
+#define chkcln() \
+do { \
+    ctx.flags &= ~TECO_M_NFLG; \
+    chkclo(); \
 } while (0)
 
 #define chkstp() \
@@ -1024,6 +1037,7 @@ void teco_interp(void)
         case 'e': {             /* "E" is special commands */
             uint8_t cmd = scnupp();
             uint32_t *flag = 0;
+            int32_t status;
 
             switch (cmd) {
             case 'D':           /* "ED" is editor level */
@@ -1042,6 +1056,9 @@ void teco_interp(void)
 
             case 'G':           /* "EG" is process special function */
                 getstg(&ctx.filbuf);
+                irest();
+                ctx.temp = ctx.n;
+                chkcln();
                 ncom(io_support.gexit());
                 break;
 
@@ -1057,7 +1074,14 @@ void teco_interp(void)
                 getstg(&ctx.filbuf);
                 irest();
                 ctx.temp = ctx.n;
-                io_support.getfl(cmd);
+                chkcln();
+                status = io_support.getfl(cmd);
+                if (status != TECO__NORMAL) {
+                    if (ctx.flags & TECO_M_NFLG)
+                        ctx.n = 0;
+                    else
+                        ERROR(status);
+                }
                 break;
 
             case 'J': {         /* "EJ" is return environment characteristics */
