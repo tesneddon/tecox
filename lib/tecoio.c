@@ -27,10 +27,11 @@
 **
 **      18-OCT-2011 V41.00  Sneddon     Initial coding.
 **      10-NOV-2011 V41.01  Sneddon     Add tlistn.
+**      24-JUL-2014 V41.02  Sneddon     Support changes to input() callback.
 **--
 */
 #define MODULE TECOIO
-#define VERSION "V41.01"
+#define VERSION "V41.02"
 #ifdef vms
 # ifdef VAX11C
 #  module MODULE VERSION
@@ -143,7 +144,7 @@ uint8_t listen(isfirst)
     uint32_t isdelim = 0;
     int32_t status;
 
-    io_support.input(&chr);
+    chr = io_support.input();
     if (!ctx.indir) {
         if (ctx.etype & TECO_M_ET_GRV) {
             if (chr == ctx.eeflg) {
@@ -220,16 +221,8 @@ uint8_t tlistn(void)
     int32_t status;
 
     ctx.etype &= ~(TECO_M_ET_CC | TECO_M_ET_CKE | TECO_M_ET_NCH);
-
-    /* This needs fixing!  It is not possible to signal 'status' in a consistent
-    ** way.  At the moment the termios version of 'input' can only return
-    ** TECO__NORMAL or TECO__ERR (to indicate a system error).  This needs to be
-    ** corrected so better status values can be handled.
-    */
-    status = io_support.input(&chr);
-    if (status != TECO__NORMAL)
-        ERROR_MESSAGE(ERR);
-
+    chr = io_support.input();
     ctx.etype = etype;
+
     return chr;
 } /* tlistn */

@@ -31,10 +31,12 @@
 **      06-JUN-2013 V41.02  Sneddon     Re-arrange getcmd.
 **      10-JUN-2013 V41.03  Sneddon     Add :EG support.
 **      21-JAN-2014 V41.04  Sneddon     Add EI and base getfl support.
+**      24-JUL-2014 V41.05  Sneddon     Support change to input() callback.
+**                                      Add some more useful comments!
 **--
 */
 #define MODULE TECOUNIX
-#define VERSION "V41.04"
+#define VERSION "V41.05"
 #ifdef vms
 # ifdef VAX11C
 #  module MODULE VERSION
@@ -55,6 +57,7 @@
         FILE *fptr;
         char path[PATH_MAX];
     };
+#define UNIT_S_UNIT (sizeof(struct UNIT))
     typedef struct UNIT *FILEHANDLE;
 
 #define OS_MODULE_BUILD
@@ -78,7 +81,7 @@ do { \
 
     static int32_t init();
     static int32_t restore();
-    static int32_t input();
+    static int8_t input();
     static int32_t output();
     static int32_t ejflg();
     static int32_t etflg();
@@ -172,19 +175,18 @@ static int32_t restore(void)
     return status;
 }
 
-static int32_t input(chr)
-    uint8_t *chr;
+static int8_t input()
 {
-    int status, xitchr = TECO_C_SUB;
+    int chr, status, xitchr = TECO_C_SUB;
 
     if (ctx.temp == TECO_C_CR) {
         /*
         ** All CRs get translated to CR/LFs, so return the LF portion.
         */
-        *chr = TECO_C_LF;
+        chr = TECO_C_LF;
     } else {
         if (ctx.indir == 0) {
-            *chr = fgetc(stdin);
+            chr = fgetc(stdin);
             if ((status = ferror(stdin)) == 0) {
                 /*
                 ** Modify immediate exit character if UNIX specific ^D
@@ -193,7 +195,7 @@ static int32_t input(chr)
                 if (ctx.etype & TECO_M_ET_UNIX)
                     xitchr = TECO_C_EOT;
 
-                if (*chr == xitchr) {
+                if (chr == xitchr) {
                     if (ctx.temp == xitchr)
                         ctrlz_cnt++;
                     else
@@ -202,22 +204,33 @@ static int32_t input(chr)
                     if (ctrlz_cnt >= TECO_K_CTRLZ_MAX)
                         exit(TECO__NORMAL);
                 }
-                status = TECO__NORMAL;
             } else if (status == -1) {
                 IOERR(errno);
             } else {
                 IOERR(EIO);
             }
         } else {
-            *chr = fgetc(indir_cmd.fptr);
-            if (*chr == EOF) {
+            /*
+            ** Indirect command input is active, so read the character
+            ** from the secondary command input.
+            */
+            chr = fgetc(indir_cmd.fptr);
+            if (chr == EOF) {
+                /*
+                ** We are at the end of file.  This isn't something we
+                ** show to the user, we just silently switch back to the
+                ** primary input stream.
+                **
+                ** So, close off the indirect input and call ourselves to
+                ** fetch the next character off the primary input.
+                */
                 close_indir();
-                status = input(chr);
+                chr = input();
             }
         }
     }
 
-    return (int32_t)status;
+    return (int8_t)chr;
 }
 
 static int32_t output(chr)
@@ -423,8 +436,8 @@ static int32_t getfl(chr)
 
 static void close_indir() {
     if (ctx.indir != 0) {
-        if (fclose(indir_cmd.fptr) != 0) IOERR(errno);
         ctx.indir = 0;
+        if (fclose(indir_cmd.fptr) != 0) IOERR(errno);
     }
 }
 
