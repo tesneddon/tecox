@@ -45,7 +45,8 @@
 **      20-JAN-2013 V41.11  Sneddon   Add [u]intmax_t for VAXC.  Removed mem
 **                                    zone stuff.
 **      21-JAN-2014 V41.12  Sneddon   Add getfl to IO_SUPPORT.
-**      24-JUL-2014 V41.13  Sneddon   Expanded tabs. Remove old code.
+**      24-JUL-2014 V41.13  Sneddon   Expanded tabs. Remove old code. Tweak
+**                                    IO_SUPPORT interface for input().
 **--
 */
 #ifndef __TECODEF_LOADED
@@ -647,11 +648,15 @@
         uint8_t         *seqcdn;        /* Cursor down                      */
     } SCOPEDEF;
 
+/*
+** Operating System interface block.
+*/
+
     typedef struct _io_support {
         int32_t (*init)     ();         /* terminal setup                   */
         int32_t (*restore)  ();         /* restore terminal to before teco  */
         int32_t (*output)   ();         /* Do terminal output               */
-        int32_t (*input)    ();         /* get terminal input               */
+        int8_t  (*input)    ();         /* get terminal input               */
         int32_t (*ejflg)    ();         /* get ej flag information          */
         int32_t (*etflg)    ();         /* inform terminal of ET flag       */
         int32_t (*getcmd)   ();         /* get command line into Q-reg Z    */
