@@ -32,7 +32,8 @@
 **      10-JUN-2013 V41.03  Sneddon     Add :EG support.
 **      21-JAN-2014 V41.04  Sneddon     Add EI and base getfl support.
 **      24-JUL-2014 V41.05  Sneddon     Support change to input() callback.
-**                                      Add some more useful comments!
+**                                      Add some more useful comments!  Add
+**                                      support for EN.
 **--
 */
 #define MODULE TECOUNIX
@@ -45,6 +46,7 @@
 # endif
 #endif
 #include <errno.h>
+#include <glob.h>
 #include <limits.h>
 #include <signal.h>
 #include <stdio.h>
@@ -65,16 +67,6 @@
 #include "tecomsg.h"
 #include "globals.h"
 
-#define IOERR(err) \
-do { \
-    if (err == ENOENT) { \
-        ERROR_MESSAGE(FNF); \
-    } else { \
-        ctx.syserr = err; \
-        ERROR_MESSAGE(ERR); \
-    } \
-} while (0)
-
 /*
 ** Forward Declarations
 */
@@ -90,6 +82,7 @@ do { \
     static int32_t getfl();
     static void sigcont_handler();
     static void close_indir();
+    static int32_t cvt_errno();
 
 /*
 ** Global Storage.
@@ -113,6 +106,11 @@ do { \
 ** Static Storage.
 */
 
+    static struct {
+        size_t gl_pathi;
+        int status;
+        glob_t glob;
+    } en = { -1, 0 };
     static int ctrlz_cnt = 0;
     struct termios attr;
     struct termios pattr;
@@ -150,11 +148,11 @@ static int32_t init(void)
             if (tcsetattr(STDIN_FILENO, TCSANOW, &attr) == 0) {
                 status = TECO__NORMAL;
             } else {
-                IOERR(errno);
+                status = cvt_errno(errno);
             }
         }
     } else {
-        IOERR(errno);
+        status = cvt_errno(errno);
     }
 
     ctx.etype |= TECO_M_ET_LC; // Should this be in crtrub?
@@ -169,7 +167,7 @@ static int32_t restore(void)
     fflush(stdout);
 
     if (tcsetattr(STDIN_FILENO, TCSANOW, &pattr) != 0) {
-        IOERR(errno);
+        status = cvt_errno(errno);
     }
 
     return status;
@@ -205,9 +203,9 @@ static int8_t input()
                         exit(TECO__NORMAL);
                 }
             } else if (status == -1) {
-                IOERR(errno);
+                status = cvt_errno(errno);
             } else {
-                IOERR(EIO);
+                status = cvt_errno(EIO);
             }
         } else {
             /*
@@ -238,7 +236,7 @@ static int32_t output(chr)
 {
     int status = TECO__NORMAL;
 
-    if (putc(chr, stdout) == EOF) IOERR(errno);
+    if (putc(chr, stdout) == EOF) status = cvt_errno(errno);
     return (int32_t)status;
 }
 
@@ -403,41 +401,111 @@ static int32_t gexit()
 static int32_t getfl(chr)
     uint8_t chr;
 {
+    int status = TECO__NORMAL;
 
     if (ctx.filbuf.qrg_size == 0) {
         switch (chr) {
         case 'I':
             close_indir();  // make from the one below...
             break;
+
+        case 'N':
+            if (en.gl_pathi == -1) {
+                /*
+                ** The EN buffer has not been initialised.  Under V40
+                ** on VMS, the message returned is actually the result of
+                ** a bug and 99.9% of the time it fails with the error:
+                **
+                **    ?ERR    %SYSTEM-W-ILLSER, illegal service call number ""
+                **
+                ** On RSTS/E it responds:
+                **
+                **    ?ERR    ?Illegal file name ""
+                **
+                ** So, on UNIX we respond with the system errno, EBADF.
+                */
+                status = cvt_errno(EBADF);
+            } else {
+                if (en.status == GLOB_NOMATCH) {
+                    status = TECO__FNF;
+                } else if (en.gl_pathi >= en.glob.gl_pathc) {
+                    status = TECO__FNF;
+                } else {
+                    char *path = en.glob.gl_pathv[en.gl_pathi++];
+
+                    ctx.qnmbr = &ctx.filbuf;
+                    qset(0, path, strlen(path));
+                }
+            }
+            break;
         }
     } else {
         char path[PATH_MAX];
 
-        // parse input file spec...drop path into null term storage
-        //  also, never copy more than PATH_MAX...
         memcpy(path, ctx.filbuf.qrg_ptr, ctx.filbuf.qrg_size);
         path[ctx.filbuf.qrg_size] = '\0';
+
+        // path = realpath(path);
+        // if path == 0
+            // status = cvt_errno(errno)
+        // else
+            // continue...
 
         switch (chr) {
         case 'I':
             close_indir();
             indir_cmd.fptr = fopen(path, "r");
-            if (indir_cmd.fptr == 0) IOERR(errno);
-            ctx.indir = 1;
+            if (indir_cmd.fptr == 0)
+                status = cvt_errno(errno);
+            else
+                ctx.indir = 1;
+            break;
+
+        case 'N': {
+            int flags;
+
+            if (en.gl_pathi >= 0) {
+                en.gl_pathi = -1;
+                globfree(&en.glob);
+            }
+
+            flags = GLOB_MARK;
+#ifdef GLOB_TILDE_CHECK
+            flags |= GLOB_TILDE_CHECK;
+#endif
+            en.status = glob(path, flags, 0, &en.glob);
+            switch (en.status) {
+            case GLOB_NOSPACE: status = cvt_errno(ENOMEM); break;
+            case GLOB_NOSYS:   status = cvt_errno(ENOSYS); break;
+            case GLOB_ABORTED: status = cvt_errno(EIO); break;
+            case GLOB_NOMATCH:
+                /*
+                ** To remain compatible with TECO-32 V40 we return
+                ** this error as FNF when the user attempts to
+                ** fetch the first iteration.
+                */
+            default:
+                en.gl_pathi = 0;
+                break;
+            }
             break;
         }
 
+        }
+
         // if success -- make this more general when we add other files...
-            strcpy(indir_cmd.path, path);
+        strcpy(indir_cmd.path, path);
     }
 
-    return TECO__NORMAL;
+    return status;
 }
 
 static void close_indir() {
     if (ctx.indir != 0) {
         ctx.indir = 0;
-        if (fclose(indir_cmd.fptr) != 0) IOERR(errno);
+        if (fclose(indir_cmd.fptr) != 0) {
+            ERROR(cvt_errno(errno));
+        }
     }
 }
 
@@ -447,5 +515,22 @@ static void sigcont_handler(signum)
     if (isatty(STDIN_FILENO)) {
         tcsetattr(STDIN_FILENO, TCSANOW, &attr);
     }
+}
+
+static int32_t cvt_errno(err)
+    int err;
+{
+    int32_t status;
+
+    switch (err) {
+    case ENOENT:    status = TECO__FNF; break;
+    case ENOMEM:    status = TECO__MEM; break;
+    default:
+        status = TECO__ERR;
+        ctx.syserr = err;
+        break;
+    }
+
+    return status;
 }
 
