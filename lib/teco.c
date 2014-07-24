@@ -228,7 +228,7 @@ do { \
     const static uint8_t tecocmd[] = "\001Welcome to TECO!\001\033\033";  // Remove this in future...
     QRGDEF qreg_array[TECO_K_NUMQRG+1], qreg_local[TECO_K_NUMQRG];
 
-int32_t teco(void)
+int32_t teco()
 {
     uint8_t chr;
     uint32_t docrlfno, more, storechr;
@@ -379,9 +379,9 @@ int32_t teco(void)
 
     // reTODO: what kind of status should we be returning here?
     return TECO__NORMAL;
-}
+} /* teco */
 
-int32_t teco_init(void)
+int32_t teco_init()
 {
     struct sigaction action;
 
@@ -413,7 +413,7 @@ int32_t teco_init(void)
     ctx.quote = TECO_C_ESC;
 
     return TECO__NORMAL;
-}
+} /* teco_init */
 
 static void errors(signum)
     int signum;
@@ -432,7 +432,7 @@ static void errors(signum)
         crlfno();
         goto_unwind();
     }
-}
+} /* errors */
 
 void teco_interp(void)
 {
@@ -1522,39 +1522,6 @@ void teco_interp(void)
                     ctx.p++;
                     ctx.lschsz--;
                 }
-#if 0
-                if (ctx.p < ctx.zz) {
-                    if (ctx.txstor[ctx.p] == '-') {
-                        nopr = OP_SUB;
-                        ctx.p++;
-                    } else if (ctx.txstor[ctx.p] == '+') {
-                        ctx.p++;
-                    }
-                }
-
-                while (ctx.p < ctx.zz) {
-                    np = n;
-                    n = ctx.txstor[ctx.p] - '0';
-                    if (n > 9) {
-                        n -= ('A' - 10) -'0';
-                    } else {
-                        if (!isdigit(ctx.txstor[ctx.p]))
-                            break;
-                    }
-                    radadj = np * 4;
-                    if (ctx.nmrbas == RADIX_HEX) {
-                        radadj += radadj;
-                    } else if (ctx.nmrbas == RADIX_DEC) {
-                        radadj += np;
-                    }
-                    n += radadj * 2;
-                    ctx.p++;
-                }
-
-                ctx.lschsz = p - ctx.p;
-
-                ncom(nopr == OP_SUB ? -n : n);
-#endif
             }
             break;
 
@@ -1604,13 +1571,14 @@ void teco_interp(void)
 
         ctx.qlengt = ctx.qcmnd->qrg_size;
     } else {
-        if (ctx.pdl != 0)
+        if (ctx.pdl != 0) {
             ERROR_MESSAGE(UTC);
+        }
     }
-}
+} /* teco_interp */
 
 
-static uint8_t scan(void) {
+static uint8_t scan() {
     uint8_t chr;
 
     /*
@@ -1620,8 +1588,9 @@ static uint8_t scan(void) {
         /*
         ** Yes, check for macro.
         */
-        if (ctx.mpdcnt)
+        if (ctx.mpdcnt) {
             ERROR_MESSAGE(UTM);
+        }
         ERROR_MESSAGE(UTC);
     } else {
         /*
@@ -1640,7 +1609,7 @@ static uint8_t scan(void) {
     }
 
     return chr;
-}
+} /* scan */
 
 
 static uint32_t tstnxt(chr)
@@ -1656,7 +1625,7 @@ static uint32_t tstnxt(chr)
     }
 
     return 0;
-}
+} /* tstnxt */
 
 static void ncom(n)
     intmax_t n;
@@ -1680,9 +1649,9 @@ static void ncom(n)
 
     ctx.flags |= TECO_M_NFLG;
     ctx.flags &= ~TECO_M_OFLG;
-}
+} /* ncom */
 
-static void nlines(void)
+static void nlines()
 {
     intmax_t n;
     uint32_t p;
@@ -1715,9 +1684,9 @@ static void nlines(void)
             }
         }
     }
-}
+} /* nlines */
 
-static void skpquo(void) {
+static void skpquo() {
     getquo();
 
     ctx.oscanp = ctx.scanp;
@@ -1725,7 +1694,7 @@ static void skpquo(void) {
         ;
 
     resquo();
-}
+} /* skpquo */
 
 static void skpset(trm1,
                    trm2)
@@ -1843,16 +1812,17 @@ static void skpset(trm1,
 
     }
 
-    /* Restore flags to original state.  However, make sure to save
+    /*
+    ** Restore flags to original state.  However, make sure to save
     ** QFLG if set.
     */
     if (ctx.flags & TECO_M_QFLG)
         flags |= TECO_M_QFLG;
     ctx.flags = flags;
     ctx.flags2 = flags2;
-}
+} /* skpset */
 
-static void gettx(void) {
+static void gettx() {
     intmax_t n = 0;
 
     if (ctx.flags & TECO_M_CFLG) {
@@ -1873,7 +1843,7 @@ static void gettx(void) {
     bzchk(ctx.n);
 
     ctx.n -= ctx.m;
-}
+} /* gettx */
 
 static void getstg(out)
     QRGDEF *out;
@@ -1948,7 +1918,7 @@ static void getstg(out)
     }
 
     resquo();
-}
+} /* getstg */
 
 /*
 ** FUNCTIONAL DESCRIPTION:
@@ -2037,7 +2007,7 @@ static void qref(additional,
     */
     ctx.qnmbr->qrg_num = qrg_num;
     ctx.qnmbr->qrg_flags = qrg_flags;
-}
+} /* qref */
 
 void txadj(size)
     int32_t size;
@@ -2074,7 +2044,7 @@ void txadj(size)
         ctx.p += size;
         ctx.lschsz = -size;
     }
-}
+} /* txadj */
 
 void qset(append,
           ptr,
@@ -2112,7 +2082,7 @@ void qset(append,
     ctx.qnmbr->qrg_size = buflen;
 
     memmove(bufptr, ptr, len);
-}
+} /* qset */
 
 static void zerod(flags)
     uint32_t flags;
@@ -2135,7 +2105,7 @@ static void zerod(flags)
     } else {
         prinb(outbuf, outlen);
     }
-}
+} /* serod */
 
 static void push(type)
     uint32_t type;
@@ -2172,7 +2142,7 @@ static void push(type)
     pdl->next = ctx.pdl;
     pdl->type = type;
     ctx.pdl = pdl;
-}
+} /* push */
 
 static void pop(type)
     uint32_t type;
@@ -2204,7 +2174,7 @@ static void pop(type)
 
     ctx.pdl = pdl->next;
     free(pdl);
-}
+} /* pop */
 
 static void poplcl(lclptr)
     QRGDEF *lclptr;
@@ -2217,7 +2187,7 @@ static void poplcl(lclptr)
             free(lclptr[i].qrg_ptr);
     }
     if (lclptr != qreg_local) free(lclptr);
-}
+} /* poplcl */
 
 static uint32_t search()
 {
@@ -2297,26 +2267,4 @@ static uint32_t search()
     limit               // 12(SP)
     flags               // 16(SP)
 */
-}
-
-/*
-This is the beginning of a new port of TECO-32.  I have come a long way
-as a programmer since then and would like to do some things differently.
-
-So, the main module will contain a giant switch, this catches the
-different characters along the way.  No jump table.  Change some of the
-error handling a coding style.  Use set/longjmp as before.  That
-worked well.
-
-Will probably need to use catopen, etc. for messages.  Base it on the
-code on the VAX as that has the correct logic.  I spent plenty of time
-studying the TECO-32 source code and don't want to waste that.
-
-
-tecodef.h comes from the original source.  Retain it and comments in
-the code too.  It is good to keep correclation with the original
-source for bug fixes and deviations from the original intention.
-
-
-*/
-
+} /* search */
