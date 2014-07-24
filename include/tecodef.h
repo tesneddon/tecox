@@ -46,7 +46,8 @@
 **                                    zone stuff.
 **      21-JAN-2014 V41.12  Sneddon   Add getfl to IO_SUPPORT.
 **      24-JUL-2014 V41.13  Sneddon   Expanded tabs. Remove old code. Tweak
-**                                    IO_SUPPORT interface for input().
+**                                    IO_SUPPORT interface for input().  Add
+**                                    Add ERROR macro.
 **--
 */
 #ifndef __TECODEF_LOADED
@@ -670,6 +671,12 @@
 #define ERROR_MESSAGE(nnn) \
 do { \
     ctx.errcod = TECO__##nnn; \
+    raise(SIGUSR1); \
+} while (0)
+
+#define ERROR(n) \
+do { \
+    ctx.errcod = n; \
     raise(SIGUSR1); \
 } while (0)
 
