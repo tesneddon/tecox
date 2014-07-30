@@ -406,7 +406,7 @@ static int32_t getfl(chr)
     if (ctx.filbuf.qrg_size == 0) {
         switch (chr) {
         case 'I':
-            close_indir();  // make from the one below...
+            close_indir();
             break;
 
         case 'N':
