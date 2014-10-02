@@ -1,86 +1,96 @@
-/*
-**++
-**  MODULE DESCRIPTION:
-**
-**      This include contains definitions of message numbers.
-**
-**  AUTHOR:             Tim E. Sneddon
-**
-**  Copyright (C) 2014 Tim E. Sneddon <tim@sneddon.id.au>
-**
-**  This program is free software: you can redistribute it and/or modify
-**  it under the terms of the GNU General Public License as published by
-**  the Free Software Foundation, either version 3 of the License, or
-**  (at your option) any later version.
-**
-**  This program is distributed in the hope that it will be useful,
-**  but WITHOUT ANY WARRANTY; without even the implied warranty of
-**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-**  GNU General Public License for more details.
-**
-**  You should have received a copy of the GNU General Public License
-**  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-**
-**  CREATION DATE:      06-MAR-2005
-**
-**  MODIFICATION HISTORY:
-**
-**      06-MAR-2005 V41.00  Sneddon     Initial coding.
-**      20-JAN-2014 V41.01  Sneddon     Fixed module header.  Added three
-**					'info' messages.
-**--
-*/
-#ifndef __TECOMSG_LOADED
-#define __TECOMSG_LOADED 1
+#ifndef tecomsg_h__
+#define tecomsg_h__
+#define TECO__NORMAL 0
+#define TECO__HELP_Set 0x2	/* tecomsg.msgx:82 */
+#define TECO__HELP_BNI 0x1	/* tecomsg.msgx:83 */
+#define TECO__HELP_CPQ 0x2	/* tecomsg.msgx:88 */
+#define TECO__HELP_DTB 0x3	/* tecomsg.msgx:91 */
+#define TECO__HELP_ERR 0x4	/* tecomsg.msgx:94 */
+#define TECO__HELP_FNF 0x5	/* tecomsg.msgx:97 */
+#define TECO__HELP_IAA 0x6	/* tecomsg.msgx:101 */
+#define TECO__HELP_IEC 0x7	/* tecomsg.msgx:104 */
+#define TECO__HELP_IFC 0x8	/* tecomsg.msgx:108 */
+#define TECO__HELP_IIA 0x9	/* tecomsg.msgx:110 */
+#define TECO__HELP_ILL 0xa	/* tecomsg.msgx:114 */
+#define TECO__HELP_ILN 0xb	/* tecomsg.msgx:117 */
+#define TECO__HELP_INP 0xc	/* tecomsg.msgx:120 */
+#define TECO__HELP_IPA 0xd	/* tecomsg.msgx:126 */
+#define TECO__HELP_IQC 0xe	/* tecomsg.msgx:129 */
+#define TECO__HELP_IQN 0xf	/* tecomsg.msgx:131 */
+#define TECO__HELP_IRA 0x10	/* tecomsg.msgx:134 */
+#define TECO__HELP_ISA 0x11	/* tecomsg.msgx:137 */
+#define TECO__HELP_ISS 0x12	/* tecomsg.msgx:140 */
+#define TECO__HELP_IUC 0x13	/* tecomsg.msgx:144 */
+#define TECO__HELP_MEM 0x14	/* tecomsg.msgx:148 */
+#define TECO__HELP_MRP 0x15	/* tecomsg.msgx:154 */
+#define TECO__HELP_NAB 0x16	/* tecomsg.msgx:157 */
+#define TECO__HELP_NAC 0x17	/* tecomsg.msgx:161 */
+#define TECO__HELP_NAE 0x18	/* tecomsg.msgx:164 */
+#define TECO__HELP_NAP 0x19	/* tecomsg.msgx:168 */
+#define TECO__HELP_NAQ 0x1a	/* tecomsg.msgx:172 */
+#define TECO__HELP_NAS 0x1b	/* tecomsg.msgx:177 */
+#define TECO__HELP_NAU 0x1c	/* tecomsg.msgx:182 */
+#define TECO__HELP_NFI 0x1d	/* tecomsg.msgx:186 */
+#define TECO__HELP_NFO 0x1e	/* tecomsg.msgx:190 */
+#define TECO__HELP_NYA 0x1f	/* tecomsg.msgx:194 */
+#define TECO__HELP_OFO 0x20	/* tecomsg.msgx:198 */
+#define TECO__HELP_OUT 0x21	/* tecomsg.msgx:204 */
+#define TECO__HELP_PDO 0x22	/* tecomsg.msgx:211 */
+#define TECO__HELP_POP 0x23	/* tecomsg.msgx:214 */
+#define TECO__HELP_SNI 0x24	/* tecomsg.msgx:221 */
+#define TECO__HELP_SRH 0x25	/* tecomsg.msgx:225 */
+#define TECO__HELP_STL 0x26	/* tecomsg.msgx:235 */
+#define TECO__HELP_UTC 0x27	/* tecomsg.msgx:239 */
+#define TECO__HELP_UTM 0x28	/* tecomsg.msgx:246 */
+#define TECO__HELP_XAB 0x29	/* tecomsg.msgx:252 */
+#define TECO__HELP_YCA 0x2a	/* tecomsg.msgx:255 */
+#define TECO__HELP_NYI 0x2b	/* tecomsg.msgx:261 */
 
-#define TECO__MEM_PAG    3
-#define TECO__DISK_QUOT  2
-#define TECO__SEAR_ITER  1
-
-#define TECO__NORMAL	 0
-
-#define TECO__BNI	 -1
-#define TECO__CPQ	 -2
-#define TECO__DTB	 -3
-#define TECO__ERR	 -4
-#define TECO__FNF	 -5
-#define TECO__IAA	 -6
-#define TECO__IEC	 -7
-#define TECO__IFC	 -8
-#define TECO__IIA	 -9
-#define TECO__ILL	-10
-#define TECO__ILN	-11
-#define TECO__INP	-12
-#define TECO__IPA	-13
-#define TECO__IQC	-14
-#define TECO__IQN	-15
-#define TECO__IRA	-16
-#define TECO__ISA	-17
-#define TECO__ISS	-18
-#define TECO__IUC	-19
-#define TECO__MEM	-20
-#define TECO__MRP	-21
-#define TECO__NAB	-22
-#define TECO__NAC	-23
-#define TECO__NAE	-24
-#define TECO__NAP	-25
-#define TECO__NAQ	-26
-#define TECO__NAS	-27
-#define TECO__NAU	-28
-#define TECO__NFI	-29
-#define TECO__NFO	-30
-#define TECO__NYA	-31
-#define TECO__OFO	-32
-#define TECO__OUT	-33
-#define TECO__PDO	-34
-#define TECO__POP	-35
-#define TECO__SNI	-36
-#define TECO__SRH	-37
-#define TECO__STL	-38
-#define TECO__UTC	-39
-#define TECO__UTM	-40
-#define TECO__XAB	-41
-#define TECO__YCA	-42
-#define TECO__NYI	-43
-
-#endif /* __TECOMSG_LOADED */
+#define TECO__Set 0x1	/* tecomsg.msgx:31 */
+#define TECO__BNI 0x1	/* tecomsg.msgx:32 */
+#define TECO__CPQ 0x2	/* tecomsg.msgx:33 */
+#define TECO__DTB 0x3	/* tecomsg.msgx:34 */
+#define TECO__ERR 0x4	/* tecomsg.msgx:35 */
+#define TECO__FNF 0x5	/* tecomsg.msgx:36 */
+#define TECO__IAA 0x6	/* tecomsg.msgx:37 */
+#define TECO__IEC 0x7	/* tecomsg.msgx:38 */
+#define TECO__IFC 0x8	/* tecomsg.msgx:39 */
+#define TECO__IIA 0x9	/* tecomsg.msgx:40 */
+#define TECO__ILL 0xa	/* tecomsg.msgx:41 */
+#define TECO__ILN 0xb	/* tecomsg.msgx:42 */
+#define TECO__INP 0xc	/* tecomsg.msgx:43 */
+#define TECO__IPA 0xd	/* tecomsg.msgx:44 */
+#define TECO__IQC 0xe	/* tecomsg.msgx:45 */
+#define TECO__IQN 0xf	/* tecomsg.msgx:46 */
+#define TECO__IRA 0x10	/* tecomsg.msgx:47 */
+#define TECO__ISA 0x11	/* tecomsg.msgx:48 */
+#define TECO__ISS 0x12	/* tecomsg.msgx:49 */
+#define TECO__IUC 0x13	/* tecomsg.msgx:50 */
+#define TECO__MEM 0x14	/* tecomsg.msgx:51 */
+#define TECO__MRP 0x15	/* tecomsg.msgx:52 */
+#define TECO__NAB 0x16	/* tecomsg.msgx:53 */
+#define TECO__NAC 0x17	/* tecomsg.msgx:54 */
+#define TECO__NAE 0x18	/* tecomsg.msgx:55 */
+#define TECO__NAP 0x19	/* tecomsg.msgx:56 */
+#define TECO__NAQ 0x1a	/* tecomsg.msgx:57 */
+#define TECO__NAS 0x1b	/* tecomsg.msgx:58 */
+#define TECO__NAU 0x1c	/* tecomsg.msgx:59 */
+#define TECO__NFI 0x1d	/* tecomsg.msgx:60 */
+#define TECO__NFO 0x1e	/* tecomsg.msgx:61 */
+#define TECO__NYA 0x1f	/* tecomsg.msgx:62 */
+#define TECO__OFO 0x20	/* tecomsg.msgx:63 */
+#define TECO__OUT 0x21	/* tecomsg.msgx:64 */
+#define TECO__PDO 0x22	/* tecomsg.msgx:65 */
+#define TECO__POP 0x23	/* tecomsg.msgx:66 */
+#define TECO__SNI 0x24	/* tecomsg.msgx:67 */
+#define TECO__SRH 0x25	/* tecomsg.msgx:68 */
+#define TECO__STL 0x26	/* tecomsg.msgx:69 */
+#define TECO__UTC 0x27	/* tecomsg.msgx:70 */
+#define TECO__UTM 0x28	/* tecomsg.msgx:71 */
+#define TECO__XAB 0x29	/* tecomsg.msgx:72 */
+#define TECO__YCA 0x2a	/* tecomsg.msgx:73 */
+#define TECO__NYI 0x2b	/* tecomsg.msgx:74 */
+#define TECO__SEAR_ITER 0x2c	/* tecomsg.msgx:75 */
+#define TECO__DISK_QUOT 0x2d	/* tecomsg.msgx:76 */
+#define TECO__MEM_PAG 0x2e	/* tecomsg.msgx:77 */
+#endif /* tecomsg_h__ */
