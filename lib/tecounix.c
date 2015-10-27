@@ -34,10 +34,11 @@
 **      24-JUL-2014 V41.05  Sneddon     Support change to input() callback.
 **                                      Add some more useful comments!  Add
 **                                      support for EN.
+**      02-OCT-2014 V41.06  Sneddon     Add syserr.
 **--
 */
 #define MODULE TECOUNIX
-#define VERSION "V41.05"
+#define VERSION "V41.06"
 #ifdef vms
 # ifdef VAX11C
 #  module MODULE VERSION
@@ -83,6 +84,7 @@
     static void sigcont_handler();
     static void close_indir();
     static int32_t cvt_errno();
+    static int32_t syserr();
 
 /*
 ** Global Storage.
@@ -100,6 +102,7 @@
         getcmd,
         gexit,
         getfl,
+        syserr,
     };
 
 /*
@@ -534,3 +537,44 @@ static int32_t cvt_errno(err)
     return status;
 }
 
+/*
+** FUNCTIONAL DESCRIPTION:
+**      This routine resturns the eror messages for UNIX-like systems.  The
+** message is in two parts.  The messge id and the message itself.
+**
+**      For POSIX errno values, 1 - 34, we supply a message id of the
+** POSIX constant name.  For all other messages, we return an id that is
+** the message number, zero filled to 5 places.  For example, an errno of
+** 16 would return:
+**
+**     "EBUSY", "Device or resource busy"
+**
+** Whereas, on a GNU/Linux system, an errno of 36 would return:
+**
+**     "00036", "File name too long"
+*/
+int32_t syserr(id, message)
+    uint8_t **id;
+    uint8_t **message;
+{
+    static char *posix[] = { "EPERM", "ENOENT", "ESRCH", "EINTR", "EIO",
+        "ENXIO", "E2BIG", "ENOEXEC", "EBADF", "ECHILD", "EAGAIN", "ENOMEM",
+        "EACCES", "EFAULT", "ENOTBLK", "EBUSY", "EEXIST", "EXDEV", "ENODEV",
+        "ENOTDIR", "EISDIR", "EINVAL", "ENFILE", "EMFILE", "ENOTTY",
+        "ETXTBSY", "EFBIG", "ENOSPC", "ESPIPE", "EROFS", "EMLINK", "EPIPE",
+        "EDOM", "ERANGE" };
+
+    if (id) {
+        if (ctx.syserr <= (sizeof(posix) / sizeof(posix[0]))) {
+            *id = strdup(posix[ctx.syserr-1]);
+        } else {
+            asprintf(id, "%05d", (int) ctx.syserr);
+        }
+    }
+
+    if (message) {
+        *message = strdup(strerror(ctx.syserr));
+    }
+
+    return TECO__NORMAL;
+}
