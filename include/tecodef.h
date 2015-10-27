@@ -48,6 +48,7 @@
 **      24-JUL-2014 V41.13  Sneddon   Expanded tabs. Remove old code. Tweak
 **                                    IO_SUPPORT interface for input().  Add
 **                                    Add ERROR macro.
+**      02-OCT-2014 V41.14  Sneddon   Add syserr to IO_SUPPORT.
 **--
 */
 #ifndef __TECODEF_LOADED
@@ -663,6 +664,7 @@
         int32_t (*getcmd)   ();         /* get command line into Q-reg Z    */
         int32_t (*gexit)    ();         /* process special functions        */
         int32_t (*getfl)    ();         /* get files opened                 */
+        int32_t (*syserr)   ();         /* return system error code         */
     } IO_SUPPORT;
 
 /*
@@ -712,21 +714,21 @@ do { \
 #define typf(c) teco_type(TYPEF, (c))
 #define print(ptr, len) \
 do { \
-    uint32_t i; \
+    int32_t i; \
     uint8_t *p = (uint8_t *)(ptr); \
-    for (i = 0; i < len; i++) \
+    for (i = 0; i < (len); i++) \
         type(p[i]);  \
 } while (0)
 #define prinb(ptr, len) \
 do { \
-    uint32_t i; \
+    int32_t i; \
     uint8_t *p = (uint8_t *)(ptr); \
     for (i = 0; i < len; i++) \
         typb(p[i]); \
 } while (0)
 #define prinf(ptr, len) \
 do { \
-    uint32_t i; \
+    int32_t i; \
     uint8_t *p = (uint8_t *)(ptr); \
     for (i = 0; i < len; i++) \
         typf(p[i]); \
