@@ -69,26 +69,30 @@
 ** Macro Definitions
 */
 
-#define crlfno() print("\r\n", 2)
+#define crlfno() \
+do { \
+    type(TECO_C_CR); \
+    type(TECO_C_LF); \
+} while (0)
 
 void teco_putmsg() {
 
     static nl_catd catalog = (nl_catd) -1;
 
-#define ID_MAX 3
     struct MSGDSC *message;
     char *help;
     uint16_t ehelp = ctx.ehelp;
 
-    printf("teco_putmsg\n");
-
     if (catalog == (nl_catd) -1) {
+        char *name = getenv("TECOMSG");
+
         /*
         ** Always open up the catalog on the first go round...
         */
-        catalog = catopen("TECO", 0);
+        catalog = catopen(name == 0 || name[0] == '\0' ? "tecomsg" : name, 0);
         if (catalog == (nl_catd) -1) {
             // error?
+            printf("Could not open TECOMSG...\n");
         }
     }
 
@@ -100,10 +104,6 @@ void teco_putmsg() {
         printf("error happened\n");
         // cope with the rror...
     }
-
-    printf("message =%p\n", message);
-
-    printf("message=%s\n", (char *)message);
 
     /*
     ** 0EH always defaults to 2EH.
@@ -156,6 +156,8 @@ void teco_putmsg() {
         } else {
             print(message->text, strlen(message->text));
         }
+
+        crlfno();
     }
 
     if (ehelp & 1) {
@@ -168,7 +170,11 @@ void teco_putmsg() {
         } else {
             print("     ?", 6); print(message->id, ID_MAX);
             print("    ", 4); print(message->text, strlen(message->text));
+            crlfno();
+            crlfno();
             print(help, strlen(help));
+            crlfno();
+            crlfno();
         }
     }
 
