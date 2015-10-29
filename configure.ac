@@ -32,6 +32,9 @@ AC_CONFIG_FILES([Makefile
 		 lib/Makefile
 		 src/Makefile])
 
+# Checks for libraries.
+AX_WITH_CURSES
+
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_INSTALL
