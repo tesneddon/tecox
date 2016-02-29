@@ -1,8 +1,8 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - !
 !	  Responder to TECO commands		!
-!	     !!TECO.TEC V40.00!!		!
+!	     !!TECO.TEC V41.00!!		!
 !						!
-!	Last edit on 25-Apr-85 by GPK		!
+!	Last edit on 01-Mar-16 by TES		!
 ! - - - - - - - - - - - - - - - - - - - - - - - !
 !	Switches recognized by commands:	!
 !	  /NOI-NI		 TECO,MAKE,MUNG	!
@@ -66,9 +66,16 @@
 ! Remove old copy (** deleted if we're in Y)	!
 0,0XY
 ! Save old context; set our context		!
-[9 0,0X9
 [0 0,0X0
+[1 0,0X1
 [2 0,0X2
+[3 0,0X3
+[4 0,0X4
+[5 0,0X5
+[6 0,0X6
+[7 0,0X7
+[8 0,0X8
+[9 0,0X9
 10U0 [0 ^D
 ^XU0 [0 0^X
 EDU0 [0 ED&4ED
