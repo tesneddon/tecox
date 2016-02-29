@@ -319,7 +319,7 @@ static int32_t getcmd()
     char *argv0, *prog_name;
 
     argv0 = strdup(argv[0]);
-    if (prog_name == 0)
+    if (argv0 == 0)
         ERROR_MESSAGE(MEM);
     prog_name = basename(argv0);
 
