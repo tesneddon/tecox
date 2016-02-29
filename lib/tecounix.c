@@ -35,10 +35,13 @@
 **                                      Add some more useful comments!  Add
 **                                      support for EN.
 **      02-OCT-2014 V41.06  Sneddon     Add syserr.
+**      28-OCT-2015 V41.07  Sneddon     Add crtset.
+**      01-MAR-2016 V41.08  Sneddon     Adjusted getcmd to perform basename
+**                                      on argv[0].
 **--
 */
 #define MODULE TECOUNIX
-#define VERSION "V41.06"
+#define VERSION "V41.08"
 #ifdef vms
 # ifdef VAX11C
 #  module MODULE VERSION
@@ -46,13 +49,16 @@
 #  pragma module MODULE VERSION
 # endif
 #endif
+#include <curses.h>
 #include <errno.h>
 #include <glob.h>
+#include <libgen.h>
 #include <limits.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <term.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -85,6 +91,7 @@
     static void close_indir();
     static int32_t cvt_errno();
     static int32_t syserr();
+    static int32_t crtset();
 
 /*
 ** Global Storage.
@@ -103,6 +110,7 @@
         gexit,
         getfl,
         syserr,
+        crtset,
     };
 
 /*
@@ -161,7 +169,7 @@ static int32_t init(void)
     ctx.etype |= TECO_M_ET_LC; // Should this be in crtrub?
 
     return (int32_t)status;
-}
+} /* init */
 
 static int32_t restore(void)
 {
@@ -174,7 +182,7 @@ static int32_t restore(void)
     }
 
     return status;
-}
+} /* restore */
 
 static int8_t input()
 {
@@ -232,7 +240,7 @@ static int8_t input()
     }
 
     return (int8_t)chr;
-}
+} /* input */
 
 static int32_t output(chr)
     uint8_t chr;
@@ -241,7 +249,7 @@ static int32_t output(chr)
 
     if (putc(chr, stdout) == EOF) status = cvt_errno(errno);
     return (int32_t)status;
-}
+} /* output */
 
 static int32_t ejflg(n)
     int32_t n;
@@ -254,7 +262,7 @@ static int32_t ejflg(n)
     }
 
     return n;
-}
+} /* ejflg */
 
 static int32_t etflg(n)
     int32_t n;
@@ -303,20 +311,28 @@ static int32_t etflg(n)
 /* TODO: just a dud status for the moment... */
 
     return TECO__NORMAL;
-}
+} /* etflg */
 
 static int32_t getcmd()
 {
-    int32_t i = 0;
+    int32_t i;
+    char *argv0, *prog_name;
 
-    qset(0, argv[i], strlen(argv[i]));
-    while (++i < argc) {
+    argv0 = strdup(argv[0]);
+    if (prog_name == 0)
+        ERROR_MESSAGE(MEM);
+    prog_name = basename(argv0);
+
+    qset(0, prog_name, strlen(prog_name));
+    for (i = 1; i < argc; i++) {
         qset(1, " ", 1);
         qset(1, argv[i], strlen(argv[i]));
     }
 
+    free(argv0);
+
     return TECO__NORMAL;
-}
+} /* getcmd */
 
 static int32_t gexit()
 {
@@ -399,7 +415,7 @@ static int32_t gexit()
     }
 
     return status;
-}
+} /* gexit */
 
 static int32_t getfl(chr)
     uint8_t chr;
@@ -501,7 +517,7 @@ static int32_t getfl(chr)
     }
 
     return status;
-}
+} /* getfl */
 
 static void close_indir() {
     if (ctx.indir != 0) {
@@ -510,7 +526,7 @@ static void close_indir() {
             ERROR(cvt_errno(errno));
         }
     }
-}
+} /* close_indir */
 
 static void sigcont_handler(signum)
     int signum;
@@ -518,7 +534,7 @@ static void sigcont_handler(signum)
     if (isatty(STDIN_FILENO)) {
         tcsetattr(STDIN_FILENO, TCSANOW, &attr);
     }
-}
+} /* sigcont_handler */
 
 static int32_t cvt_errno(err)
     int err;
@@ -535,7 +551,7 @@ static int32_t cvt_errno(err)
     }
 
     return status;
-}
+} /* cvt_errno */
 
 /*
 ** FUNCTIONAL DESCRIPTION:
@@ -577,4 +593,193 @@ int32_t syserr(id, message)
     }
 
     return TECO__NORMAL;
-}
+} /* syserr */
+
+static int32_t crtset() {
+    static const uint8_t *grptbl[3][GRPTBL_MAX] = {
+        {
+            /* VT100, VK100, etc. */
+
+            "h", /* "NL" */     "e", /* "LF" */     "g", /* PLUS OR MINUS */
+            "i", /* "VT" */     "`", /* DIAMOND */  "c", /* "FF" */
+            "b", /* "HT" */     "~", /* CENTERED DOT */
+            "d", /* "CR" */     "|", /* NOT EQUALS */
+            "m", /* LOWER LEFT CORNER */
+            "y", /* LESS THAN OR EQUAL TO */
+            "j", /* LOWER RIGHT CORNER */
+            "z", /* GREATER THAN OR EQUAL TO */     "{", /* PI */
+        }, {
+            /* VT52 */
+            "h", /* RIGHT ARROW */          "k", /* DOWN ARROW */
+            "g", /* PLUS OR MINUS */        "j", /* DIVIDED BY */
+            "~", /* PARAGRAPH */            "a", /* SOLID RECTANGLE */
+            "f", /* DEGREES */              "i", /* ELIPSIS */
+            "`", /* "CD" */                 "d", /* "5/" */
+            "[", /* NO SPECIAL GRAPHIC... */"<", /* NO SPECIAL GRAPHIC... */
+            "]", /* NO SPECIAL GRAPHIC... */">", /* NO SPECIAL GRAPHIC... */
+            "c", /* "3/" */
+        }, {
+            /* UTF-8 */
+
+            "\xe2\x90\xa4", /* "NL" */      "\xe2\x90\x8a", /* "LF" */
+            "\xe2\x88\x93", /* PLUS OR MINUS */
+            "\xe2\x90\x8b", /* "VT" */      "\xe2\x8b\x84", /* DIAMOND */
+            "\xe2\x90\x8c", /* "FF" */      "\xe2\x90\x89", /* "HT" */
+            "\xe2\x8b\x85", /* CENTERED DOT */
+            "\xe2\x90\x8d", /* CR */        "\xe2\x89\xa0", /* NOT EQUALS */
+            "\xe2\x94\x95", /* LOWER LEFT CORNER */
+            "\xe2\x89\xa4", /* LESS THAN OR EQUAL TO */
+            "\xe2\x89\x9a", /* LOWER RIGHT CORNER */
+            "\xe2\x89\xa5", /* GREATER THAN OR EQUAL TO */
+            "\xcf\x80",     /* PI */
+        },
+    };
+    int status;
+    char rscap[4];
+
+    scope.vtsize = 24;
+    scope.htsize = 80;
+
+    if (setupterm(0, -1, &status) == ERR) {
+        // 1 = hardcopy
+        // 0 = unknown terminal
+        // -1 error
+
+        return 0;
+    }
+
+    /*
+    ** FIXSEQ - CLEAN UP MODES.
+    **      NULL => NO FIXING UP IS NEEDED
+    */
+    scope.seqfix = 0;
+
+    strcpy(rscap, "rs1");
+    while (rscap[2]++ <= '3') {
+        int fixlen = (scope.seqfix == 0) ? 0 : strlen(scope.seqfix);
+        char *fix, *rs;
+
+        rs = tigetstr(rscap);
+        if (rs == 0)
+            break;
+
+        fix = realloc(scope.seqfix, fixlen+strlen(rs)+1);
+        if (fix == 0)
+            break;
+
+        strcat(fix, rs);
+        scope.seqfix = fix;
+    }
+
+    scope.seqhom = tigetstr("home");
+    scope.seqeol = tigetstr("el");
+    scope.seqeos = tigetstr("ed");
+    scope.seqscu = tigetstr("ind");
+    scope.seqscd = tigetstr("ri");
+
+    /*
+    ** MONSEQ - TURN ON MARK'D REGION MODE (SET REVERSE VIDEO ATTRIBUTE).
+    **      NULL => FEATURE IS NOT AVAILABLE
+    */
+    scope.seqmon = tigetstr("rev");
+
+    /*
+    ** MOFSEQ - TURN OFF MARK'D REGION MODE (CLEAR ALL ATTRIBUTES).
+    **      NULL => FEATURE IS NOT AVAILABLE
+    */
+    scope.seqmof = tigetstr("sgr0");
+
+    /*
+    ** CONSEQ - TURN ON CURSOR CHARACTER ATTRIBUTES.
+    **      NULL => FEATURE IS NOT AVAILABLE
+    */
+    scope.seqcon = tigetstr("cvvis");
+
+    /*
+    ** COFSEQ - TURN OFF CURSOR CHARACTER ATTRIBUTES.
+    **      NULL => FEATURE IS NOT AVAILABLE
+    */
+    scope.seqcof = tigetstr("sgr0");
+
+    scope.seqerc = tigetstr("ech");
+//    scope.seqerl = tigetstr("");
+
+    /*
+    ** SAVCUR - SAVE CURSOR POSITION AND ATTRIBUTES.
+    ** RESCUR - RESTORE CURSOR POSITION AND ATTRIBUTES.
+    **      NULL => FEATURE IS NOT AVAILABLE
+    */
+    scope.scur = tigetstr("sc");
+    scope.rcur = tigetstr("rc");
+
+    if ((scope.scur != 0) && (scope.rcur != 0))
+        scope.t_flags |= TECO_M_TC_SAVE;
+
+
+    /* CLFSEQ - CURSOR LEFT */
+    scope.seqclf = tigetstr("cub1");
+
+    /* CRTSEQ - CURSOR RIGHT */
+    scope.seqcrt = tigetstr("cuf1");
+
+    /* CUPSEQ - CURSOR UP */
+    scope.seqcup = tigetstr("cuu1");
+
+    /* CURCDN - CURSOR DOWN */
+    scope.seqcdn = tigetstr("cud1");
+
+    //dca
+#if 0
+uint32_t crtset() {
+
+    /*
+    ** Set default values.
+    */
+    scope.scroln = 0;
+
+    /*
+    ** Call host-specific setup routine.
+    */
+    io_support.crtset();
+
+} /* crtset */
+
+#endif
+#if 0
+    status = regcomp();
+    if (status != 0) {
+    } else {
+        status = regexec();
+
+        if (status == 0) {
+
+    // if TERM =v%1%%
+        // setup gon and gof
+        // setup table like real TECO-32
+    // else if TERM = vt52
+        // setup
+    // else
+        } else if (strstr(term, "vt52") != 0) {
+            scope.seqgon = strdup("\x1bF\xff");
+            scope.seqgof = strdup("\x1bG\xff");
+            scope.grptbl = &grptbl[1];
+
+            // check status...
+        } else {
+            static const char *vars[] = {
+                "LC_ALL", "LC_TYPE", "LANG",
+            };
+
+            scope.seqgon = scope.seqgof = 0;
+
+            // check LC_ALL, LC_TYPE, LANG
+            // if unicode
+                // setup graphic table of unicode characters
+        }
+
+
+        regfree();
+    }
+    //?
+#endif
+} /* crtset */
