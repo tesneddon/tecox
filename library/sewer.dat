@@ -1,0 +1,184 @@
+You are sitting in your little mud hut in Piing Poong eating your bowl
+of rice when all of a sudden a typhoon blows in.  The resulting flood
+washes you out of your hut and into *TA DA (ominous music, etc. etc.)*
+ 
+                    ***The Sewers of Piing Poong***
+ 
+ 
+Your mission, should you decide to accept it (and I certainly hope you
+do. The sewers are not the nicest place to live), is to escape from the
+sewers and return to your little mud hut and wait for the next typhoon.
+ 
+Commands are;
+
+	MOVE <direction>  (NORTH, SOUTH, EAST, WEST, UP, DOWN)
+	TAKE <thing>
+	DROP <thing>
+	LOOK
+	INVENTORY
+	OPEN
+
+Everything can be abbreviated to one letter,  so "M E" is the same
+as "MOVE EAST".
+
+^
+1
+ 
+ROOM DATA%1^You are in a small domed room.  Noxious sludge is flowing out of a pipe
+in the east wall, through a ditch, and disappears through a vaulted
+arch in the west wall.
+^U(2,)1X1@W2^1@^
+%2^You are in an E/W tunnel, up to your knees in sludge.
+^E1@W3@^^
+%3^You are in a cylindrical room.  Sludge is flowing out of a tunnel to
+the east and used to continue into a tunnel to the west, but now flows
+out a hole in the wall to the south.  A roaring sound such as a
+waterfall might make can be heard from the hole.
+^S10Y3@D10Y3@E2@W4@^^
+%4^You are in a dry E/W tunnel.
+^E3@W5@^^
+%5^The tunnel curves north and east here.
+^E4@N6@^^
+%6^The original tunnel to the north is blocked by a cave in.  However, you
+can scramble up the broken rock.  A tunnel exits south.
+^N7@U7@D5@S5@^^
+%7^The tunnel opens into a cave.  The mouth of the cave can be seen to the
+north. The tunnel exits to the south.
+^N8@S(3,)6F4^^
+%8^You are in the mouth of the great stone Idol Kiing Koong of the village
+of Choow Meiin.  Below you can be seen the village.  Behind you to the
+south is a cave.
+^N9@D9@S(,3)7F5@^^
+%9^You are at the base of Kiing Koong.  There are threatening villagers all
+around you.  Boy, do they look nasty.
+^u8@s8@n1x2@w1x2@e1x2@^3@^
+%10^You are swimming in a pool of sludge.
+^D16Y6@U11@N11@S11@E11@W11@^^
+%11^You are on a narrow ledge around a pool of greasy brown sludge.
+The pool is fed by a waterfall of sludge flowing down the north wall.
+Passages go east and west from here.
+^D10@E12@W14@N33@^^
+%12^You are in a dry tunnel that goes west and south.
+^W11@S13@^^
+%13^You are in a dry tunnel that goes north and west.
+^N12@W20@^^
+%14^You are in a dry tunnel that goes east and south.
+^E11@S15@^^
+%15^You are in a dry tunnel that goes north and east.
+^N14@E20^^
+%16^You are swimming in a pipe full of sludge that goes east and west.
+^E10@W17@^^
+%17^You are swimming in a pool of sludge.  There is a narrow ledge to the
+west.
+^D16Y6@W18@^^
+%18^You are on a narrow ledge next to a pool of sludge.  There is a passage
+to the west.
+^E17@D17@W19@^
+%19^You are in an ancient catacomb with piles of bones everywhere. A large
+vaulted passage west is now blocked by a cave-in.  There is a small
+hole in the east wall.  The skeletons are wearing various pieces of
+jewelry, armor, etc.
+^E(5,)18F7^4@5@^
+%20^You are in a high vaulted chamber. Passages exit east and west.
+^E13@W15@D(8,)21F8^7@^
+%21^You are climbing in a vertical pipe.
+^U20@D22@^^
+%22^You are at an up-east-west-south pipe junction.
+^U21@W23@S32@E31@^^
+%23^You are at an east-west-south pipe junction.  The way west is blocked
+by a screen.
+^E22@S24@^^
+%24^You are at a north-south-east-west pipe junction.
+^N23@E32@S25@W30@^^
+%25^You are in a north-south pipe.
+^N24@S26@^^
+%26^You are in a north-south-east pipe junction.
+^N25@S27@E32@^^
+%27^You are in a north-east pipe junction.
+^N26@E28@^6@^
+%28^You are in an north-east-west pipe junction.
+^N37@W27@E29@^^
+%29^You are in a north-south-west pipe junction.
+^W28@N30@S31@^^
+%30^You are in a north-south-east-west pipe junction.
+^S29@N31@W32@E24@^^
+%31^You are in a north-south-west pipe junction.
+^S30@W22@N29@^^
+%32^You are in a north-south-east-west pipe junction.
+^N22@S26@W24@E30@^^
+%33^You are covered with slime(yum-yum). There is a roaring 'sludge fall'
+to the south and a sloping cave to the north.
+^S11Y9@N35@D35@^^
+%34^There is a roaring 'sludge fall' to the south and a sloping cave to the
+north.
+^S11Y9@U11@N35@D35@^^
+%35^You are in a chamber with a large, mean looking rat.  There is a
+passage to the south and an arched doorway to the north through which
+light is shining.
+^S34@N(6,)36F10@^^
+%36^You are in a room filled with a heavenly light.  Numberless concourses
+of angels are singing heavenly hymns of praise on both sides.  As
+this ethereal music floats about you, you see a velvet pillow upon
+which rests
+^S35@^9@^
+%37^You are in a circular stairway.
+^U38@D28@^^
+%38^You are on the south edge of a stream of sludge flowing from east to
+west.  Behind you to the south is a circular stairway.
+^S37@N1Y11@^^
+THING DATA%MANHOLE@^1^* O9^Small patches of light are showing through the holes in a manhole
+overhead.
+^0^
+%MANHOLE@^2^  C^Daylight is streaming through a manhole overhead.
+^0^
+%GIRL@^3^*T ^There is an exceptionally beautiful girl here.
+^5^
+%KEYS@^4^*T ^There is a set of keys here.
+^5^
+%ARMOR@^5^*T ^There is a suit of armor here.
+^5^
+%CHEESE^6^*T ^There is a lump of moldy cheese here.
+^5^
+%HATCH^7^* O4^There is a closed hatch in the floor.
+^0^
+%HATCH^8^  C^There is an open hatch in the floor.
+^0^
+%CROWBAR^9^*T ^A brilliantly shining golden crowbar.
+^10^
+POSSESIONS%%
+SPECIAL MESSAGES%You emerge into the blinding sunlight, greet your wife, kids, dog,
+brothers, sisters, aunts, cousins, uncles, grandparents, etc. etc.
+affectionately, and go back to your little mud hut to await the next
+typhoon.
+^
+%You are immediately devoured by the hungry villagers.
+^
+%You slide down a waterfall of sludge into a pool of slime.
+^
+%As you move toward the exit of the cave, a steel grate suddenly drops
+from the ceiling, barring further progress.  When you back up, it moves
+out of the way.
+^
+%The Idol belches smoke and fire from its mouth as you try to enter it.
+^
+%Plug your nose!!!!
+^
+%You can't fit through the hole.
+^
+%The hatch isn't open.
+^
+%You are covered with green slime (yum-yum).
+^
+%The mean looking rat bars your way.
+^
+%You step into the sludge and are swept off of your feet.  The next
+thing you know, you shoot out of a pipe and smack into the far wall.
+^
+VERBS%MOVE^1
+TAKE^2
+DROP^3
+LOOK^4
+INVENTORY^5
+OPEN^6
+ 
+
