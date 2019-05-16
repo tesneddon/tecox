@@ -49,6 +49,7 @@
 **                                    IO_SUPPORT interface for input().  Add
 **                                    Add ERROR macro.
 **      02-OCT-2014 V41.14  Sneddon   Add syserr to IO_SUPPORT.
+**	16-MAY-2019 V41.15  Sneddon   Moved character constants to tecochr.h
 **--
 */
 #ifndef __TECODEF_LOADED
@@ -58,6 +59,7 @@
 #include <setjmp.h>
 #include <signal.h>
 #include <stdio.h>
+#include "tecochr.h"
 
 /*
 ** TECO Version Macros.
@@ -274,54 +276,13 @@
                                         /*  (A-Z,0-9)                       */
 #define TECO_K_QRG_FAKE (TECO_K_NUMQRG) /* REGISTER FOR TEC$DO_COMMAND      */
 
-/*
-**      CHARACTER DEFINITIONS
-*/
-#define TECO_C_NUL      '\0'    /* ASCII NULL                               */
-#define TECO_C_SOH      '\001'  /* ASCII START OF HEADING                   */
-#define TECO_C_ETX      '\003'  /* ASCII END OF TEXT (CONTROL/C)            */
-#define TECO_C_EOT      '\004'  /* ASCII END OF TRANSMISSION (CONTROL/D)    */
-#define TECO_C_ENQ      '\005'  /* ASCII ENQUIRY (CONTROL/E)                */
-#define TECO_C_BEL      '\007'  /* ASCII BELL (CONTROL/G)                   */
-#define TECO_C_BS       '\b'    /* ASCII BACKSPACE                          */
-#define TECO_C_TAB      '\t'    /* ASCII HORIZONTAL TAB                     */
-#define TECO_C_LF       '\n'    /* ASCII LINE FEED                          */
-#define TECO_C_VT       '\v'    /* ASCII VERTICAL TAB                       */
-#define TECO_C_FF       '\f'    /* ASCII FORM FEED                          */
-#define TECO_C_CR       '\r'    /* ASCII CARRIAGE RETURN                    */
-#define TECO_C_DLE      '\020'  /* ASCII DATA LINK ESCAPE                   */
-#define TECO_C_DC1      '\021'  /* ASCII DEVICE CONTROL 1 (XON) (CONTROL/Q) */
-#define TECO_C_DC2      '\022'  /* ASCII DEVICE CONTROL 2 (CONTROL/R)       */
-#define TECO_C_NAK      '\025'  /* ASCII NEGATIVE ACK. (CONTROL/U)          */
-#define TECO_C_SYN      '\026'  /* ASCII SYNCHRONIZATION (CONTROL/V)        */
-#define TECO_C_ETB      '\027'  /* ASCII END OF TEXT BLOCK (CONTROL/W)      */
-#define TECO_C_EM       '\031'  /* ASCII END OF MEDIUM (CONTROL/Y)          */
-#define TECO_C_SUB      '\032'  /* ASCII SUBSTITUTE (CONTROL/Z)             */
-#define TECO_C_ESC      '\033'  /* ASCII ESCAPE (ALSO CALLED ALTMODE)       */
-#define TECO_C_FS       '\034'  /* ASCII FIELD SEPARATOR                    */
-#define TECO_C_GS       '\035'  /* ASCII GROUP SEPARATOR                    */
-#define TECO_C_SPACE    ' '     /* ASCII SPACE                              */
-#define TECO_C_APS      '\''    /* ASCII APOSTROPHE                         */
-#define TECO_C_LAB      '<'     /* ASCII LEFT ANGLE BRACKET                 */
-#define TECO_C_EQU      '='     /* ASCII EQUAL SIZE                         */
-#define TECO_C_RAB      '>'     /* ASCII RIGHT ANGLE BRACKET                */
-#define TECP_C_UND      '_'     /* ASCII UNDERSCORE (ALSO CALLED BACKARROW) */
-#define TECO_C_GRV      '`'     /* ASCII ACCENT GRAVE                       */
-#define TECO_C_LCB      '{'     /* ASCII LEFT CURLY BRACKET                 */
-#define TECO_C_VBR      '|'     /* ASCII VERTICAL BAR                       */
-#define TECO_C_RCB      '}'     /* ASCII RIGHT CURLY BRACKET                */
-#define TECO_C_TDE      '~'     /* ASCII FILDE                              */
-#define TECO_C_DEL      '\177'  /* ASCII DELETE (ALSO CALLED RUBOUT)        */
-#define TECO_C_SS3      '\217'  /* Special shift 3                          */
-#define TECO_C_CSI      '\233'  /* Control sequence introducer              */
-
 #define TECO__TRUE -1
 #define TECO__FALSE 0
 
 /*
 ** Flags to control the behaviour of push/pop
 */
-#define TECO_K_PDL_ITR 0
+#define TECO_K_PDL_ITR   0
 #define TECO_K_PDL_MACRO 1
 #define TECO_K_PDL_PAREN 2
 
@@ -378,13 +339,27 @@
 #define RADIX_HEX 2                     /* Hexidecimal radix                */
 #define RADIX_MAX 2
 
-    struct TECFAB {
-        uint32_t tecsts;
-        void *tecque;
+/*
+** TECO File Access Block
+*/
+
+    typedef struct _tecque {
+        struct _tecque *next, *prev;
+        int32_t size;
+        uint8_t *ptr;
+        uint8_t data[1];
+    } TECQUE;
+
+#ifndef OS_MODULE_BUILD
+    typedef void *FILEHANDLE;
+#endif
+    typedef struct _tecfab {
+        uint32_t tecsts;                /* Status                           */
+        TECQUE tecque;                  /* Data line queue                  */
         void *tecdsp;
-        uint32_t tecctl;
-        struct FILEHANDLE *tecfab; // ?
-    };
+        uint8_t tecctl[4];              /* Control bytes */
+        FILEHANDLE tecfab;              /* OS-specific I/O handle           */
+    } TECFAB;
 
 #define TECO_M_TECEOF   0x0001          /* at end-of-file                   */
 #define TECO_M_TECNO1ST 0x0002          /* not first time through           */
@@ -497,7 +472,7 @@
                                         /*       iterative search           */
 #define TECO_M_ED_WCH   0x80            /*+128., don't allow automatic "w"  */
                                         /*       command before prompt      */
-        uint16_t        sflg;           /* SEARCH MODE FLAG                 */
+        uint32_t        sflg;           /* SEARCH MODE FLAG                 */
         uint16_t        eeflg;          /* Alternate escape character       */
         uint16_t        flags2;         /* SECONDARY FLAG WORD              */
 #define TECO_M_FFFLAG   0x1             /* FORM FEED FLAG                   */
@@ -529,9 +504,9 @@
         QRGDEF          *qpntr;         /* COMMAND Q-REGISTER OFFSET        */
         uint32_t        indir;          /* FILOPN SET IF PROCESSING         */
                                         /*  INDIRECT COMMAND FILE           */
-        void            **inpntr;       /* @INPNTR(R11) IS NON-ZERO IF      */
+        TECFAB          *inpntr;        /* @INPNTR(R11) IS NON-ZERO IF      */
                                         /*  INPUT FILE ACTIVE               */
-        void            **oupntr;       /* @OUPNTR(R11) IS NON-ZERO IF      */
+        TECFAB          *oupntr;        /* @OUPNTR(R11) IS NON-ZERO IF      */
                                         /*  OUTPUT FILE ACTIVE              */
         uint32_t        curfre;         /* CURRENT FREE SPACE IN BYTES      */
         uint32_t        qlcmd;          /*  SIZE OF LAST COMMAND            */
@@ -642,12 +617,43 @@
         uint8_t         *seqerl;        /* Erase line                       */
         uint8_t         *scur;          /* Save cursor                      */
         uint8_t         *rcur;          /* Restore cursor                   */
-        uint8_t         *graph;         /* Graphics char table              */
+/*+
+ *      Graphics Mode Characters
+ *
+ *      EACH TABLE CONTAINS 15. BYTES CORRESPONDING TO THE GRAPHICS
+ *      MODE CHARACTERS FOR:
+ *
+ *           1) A LINE WHICH OVERFLOWS THE SCREEN'S WIDTH
+ *           2) CURSOR POSITIONED ON <LF> IMMEDIATELY AFTER <CR>
+ *              ALSO, "SEE ALL" MODE SYMBOL FOR <LF>
+ *           3) "SEE ALL" MODE SYMBOL FOR CONTROL CHARACTER FLAG
+ *           4) "SEE ALL" MODE SYMBOL FOR <VT>
+ *           5) AT END OF BUFFER ENDING WITHOUT <FF>
+ *           6) AT END OF BUFFER ENDING WITH <FF>
+ *              ALSO, "SEE ALL" MODE SYMBOL FOR <FF>
+ *           7) "SEE ALL" MODE SYMBOL FOR <HT>
+ *           8) "SEE ALL" MODE SYMBOL FOR NULL SPACING
+ *           9) "SEE ALL" MODE SYMBOL FOR <CR>
+ *          10) "SEE ALL" MODE SYMBOL FOR OVERPRINT <CR>
+ *          11) "SEE ALL" MODE SYMBOL FOR HEX PAIR START
+ *          12) "SEE ALL" MODE SYMBOL FOR COMPOSE SEQUENCE START
+ *          13) "SEE ALL" MODE SYMBOL FOR HEX PAIR END
+ *          14) "SEE ALL" MODE SYMBOL FOR COMPOSE SEQUENCE END
+ *          15) "SEE ALL" MODE SYMBOL FOR <ESC>
+ *
+ *      This table *must* be initialised.  The secquences seqgon and seqgof
+ *      will be used before and after outputing one of these characters
+ *      if they are not NULL.
+-*/
+#define GRPTBL_MAX 15
+        uint8_t         **graph;        /* Graphics char table              */
         uint8_t         *seqdca;        /* Direct cursor addressing         */
         uint8_t         *seqcrt;        /* Cursor right                     */
         uint8_t         *seqclf;        /* Cursor left                      */
         uint8_t         *seqcup;        /* Cursor up                        */
         uint8_t         *seqcdn;        /* Cursor down                      */
+        uint8_t         *savcur;        /* Save cursor                      */
+        uint8_t         *rescur;        /* Restore cursor                   */
     } SCOPEDEF;
 
 /*
@@ -655,28 +661,37 @@
 */
 
     typedef struct _io_support {
+        void    (*init0)    ();         /* early initialisation             */
         int32_t (*init)     ();         /* terminal setup                   */
         int32_t (*restore)  ();         /* restore terminal to before teco  */
         int32_t (*output)   ();         /* Do terminal output               */
-        int8_t  (*input)    ();         /* get terminal input               */
+        int32_t (*input)    ();         /* get terminal input               */
+        int32_t (*flush)    ();         /* flush output                     */
+        int32_t (*getbf)    ();         /* get input                        */
+        int32_t (*putbf)    ();         /* put output                       */
         int32_t (*ejflg)    ();         /* get ej flag information          */
         int32_t (*etflg)    ();         /* inform terminal of ET flag       */
         int32_t (*getcmd)   ();         /* get command line into Q-reg Z    */
         int32_t (*gexit)    ();         /* process special functions        */
         int32_t (*getfl)    ();         /* get files opened                 */
+#define TECO_K_GETFL_READ      1        /*  Open file for read access       */
+#define TECO_K_GETFL_WRITE     2        /*  Open file for write access      */
+        int32_t (*eofl)     ();         /* test if at end-of-file           */
+        int32_t (*clsfl)    ();         /* close input & output files       */
+        int32_t (*en_preset)();         /* preset the "en" specification    */
+        int32_t (*en_next)  ();         /* get next "en" occurance          */
+        int32_t (*set_filename)();      /* set a file name, etc.            */
         int32_t (*syserr)   ();         /* return system error code         */
+        int32_t (*crtset)   ();         /* configure sequences in scope     */
     } IO_SUPPORT;
 
 /*
 ** Useful macros...
 */
 #define ERROR_MESSAGE(nnn) \
-do { \
-    ctx.errcod = TECO__##nnn; \
-    raise(SIGUSR1); \
-} while (0)
+    ERROR_CODE(TECO__##nnn)
 
-#define ERROR(n) \
+#define ERROR_CODE(n) \
 do { \
     ctx.errcod = n; \
     raise(SIGUSR1); \
@@ -689,7 +704,7 @@ do { \
 ** crtrub.c
 */
 
-    extern uint32_t decode(uint32_t *);
+    extern uint32_t decode();
 
 /*
 ** teco.c
@@ -703,35 +718,50 @@ do { \
 */
 
     extern void teco_type();
-    extern uint8_t listen(uint32_t);
-    extern void teco_delch(void);
+    extern uint8_t listen();
+    extern void teco_delch();
 
 #define TYPET 0x0       /* Type without case flagging and ringing bells */
 #define TYPEF 0x1       /* Type with case flagging */
 #define TYPEB 0x2       /* Type with ringing bells */
-#define type(c) teco_type(TYPET, (c))
-#define typb(c) teco_type(TYPEB, (c))
-#define typf(c) teco_type(TYPEF, (c))
+#define type(c) \
+do { \
+    teco_type(TYPET, (c)); \
+    io_support.flush(0); \
+} while (0)
+#define typb(c) \
+do { \
+    teco_type(TYPEB, (c)); \
+    io_support.flush(0); \
+} while (0)
+#define typf(c) \
+do { \
+    teco_type(TYPEF, (c)); \
+    io_support.flush(0); \
+} while (0)
 #define print(ptr, len) \
 do { \
     int32_t i; \
     uint8_t *p = (uint8_t *)(ptr); \
     for (i = 0; i < (len); i++) \
-        type(p[i]);  \
+        teco_type(TYPET, p[i]);  \
+    io_support.flush(0); \
 } while (0)
 #define prinb(ptr, len) \
 do { \
     int32_t i; \
     uint8_t *p = (uint8_t *)(ptr); \
     for (i = 0; i < len; i++) \
-        typb(p[i]); \
+        teco_type(TYPEB, p[i]); \
+    io_support.flush(0); \
 } while (0)
 #define prinf(ptr, len) \
 do { \
     int32_t i; \
     uint8_t *p = (uint8_t *)(ptr); \
     for (i = 0; i < len; i++) \
-        typf(p[i]); \
+        teco_type(TYPEF, p[i]); \
+    io_support.flush(0); \
 } while (0)
 
 #endif /* __TECODEF_LOADED */
