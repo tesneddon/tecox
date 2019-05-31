@@ -39,6 +39,7 @@
 #  pragma module MODULE VERSION
 # endif
 #endif
+#include <errno.h>
 #include <nl_types.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,6 +47,7 @@
 #include "tecodef.h"
 #include "tecomsg.h"
 #include "globals.h"
+#include "macros.h"
 #define ID_MAX 3
 
 /*
@@ -65,23 +67,13 @@
 
     void teco_putmsg(void);
 
-/*
-** Macro Definitions
-*/
-
-#define crlfno() \
-do { \
-    type(TECO_C_CR); \
-    type(TECO_C_LF); \
-} while (0)
-
 void teco_putmsg() {
 
     static nl_catd catalog = (nl_catd) -1;
 
     struct MSGDSC *message;
     char *help;
-    uint16_t ehelp = ctx.ehelp;
+    uint16_t eh, eh4;
 
     if (catalog == (nl_catd) -1) {
         char *name = getenv("TECOMSG");
@@ -91,31 +83,34 @@ void teco_putmsg() {
         */
         catalog = catopen(name == 0 || name[0] == '\0' ? "tecomsg" : name, 0);
         if (catalog == (nl_catd) -1) {
-            // error?
-            printf("Could not open TECOMSG...\n");
+            printf("?SYS\t%s", strerror(errno));
         }
     }
 
     /*
     ** Fetch the id and basic text from the catalog.
     */
-    message = (struct MSGDSC *)catgets(catalog, TECO__Set, ctx.errcod, "");
+    message = (struct MSGDSC *)catgets(catalog, TECO__Set, ctx.errcod, 0);
     if (message == 0) {
-        printf("error happened\n");
-        // cope with the rror...
+        printf("?SYS\tUnable to load message catalogue");
     }
 
-    /*
-    ** 0EH always defaults to 2EH.
-    */
-    if (ehelp == 0) ehelp = 2;
+    /**
+     * @note
+     * EH (@ref ehelp) is treated as two fields.  The first is two bits
+     * (@ref eh) and the second is 1 bit (@ref eh4).  Thus, if the first
+     * field is 0, then it defaults to 2.
+     */
+    eh = ctx.ehelp & 0x0003;
+    if (eh == 0) eh = 2;
+    eh4 = ctx.ehelp & 0x0004;
 
     /*
     ** The error identifier is always printed.
     */
     type('?');  print(message->id, ID_MAX);
 
-    if (ehelp & 2) {
+    if (eh & 2) {
         /*
         ** Print the error description.
         */
@@ -157,28 +152,28 @@ void teco_putmsg() {
             print(message->text, strlen(message->text));
         }
 
-        crlfno();
-    }
+//        crlfno();
 
-    if (ehelp & 1) {
-        crlfno();
-        crlfno();
+        if (eh & 1) {
+            crlfno();
+            crlfno();
 
-        help = catgets(catalog, TECO__HELP_Set, ctx.errcod, 0);
-        if (help == 0) {
-            // cope with the rror...
-        } else {
-            print("     ?", 6); print(message->id, ID_MAX);
-            print("    ", 4); print(message->text, strlen(message->text));
-            crlfno();
-            crlfno();
-            print(help, strlen(help));
-            crlfno();
-            crlfno();
+            help = catgets(catalog, TECO__HELP_Set, ctx.errcod, 0);
+            if (help == 0) {
+                // cope with the rror...
+            } else {
+                print("     ?", 6); print(message->id, ID_MAX);
+                print("    ", 4); print(message->text, strlen(message->text));
+                crlfno();
+                crlfno();
+                print(help, strlen(help));
+                crlfno();
+                crlfno();
+            }
         }
     }
 
-    if (ctx.errpos && (ehelp & 4)) {
+    if (ctx.errpos && eh4) {
         crlfno();
         print(ctx.errptr, ctx.errpos);
         type('?');

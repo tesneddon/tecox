@@ -50,6 +50,7 @@
 # endif
 #endif
 #include <curses.h>
+#include <execinfo.h>
 #include <errno.h>
 #include <glob.h>
 #include <libgen.h>
@@ -62,12 +63,18 @@
 #include <termios.h>
 #include <unistd.h>
 
-    struct UNIT {
+    struct FCB {
         FILE *fptr;
         char path[PATH_MAX];
+
+        // XXX: we might need flags in here...at least to indicate buffering
+        // tecque?
+
     };
-#define UNIT_S_UNIT (sizeof(struct UNIT))
-    typedef struct UNIT *FILEHANDLE;
+#define FCB_S_FCB (sizeof(struct FCB))
+    typedef struct FCB *FILEHANDLE;
+
+#define TTBUF_MAX 32
 
 #define OS_MODULE_BUILD
 #include "tecodef.h"
@@ -78,37 +85,57 @@
 ** Forward Declarations
 */
 
+    static void init0();
     static int32_t init();
     static int32_t restore();
-    static int8_t input();
+    static int32_t input();
     static int32_t output();
+    static int32_t flush();
+    //static int32_t getbf();
+    static int32_t putbf();
+    static int32_t rewfl();
     static int32_t ejflg();
     static int32_t etflg();
     static int32_t getcmd();
     static int32_t gexit();
     static int32_t getfl();
+    static int32_t eofl();
+    static int32_t clsfl();
+    static int32_t en_preset();
+    static int32_t en_next();
+    static int32_t set_filename();
     static void sigcont_handler();
-    static void close_indir();
+    static void sigsegv_handler();
     static int32_t cvt_errno();
     static int32_t syserr();
     static int32_t crtset();
+    static char *getseq();
+    static int ttbuf_put();
 
 /*
 ** Global Storage.
 */
 
-    int argc = 0;
-    char **argv = 0;
     IO_SUPPORT io_support = {
+        init0,
         init,
         restore,
         output,
         input,
+        flush,
+        0, //getbf,
+        putbf,
+	rewfl,
         ejflg,
         etflg,
         getcmd,
         gexit,
         getfl,
+        eofl,
+        clsfl,
+        en_preset,
+        en_next,
+        set_filename,
         syserr,
         crtset,
     };
@@ -122,12 +149,30 @@
         int status;
         glob_t glob;
     } en = { -1, 0 };
-    static int ctrlz_cnt = 0;
-    struct termios attr;
-    struct termios pattr;
-    struct UNIT indir_cmd;
+    static struct termios attr;
+    static struct termios pattr;
+    static int argc;
+    static char **argv;
+    static char ttbuf[TTBUF_MAX], *ttbuf_ptr;
 
-static int32_t init(void)
+static void init0(_argc, _argv)
+    int _argc;
+    char **_argv;
+{
+    struct sigaction action;
+
+    memset(&action, 0, sizeof(struct sigaction));
+    action.sa_handler = sigsegv_handler;
+    action.sa_flags = 0;
+    sigemptyset(&action.sa_mask);
+
+    sigaction(SIGSEGV, &action, NULL);
+
+    argc = _argc;
+    argv = _argv;
+} /* init0 */
+
+static int32_t init()
 {
     struct sigaction action;
     int status;
@@ -166,12 +211,10 @@ static int32_t init(void)
         status = cvt_errno(errno);
     }
 
-    ctx.etype |= TECO_M_ET_LC; // Should this be in crtrub?
-
     return (int32_t)status;
 } /* init */
 
-static int32_t restore(void)
+static int32_t restore()
 {
     int status = TECO__NORMAL;
 
@@ -184,62 +227,25 @@ static int32_t restore(void)
     return status;
 } /* restore */
 
-static int8_t input()
+static int32_t input(fp, chr)
+    FILEHANDLE fp;
+    int8_t *chr;
 {
-    int chr, status, xitchr = TECO_C_SUB;
+    int32_t status;
+    FILE *fptr = (fp == 0) ? stdin : fp->fptr;
 
-    if (ctx.temp == TECO_C_CR) {
-        /*
-        ** All CRs get translated to CR/LFs, so return the LF portion.
-        */
-        chr = TECO_C_LF;
+    *chr = fgetc(fptr);
+
+    status = ferror(fptr);
+    if (status == -1) {
+        status = cvt_errno(errno);
+    } else if (status != 0) {
+        status = cvt_errno(EIO);
     } else {
-        if (ctx.indir == 0) {
-            chr = fgetc(stdin);
-            if ((status = ferror(stdin)) == 0) {
-                /*
-                ** Modify immediate exit character if UNIX specific ^D
-                ** (instead of ^Z) support enabled.
-                */
-                if (ctx.etype & TECO_M_ET_UNIX)
-                    xitchr = TECO_C_EOT;
-
-                if (chr == xitchr) {
-                    if (ctx.temp == xitchr)
-                        ctrlz_cnt++;
-                    else
-                        ctrlz_cnt = 1;
-
-                    if (ctrlz_cnt >= TECO_K_CTRLZ_MAX)
-                        exit(TECO__NORMAL);
-                }
-            } else if (status == -1) {
-                status = cvt_errno(errno);
-            } else {
-                status = cvt_errno(EIO);
-            }
-        } else {
-            /*
-            ** Indirect command input is active, so read the character
-            ** from the secondary command input.
-            */
-            chr = fgetc(indir_cmd.fptr);
-            if (chr == EOF) {
-                /*
-                ** We are at the end of file.  This isn't something we
-                ** show to the user, we just silently switch back to the
-                ** primary input stream.
-                **
-                ** So, close off the indirect input and call ourselves to
-                ** fetch the next character off the primary input.
-                */
-                close_indir();
-                chr = input();
-            }
-        }
+        status = TECO__NORMAL;
     }
 
-    return (int8_t)chr;
+    return status;
 } /* input */
 
 static int32_t output(chr)
@@ -247,9 +253,74 @@ static int32_t output(chr)
 {
     int status = TECO__NORMAL;
 
-    if (putc(chr, stdout) == EOF) status = cvt_errno(errno);
+    if (fputc(chr, stdout) == EOF)
+        status = cvt_errno(errno);
+
     return (int32_t)status;
 } /* output */
+
+static int32_t flush(fp)
+    FILEHANDLE fp;
+{
+//    FILE *fptr = (fp == 0) ? stdout : fp->fptr;
+
+//    fflush(fptr);
+
+    return TECO__NORMAL;
+} /* flush */
+
+static int32_t putbf(fp,
+		     txp,
+		     len,
+		     ffflag)
+    FILEHANDLE fp;
+    uint8_t *txp;
+    uint32_t len;
+    uint32_t ffflag;
+{
+    uint8_t chr;
+    uint8_t *p = txp, *end = txp + len;
+    int status = !EOF;
+
+/*
+ * The buffer passed in here needs to be <CR><LF> term records
+ * as well as <ESC><CR><LF> for literal <CR><LF> that should
+ * remain.  <FF> is obviosuly optional, but must be respected.
+ *
+ * /B2 processing needs to be handled by TECO itself, not
+ * the OS-specific putbf.
+ */
+
+    while (p < end) {
+	chr = *p++;
+
+	if (chr == TECO_C_CR) {
+	    if (*p == TECO_C_LF)
+		chr = *p++;
+	}
+
+	status = fputc(chr, fp->fptr);
+    }
+
+    if (status != EOF) {
+	if (ffflag && (chr != TECO_C_FF))
+	    fputc(TECO_C_FF, fp->fptr);
+    }
+
+    return (status == EOF) ? cvt_errno(errno) : TECO__NORMAL;
+} /* putbf */
+
+static int32_t rewfl(fp)
+    FILEHANDLE fp;
+{
+    int status;
+
+    status = fseek(fp->fptr, 0, SEEK_SET);
+    if (status == -1)
+	return cvt_errno(errno);
+
+    return TECO__NORMAL;
+} /* rewfl */
 
 static int32_t ejflg(n)
     int32_t n;
@@ -417,116 +488,164 @@ static int32_t gexit()
     return status;
 } /* gexit */
 
-static int32_t getfl(chr)
-    uint8_t chr;
+/**
+ * OS-specific interface for teco_getfl
+ *
+ * @detail
+ * This routine opens files for access.  It uses ctx.inptr
+ *
+ * @param mode
+ */
+static int32_t getfl(fp,
+		     mode)
+    FILEHANDLE *fp;
+    int32_t mode;
 {
     int status = TECO__NORMAL;
 
-    if (ctx.filbuf.qrg_size == 0) {
-        switch (chr) {
-        case 'I':
-            close_indir();
-            break;
-
-        case 'N':
-            if (en.gl_pathi == -1) {
-                /*
-                ** The EN buffer has not been initialised.  Under V40
-                ** on VMS, the message returned is actually the result of
-                ** a bug and 99.9% of the time it fails with the error:
-                **
-                **    ?ERR    %SYSTEM-W-ILLSER, illegal service call number ""
-                **
-                ** On RSTS/E it responds:
-                **
-                **    ?ERR    ?Illegal file name ""
-                **
-                ** So, on UNIX we respond with the system errno, EBADF.
-                */
-                status = cvt_errno(EBADF);
-            } else {
-                if (en.status == GLOB_NOMATCH) {
-                    status = TECO__FNF;
-                } else if (en.gl_pathi >= en.glob.gl_pathc) {
-                    status = TECO__FNF;
-                } else {
-                    char *path = en.glob.gl_pathv[en.gl_pathi++];
-
-                    ctx.qnmbr = &ctx.filbuf;
-                    qset(0, path, strlen(path));
-                }
-            }
-            break;
-        }
+    *fp = calloc(1, FCB_S_FCB);
+    if (*fp == 0) {
+        status = TECO__MEM;
     } else {
-        char path[PATH_MAX];
-
-        memcpy(path, ctx.filbuf.qrg_ptr, ctx.filbuf.qrg_size);
-        path[ctx.filbuf.qrg_size] = '\0';
-
-        // path = realpath(path);
-        // if path == 0
-            // status = cvt_errno(errno)
-        // else
-            // continue...
-
-        switch (chr) {
-        case 'I':
-            close_indir();
-            indir_cmd.fptr = fopen(path, "r");
-            if (indir_cmd.fptr == 0)
-                status = cvt_errno(errno);
-            else
-                ctx.indir = 1;
-            break;
-
-        case 'N': {
-            int flags;
-
-            if (en.gl_pathi >= 0) {
-                en.gl_pathi = -1;
-                globfree(&en.glob);
-            }
-
-            flags = GLOB_MARK;
-#ifdef GLOB_TILDE_CHECK
-            flags |= GLOB_TILDE_CHECK;
-#endif
-            en.status = glob(path, flags, 0, &en.glob);
-            switch (en.status) {
-            case GLOB_NOSPACE: status = cvt_errno(ENOMEM); break;
-            case GLOB_NOSYS:   status = cvt_errno(ENOSYS); break;
-            case GLOB_ABORTED: status = cvt_errno(EIO); break;
-            case GLOB_NOMATCH:
+        if (realpath(ctx.filbuf.qrg_ptr, (*fp)->path) == 0) {
+            if (errno == ENOENT) {
                 /*
-                ** To remain compatible with TECO-32 V40 we return
-                ** this error as FNF when the user attempts to
-                ** fetch the first iteration.
-                */
-            default:
-                en.gl_pathi = 0;
+                 * Not necessarily an error.  If the file does not exist,
+                 * just copy the input path.
+                 */
+                strncpy((*fp)->path, ctx.filbuf.qrg_ptr, PATH_MAX);
+                (*fp)->path[PATH_MAX-1] = '\0';
+            } else {
+                status = cvt_errno(errno);
+            }
+        }
+ 
+        if (status == TECO__NORMAL) {
+            switch (mode) {
+            case TECO_K_GETFL_READ:
+                (*fp)->fptr = fopen((*fp)->path, "r");
+                break;
+
+            case TECO_K_GETFL_WRITE:
+                (*fp)->fptr = fopen((*fp)->path, "w");
                 break;
             }
-            break;
+
+            if ((*fp)->fptr == 0) {
+                status = cvt_errno(errno);
+            }
         }
 
+        if (status != TECO__NORMAL) {
+            free(*fp);
+            *fp = 0;
         }
-
-        // if success -- make this more general when we add other files...
-        strcpy(indir_cmd.path, path);
     }
 
     return status;
 } /* getfl */
 
-static void close_indir() {
-    if (ctx.indir != 0) {
-        ctx.indir = 0;
-        if (fclose(indir_cmd.fptr) != 0) {
-            ERROR(cvt_errno(errno));
+/**
+ * test input end-of-file
+ */
+static int32_t eofl(fp)
+    FILEHANDLE fp;
+{
+    return feof(fp->fptr);
+} /* eofl */
+
+/**
+ * close input & output files
+ */
+static int32_t clsfl(fp)
+    FILEHANDLE *fp;
+{
+    int32_t status = TECO__NORMAL;
+
+    if (fclose((*fp)->fptr) != 0) {
+        status = cvt_errno(errno);
+    }
+
+    free(*fp);
+
+    *fp = 0;
+
+    return status;
+} /* clsfl */
+
+static int32_t en_preset() {
+    int flags;
+    int32_t status = TECO__NORMAL;
+
+    if (en.gl_pathi != -1) {
+        en.gl_pathi = -1;
+        globfree(&en.glob);
+    }
+
+    flags = GLOB_MARK;
+#ifdef GLOB_TILDE_CHECK
+    flags |= GLOB_TILDE_CHECK;
+#endif
+    en.status = glob(ctx.filbuf.qrg_ptr, flags, 0, &en.glob);
+    switch (en.status) {
+    case GLOB_NOSPACE: status = cvt_errno(ENOMEM); break;
+    case GLOB_NOSYS:   status = cvt_errno(ENOSYS); break;
+    case GLOB_ABORTED: status = cvt_errno(EIO);    break;
+    case GLOB_NOMATCH:
+        /*
+        ** To remain compatible with TECO-32 V40 we return
+        ** this error as FNF when the user attempts to
+        ** fetch the first iteration.
+        */
+    default:
+        en.gl_pathi = 0;
+        break;
+    }
+
+    return status;
+} /* en_preset */
+
+static int32_t en_next() {
+    int32_t status;
+
+    if (en.gl_pathi == -1) {
+        /*
+        ** The EN buffer has not been initialised.  Under V40
+        ** on VMS, the message returned is actually the result of
+        ** a bug and 99.9% of the time it fails with the error:
+        **
+        **    ?ERR    %SYSTEM-W-ILLSER, illegal service call number ""
+        **
+        ** On RSTS/E it responds:
+        **
+        **    ?ERR    ?Illegal file name ""
+        **
+        ** So, on UNIX we respond with the system errno, EBADF.
+        */
+        status = cvt_errno(EBADF);
+    } else {
+        if (en.status == GLOB_NOMATCH) {
+            status = TECO__FNF;
+        } else if (en.gl_pathi >= en.glob.gl_pathc) {
+            status = TECO__FNF;
+        } else {
+            char *path = en.glob.gl_pathv[en.gl_pathi++];
+
+            ctx.qnmbr = &ctx.filbuf;
+            qset(0, path, strlen(path));
         }
     }
-} /* close_indir */
+
+    return status;
+} /* en_next */
+
+static int32_t set_filename(fp)
+    FILEHANDLE fp;
+{
+    qset(0, fp->path, strlen(fp->path));
+
+    return TECO__NORMAL;
+} /* set_filename */
 
 static void sigcont_handler(signum)
     int signum;
@@ -535,6 +654,28 @@ static void sigcont_handler(signum)
         tcsetattr(STDIN_FILENO, TCSANOW, &attr);
     }
 } /* sigcont_handler */
+
+#define BTBUF_SIZE 100
+static void sigsegv_handler(signum)
+    int signum;
+{
+    void *btbuf[BTBUF_SIZE];
+    int i, nptrs;
+    char **trace;
+
+    nptrs = backtrace(btbuf, BTBUF_SIZE);
+    if (nptrs > BTBUF_SIZE)
+	prinz("Backtrace buffer was truncated");
+
+    trace = backtrace_symbols(btbuf, nptrs);
+    if (trace != 0) {
+	for (i = 0; i < nptrs; i++) {
+	    prinz(trace[i]);
+	}
+
+	free(trace);
+    }
+} /* sigsegv_handler */
 
 static int32_t cvt_errno(err)
     int err;
@@ -640,12 +781,22 @@ static int32_t crtset() {
     scope.vtsize = 24;
     scope.htsize = 80;
 
+    ctx.crtype = TECO_K_CRTYPE_VT102;
+    ctx.euflag = TECO__TRUE;
+    ctx.etype |= (TECO_M_ET_LC | TECO_M_ET_CRT);
+#if 0
     if (setupterm(0, -1, &status) == ERR) {
-        // 1 = hardcopy
-        // 0 = unknown terminal
-        // -1 error
+        /*
+         * An error here indicates one of the following in status.
+         *  -  1 == Hardcopy terminal
+         *  -  0 == Unknown terminal
+         *  - -1 == Can't find database
+         * For all these cases it is perfectly reasonable to return
+         * that we work, just don't enable any of the fancy bits.
+         */
+        ctx.etype &= ~TECO_M_ET_CRT;
 
-        return 0;
+        return TECO__NORMAL;
     }
 
     /*
@@ -654,7 +805,7 @@ static int32_t crtset() {
     */
     scope.seqfix = 0;
 
-    strcpy(rscap, "rs1");
+    strcpy(rscap, "rs0");
     while (rscap[2]++ <= '3') {
         int fixlen = (scope.seqfix == 0) ? 0 : strlen(scope.seqfix);
         char *fix, *rs;
@@ -701,9 +852,13 @@ static int32_t crtset() {
     */
     scope.seqcof = tigetstr("sgr0");
 
-    scope.seqerc = tigetstr("ech");
-//    scope.seqerl = tigetstr("");
-
+    /*
+    ** ERCSEQ NECESSARY SEQUENCES FOR RUBOUT AND CONTROL/U
+    */
+#endif
+   // scope.seqerc = tigetstr("ech");
+    scope.seqerc = "\b \b";
+#if 0
     /*
     ** SAVCUR - SAVE CURSOR POSITION AND ATTRIBUTES.
     ** RESCUR - RESTORE CURSOR POSITION AND ATTRIBUTES.
@@ -727,7 +882,7 @@ static int32_t crtset() {
 
     /* CURCDN - CURSOR DOWN */
     scope.seqcdn = tigetstr("cud1");
-
+#endif
     //dca
 #if 0
 uint32_t crtset() {
@@ -783,3 +938,35 @@ uint32_t crtset() {
     //?
 #endif
 } /* crtset */
+
+#if 0
+/**
+ * getseq -- Get terminal sequence
+ *
+ * @detail
+ * The terminfo/termcap databases don't allow escape-sequences to simply be
+ * "looked up".  They also want to control the output.  To get around this
+ * uwe se a static buffer to capture the sequence and then copy it.
+ */
+static char *getseq(name)
+    const char *name;
+{
+    const char TERM = ' ';
+    char *seq, *result = 0;
+    int len;
+
+    seq = tigetstr(name);
+    if (seq != 0) {
+        for (len = 0; seq[len] != TERM; len++)
+            ;
+printf("%s len is %d\n", name, len);
+        result = malloc(len + 1);
+        if (result != 0) {
+            result[0] = len;
+            memcpy(&result[1], seq, len);
+        }
+    }
+
+    return result;
+} /* getseq */
+#endif

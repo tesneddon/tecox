@@ -33,4 +33,6 @@
     extern SCOPEDEF     scope;             /* TECO's "screen" area     */
     extern IO_SUPPORT   io_support;        /* TECO's OS-specific block */
 
+    extern QRGDEF       qreg_local[];
+
 #endif /* globals_h__ */

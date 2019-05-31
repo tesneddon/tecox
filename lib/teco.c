@@ -71,10 +71,12 @@
 **      23-JUL-2014 V41.14  Sneddon     Correct operator order typo.  Correct
 **                                      bug in txadj when expanding.
 **      25-JUL-2014 V41.15  Sneddon     Add ?
+**      25-OCT-2016 V41.16  Sneddon     Changed qset to "silently" add a '\0'
+**                                      to the end of the Q-reg string value.
 **--
 */
 #define MODULE TECO
-#define VERSION "V41.15"
+#define VERSION "V41.16"
 #ifdef vms
 # ifdef VAX11C
 #  module MODULE VERSION
@@ -83,21 +85,19 @@
 # endif
 #endif
 #include <ctype.h>
-#include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include "tecodef.h"
 #include "tecomsg.h"
 #include "globals.h"
+#include "macros.h"
 
 /*
 ** Forward Declarations
 */
 
     int32_t teco();
-    int32_t teco_init();
-    static void errors();
     void teco_interp();
     static uint8_t scan();
     static uint32_t tstnxt();
@@ -115,92 +115,6 @@
     static void pop();
     static void poplcl();
     static uint32_t search();
-
-/*
-** Macro Definitions
-*/
-
-#define bzchk(n) \
-do { \
-    if ((n) > ctx.zz) \
-        ERROR_MESSAGE(POP); \
-} while (0)
-
-/*
-** Clear the colon flag and preset with TECO__TRUE
-** if it is found.
-*/
-#define chkclo() \
-do { \
-    if (ctx.flags & TECO_M_CLNF) { \
-        ctx.flags &= ~TECO_M_CLNF; \
-        ncom(TECO__TRUE); \
-    } \
-} while (0)
-
-/*
-** Clear any incoming number and check for colon.
-*/
-#define chkcln() \
-do { \
-    ctx.flags &= ~TECO_M_NFLG; \
-    chkclo(); \
-} while (0)
-
-#define chkstp() \
-do { \
-    if (ctx.flags & TECO_M_STOP) { \
-        ctx.flags &= ~TECO_M_STOP; \
-        ERROR_MESSAGE(XAB); \
-    } \
-} while (0)
-
-#define clrend() memset(&ctx, 0, (size_t)&ctx.pst - (size_t)&ctx)
-
-#define crlfno() \
-do { \
-    type(TECO_C_CR); \
-    type(TECO_C_LF); \
-} while (0)
-
-#define getn() \
-do { \
-    if (!(ctx.flags & TECO_M_NFLG)) \
-        ncom(1); \
-    ctx.flags &= ~TECO_M_NFLG; \
-} while (0)
-
-#define getquo() \
-do { \
-    if (ctx.flags & TECO_M_QFLG) { \
-        ctx.flags &= ~TECO_M_QFLG; \
-        ctx.quote = scan(); \
-    } \
-} while (0)
-
-#define resquo() ctx.quote = TECO_C_ESC
-
-#define irest() \
-do { \
-    ctx.flags &= ~TECO_M_QFLG; \
-    resquo(); \
-} while (0)
-
-#define scnupp(chr) (toupper(scan(chr)))
-
-#define setcmd(q) \
-do { \
-    ctx.qcmnd = (q); \
-    ctx.qlengt = ctx.qcmnd->qrg_size; \
-    ctx.scanp = ctx.qcmnd->qrg_ptr; \
-} while (0)
-
-#define trace(c) \
-do { \
-    chkstp(); \
-    if (ctx.flags & TECO_M_TFLG) \
-        type((c)); \
-} while (0)
 
 #define OP_ADD  0    /* Define operators for ncom */
 #define OP_SUB  1
@@ -223,11 +137,9 @@ do { \
     SCOPEDEF scope;
 
 /*
-** Own Storage.
+** Own storage
 */
-
     const static uint8_t tecocmd[] = "\001Welcome to TECO!\001\033\033";  // Remove this in future...
-    QRGDEF qreg_array[TECO_K_NUMQRG+1], qreg_local[TECO_K_NUMQRG];
 
 int32_t teco()
 {
@@ -381,59 +293,6 @@ int32_t teco()
     // reTODO: what kind of status should we be returning here?
     return TECO__NORMAL;
 } /* teco */
-
-int32_t teco_init()
-{
-    struct sigaction action;
-
-    memset(&action, 0, sizeof(struct sigaction));
-    action.sa_handler = errors;
-    action.sa_flags = 0;
-    sigemptyset(&action.sa_mask);
-
-    sigaction(SIGUSR1, &action, NULL);
-
-    memset(&ctx, 0, sizeof(TECODEF));
-
-    ctx.flags |= TECO_M_EGINH;
-    // xlate hook...
-
-    ctx.etype |= TECO_M_ET_XIT;
-    ctx.symspc = '$'; // need to get this from OS-specific stuff, maybe init routine...
-
-    memset(qreg_array, 0, sizeof(qreg_array));
-    memset(qreg_local, 0, sizeof(qreg_local));
-    ctx.lclptr = qreg_local;
-    ctx.qarray = qreg_array;
-    ctx.qpntr = &ctx.qarray[TECO_K_QRG_FAKE];
-
-    io_support.init();
-
-    memset(&scope, 0, sizeof(SCOPEDEF));
-
-    ctx.quote = TECO_C_ESC;
-
-    return TECO__NORMAL;
-} /* teco_init */
-
-static void errors(signum)
-    int signum;
-{
-    if (ctx.errcod == TECO__NORMAL)
-        return;
-
-    if (ctx.errcod < TECO__NORMAL) {
-        ctx.errptr = ctx.qcmnd->qrg_ptr;
-        ctx.errpos = ctx.scanp - ctx.errptr;
-    }
-
-    teco_putmsg();
-
-    if (ctx.errcod < TECO__NORMAL) {
-        crlfno();
-        goto_unwind();
-    }
-} /* errors */
 
 void teco_interp(void)
 {
@@ -981,9 +840,11 @@ void teco_interp(void)
 
             if (!(ctx.flags & TECO_M_NFLG)) ERROR_MESSAGE(NAE);
             ctx.flags &= ~TECO_M_NFLG;
+
             for (ctx.nmrbas = 0; tstnxt(chr) &&
                                  (ctx.nmrbas <= RADIX_MAX); ctx.nmrbas++)
                 ;
+
             zerod(TECO_K_ZEROD_TERM);
             ctx.nmrbas = nmrbas;
             if (ctx.flags & TECO_M_CLNF)
@@ -1042,99 +903,179 @@ void teco_interp(void)
             }
             break;
 
+        case '\030':            /* "CTRL/X" is search mode flag */
+	case 'Y':
+	case 'y':		/* "Y" is yank in a buffer */
         case 'E':
         case 'e': {             /* "E" is special commands */
-            uint8_t cmd = scnupp();
+            uint8_t cmd = 0;
             uint32_t *flag = 0;
             int32_t status;
 
-            switch (cmd) {
-            case 'D':           /* "ED" is editor level */
-                flag = &ctx.edit;
+            switch (chr) {
+            case '\030':
+                flag = &ctx.sflg;
                 break;
 
-            case 'E':           /* "EE" is delim flag */
-                if (ctx.flags & TECO_M_NFLG) {
-                    ctx.flags &= ~TECO_M_NFLG;
-                    ctx.etype |= TECO_M_ET_GRV;
-                    ctx.eeflg = ctx.n;
-                } else {
-                    ncom(ctx.eeflg);
+            case 'E':
+            case 'e':
+                cmd = scnupp();
+                
+                switch (cmd) {
+                case 'D':       /* "ED" is editor level */
+                    flag = &ctx.edit;
+                    break;
+
+                case 'E':       /* "EE" is delim flag */
+                    if (ctx.flags & TECO_M_NFLG) {
+                        ctx.flags &= ~TECO_M_NFLG;
+                        ctx.etype |= TECO_M_ET_GRV;
+                        ctx.eeflg = ctx.n;
+                    } else {
+                        ncom(ctx.eeflg);
+                    }
+                    break;
+
+		case 'F':	/* "EF" is close output file */
+		    // status = io_support.clsof();
+		    // if (status != TECO__NORMAL)
+		    //     IO.ERR
+		    break;
+
+                case 'G':       /* "EG" is process special function */
+                    getstg(&ctx.filbuf);
+                    irest();
+                    ctx.temp = ctx.n;
+                    chkcln();
+                    ncom(io_support.gexit());
+                    break;
+
+                case 'H':       /* "EH" is edit help level */
+                    flag = &ctx.ehelp;
+                    break;
+
+                case 'B':
+                case 'I':
+                case 'N':
+                case 'R':
+                case 'W':
+                    getstg(&ctx.filbuf);
+                    irest();
+                    ctx.temp = ctx.n;
+                    chkcln();
+                    status = teco_getfl(cmd);
+                    if (status != TECO__NORMAL) {
+                        if (ctx.flags & TECO_M_NFLG)
+                            ctx.n = 0;
+                        else
+                            ERROR_CODE(status);
+                    }
+                    break;
+
+                case 'J': {     /* "EJ" is return environment characteristics */
+                    int n;
+
+                    switch (ctx.n) {
+                    case -1: n = 256 * (TECO_K_ARCH + TECO_K_OS); break;
+                    default: n = io_support.ejflg(ctx.n);
+                    }
+
+                    ctx.n = n;
+                    break;
                 }
-                break;
 
-            case 'G':           /* "EG" is process special function */
-                getstg(&ctx.filbuf);
-                irest();
-                ctx.temp = ctx.n;
-                chkcln();
-                ncom(io_support.gexit());
-                break;
+                case 'O':       /* "EO" is version of TECO */
+                    ncom(TECO_K_VERSION);
+                    break;
 
-            case 'H':           /* "EH" is edit help level */
-                flag = &ctx.ehelp;
-                break;
+                case 'S':       /* "ES" is edit search flag */
+                    flag = &ctx.esflag;
+                    break;
 
-            case 'B':
-            case 'I':
-            case 'N':
-            case 'R':
-            case 'W':
-                getstg(&ctx.filbuf);
-                irest();
-                ctx.temp = ctx.n;
-                chkcln();
-                status = io_support.getfl(cmd);
-                if (status != TECO__NORMAL) {
-                    if (ctx.flags & TECO_M_NFLG)
-                        ctx.n = 0;
-                    else
-                        ERROR(status);
-                }
-                break;
+                case 'T':       /* "ET" is edit typeout flag */
+                    flag = &ctx.etype;
+                    break;
 
-            case 'J': {         /* "EJ" is return environment characteristics */
-                int n;
+                case 'U':       /* "EU" is case flagging flag */
+                    flag = &ctx.euflag;
+                    break;
 
-                switch (ctx.n) {
-                case -1: n = 256 * (TECO_K_ARCH + TECO_K_OS); break;
-                default: n = io_support.ejflg(ctx.n);
+                case 'V':       /* "EV" is edit verify flag */
+                    flag = &ctx.evflag;
+                    break;
+
+		case 'y':	/* "EY" is yank without protection */
+		    cmd = 'Y';
+		case 'Y':
+		    break;
+
+                default:
+                    ERROR_MESSAGE(IEC);
                 }
 
-                ctx.n = n;
-                break;
-            }
+		if (cmd != 'Y')
+		    break;
 
-            case 'O':           /* "EO" is version of TECO */
-                ncom(TECO_K_VERSION);
-                break;
+	    case 'Y':
+	    case 'y':
+		if (ctx.flags & TECO_M_NFLG) {
+		    ctx.flags &= ~TECO_M_NFLG;
+		    ERROR_MESSAGE(NYA);
+		}
 
-            case 'S':           /* "ES" is edit search flag */
-                flag = &ctx.esflag;
-                break;
+		if (ctx.flags & TECO_M_OFLG) {
+		    if (ctx.nopr > OP_SUB)
+			ERROR_MESSAGE(NYA);
 
-            case 'T':           /* "ET" is edit typeout flag */
-                flag = &ctx.etype;
-                break;
+		    ctx.flags &= ~TECO_M_OFLG;
 
-            case 'U':           /* "EU" is case flagging flag */
-                flag = &ctx.euflag;
-                break;
+		    // MOVAL 150$, (SP)
+		}
 
-            case 'V':           /* "EV" is edit verify flag */
-                flag = &ctx.evflag;
-                break;
+		if ((cmd != 'Y')	   /* Not "EY" */
+		    || (ctx.zz != 0)       /* Buffer not empty */
+		    || (ctx.oupntr != 0)) {/* Active output file */
 
-            default:
-                ERROR_MESSAGE(IEC);
+		    if (!(ctx.edit & TECO_M_ED_YNK))
+			ERROR_MESSAGE(YCA);
+		}
+#if 0
+		if (...) {
+		    // .YYY.Y
+		    yankc();
+		    ...
+		} else
+#endif
+ {
+// 150$:
+		    int32_t rempg = 0;
 
+		    yankc();
+
+		    status = teco_bakup(&ctx.txstor, ctx.zz,
+					(ctx.flags & TECO_M_FFFLAG) ? -1 : 0,
+					-1, &rempg);
+		    if (status != TECO__NORMAL)
+			ERROR_CODE(status); // IO.ERR???
+
+		    yankc();
+
+		    ctx.flags &= !TECO_M_EOFLAG;
+
+		    if (rempg >= 0)
+			status = yanky();
+		}
+
+		clnxit(status);
+
+		break;
             }
 
             /*
             ** Handle common flag processing, if we are operating on one.
             */
             if (flag) {
-                int n = 0;
+                int n = *flag;
 
                 if (ctx.flags & TECO_M_NFLG) {
                     n = ctx.n;
@@ -1152,7 +1093,9 @@ void teco_interp(void)
                     //  this code will adjust the terminal, etc.
 
                 if (ctx.flags & TECO_M_NFLG) {
-                    ctx.n = n; // should be result from flagrw?
+                    ctx.flags &= ~TECO_M_NFLG;
+
+                    *flag = n; // should be result from flagrw?
                 } else {
                     ncom(n); // should be result from flagrw?
                 }
@@ -1327,6 +1270,75 @@ void teco_interp(void)
                 } while (!memcmp(tag, ctx.oscanp, (ctx.scanp-ctx.oscanp)-1));
             }
             irest();
+            break;
+        }
+
+        case 'P':
+        case 'p': {             /* "P" is page writer */
+            int32_t n, status;
+
+            ctx.temp = tstnxt('W');
+
+            if (ctx.flags & TECO_M_CFLG) {
+                nlines();
+
+                n = ctx.n;
+                status = teco_putbf(&ctx.txstor[ctx.m], ctx.n, 0);
+                if (status != TECO__NORMAL) {
+                    ERROR_CODE(status);
+                }
+            } else {
+                getn();
+                n = ctx.n;
+
+                if (n == 0) {
+                    /* Error if =0 page write count */
+                    ERROR_MESSAGE(IPA);
+                } else if (n < 0) {
+                    if (ctx.temp != 0) {
+                        /* "PW"? an error */
+                        ERROR_MESSAGE(IPA);
+                    }
+
+                    status = teco_bakup(ctx.txstor, ctx.zz,
+                                        ctx.flags2 & TECO_M_FFFLAG);
+                    if (status != TECO__NORMAL) {
+                        ERROR_CODE(status);
+                    }
+
+                    yankc();
+                    ctx.flags2 &= ~TECO_M_EOFLAG;
+
+                    // there is still code here that needs translating...
+                    // 50$ onwards...line 1482.
+                } else {
+                    do {
+                        int32_t eof = 0, ff = -1;
+
+                        if (ctx.temp == 0) {
+                            if (!(ctx.flags2 & TECO_M_FFFLAG))
+                                ff = 0;
+
+                            status = teco_putbf(ctx.txstor, ctx.zz, ff);
+                            if (status != TECO__NORMAL) {
+                                ERROR_CODE(status);
+                            }
+                        }
+
+                        if (ctx.temp == 0) {
+                            eof = 0; // TODO: teco_yank();
+                            if (eof == 0) {
+                                /* The yank did nothing, exit right now */
+                                clnxit(eof);
+                                break;
+                            }
+                        }
+
+                        chkstp();
+                    } while (--n != 0);
+                }
+            }
+
             break;
         }
 
@@ -2070,11 +2082,20 @@ void qset(append,
         ERROR_MESSAGE(MEM);
 
     if (buflen > ctx.qnmbr->qrg_alloc) {
+        /**
+         * @note
+         * For easier interfacing with UNIX-style systems, we allways '+1'
+         * for the allocation so a '\0' can be "silently" added to the end
+         * of the Q-register string value.
+         *
+         * Because of this, when USHRT_MAX is exceeded, we set the extent
+         * to USHRT_MAX-1.
+         */
         extent += buflen;
         if (extent > USHRT_MAX)
-            extent = USHRT_MAX;
+            extent = USHRT_MAX - 1;
 
-        bufptr = realloc(bufptr, extent);
+        bufptr = realloc(bufptr, extent+1);
         if (!bufptr)
             ERROR_MESSAGE(MEM);
 
@@ -2091,6 +2112,7 @@ void qset(append,
     ctx.qnmbr->qrg_size = buflen;
 
     memmove(bufptr, ptr, len);
+    bufptr[len] = '\0';
 } /* qset */
 
 static void zerod(flags)
@@ -2114,7 +2136,7 @@ static void zerod(flags)
     } else {
         prinb(outbuf, outlen);
     }
-} /* serod */
+} /* zerod */
 
 static void push(type)
     uint32_t type;

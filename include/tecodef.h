@@ -459,7 +459,7 @@
         uint32_t        edit;           /* EDIT LEVEL FLAG                  */
 #define TECO_M_ED_CTL   0x1             /*  +1., don't allow "^" as meaning */
                                         /*       control character          */
-#define TECO_M_ED_TNK   0x2             /*  +2., allow yanks, etc. to       */
+#define TECO_M_ED_YNK   0x2             /*  +2., allow yanks, etc. to       */
                                         /*       clobber text buffer        */
 #define TECO_M_ED_EXP   0x4             /*  +4., don't allow arbitrary      */
                                         /*       expansion(s)               */
@@ -669,6 +669,7 @@
         int32_t (*flush)    ();         /* flush output                     */
         int32_t (*getbf)    ();         /* get input                        */
         int32_t (*putbf)    ();         /* put output                       */
+	int32_t (*rewfl)    ();	        /* rewind output		    */
         int32_t (*ejflg)    ();         /* get ej flag information          */
         int32_t (*etflg)    ();         /* inform terminal of ET flag       */
         int32_t (*getcmd)   ();         /* get command line into Q-reg Z    */
@@ -762,6 +763,11 @@ do { \
     for (i = 0; i < len; i++) \
         teco_type(TYPEF, p[i]); \
     io_support.flush(0); \
+} while (0)
+#define prinz(s) \
+do { \
+    int32_t len = strlen((s)); \
+    print(s,len); \
 } while (0)
 
 #endif /* __TECODEF_LOADED */

@@ -51,25 +51,13 @@
     int main();
     static void exit_handler();
 
-int main(c,
-	 v)
-    int c;
-    char *v[];
+int main(argc, argv)
+    int argc;
+    char *argv[];
 {
     uint32_t status;
 
-#if defined(unix) || defined(__unix__)
-    /*
-    ** On UNIX-ish systems we use this little hack to pass the command line
-    ** pointers back to io_support.getcmd.  Wish we had LIB$GET_FOREIGN for
-    ** UNIX...
-    */
-    extern int argc;
-    extern char **argv;
-
-    argc = c;
-    argv = v;
-#endif
+    io_support.init0(argc, argv);
 
     atexit(exit_handler);
 
@@ -80,9 +68,9 @@ int main(c,
 
 #ifdef vms
     if (status != TECO__SUCCESS) {
-	status = SS$_ABORT | STS$M_INHIB_MSG;
+        status = SS$_ABORT | STS$M_INHIB_MSG;
     } else {
-	status = SS$_NORMAL;
+        status = SS$_NORMAL;
     }
 #endif
 
