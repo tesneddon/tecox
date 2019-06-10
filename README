@@ -1,4 +1,12 @@
-		       TECO - Text Editor and COrrector
+		        mm                              
+		        MM                              
+		      mmMMmm .gP"Ya   ,p6"bo   ,pW"Wq.  
+		        MM  ,M'   Yb 6M'  OO  6W'   `Wb 
+		        MM  8M"""""" 8M       8M     M8 
+		        MM  YM.    , YM.    , YA.   ,A9 
+		        `Mbmo`Mbmmd'  YMbmd'   `Ybmd9'  
+
+	               TECO - Text Editor and COrrector
 
     TECO's history goes back a long time.  Its roots go back to 1962, when
 it was conceived by Daniel L. Murphy at MIT on Digital Equipment Corporation's
@@ -13,9 +21,9 @@ PDP-11 TECO started out as a brute force translation of OS/8 TECO by Hank
 Maurer and Bob Hartman at Ford of Cologne, West Germany.  OS/8 TECO came from
 a program originally written by Russel Hamm, way back when...
 
-It was modified for OS/8 by the O.M.S.I crewa, speeded up, shortened, and
+It was modified for OS/8 by the O.M.S.I crew, speeded up, shortened, and
 made PDP-10 compatible by Richard Lary of DEC with assistance from Mario
-Denobli of the P/S.  The brute force translation was further munged and
+Denobli of the P?S.  The brute force translation was further munged and
 altered by Mark Bramhall of DEC to bring it into more standard PDP-11 code
 and make a high/low segment split.
 
@@ -28,31 +36,3 @@ by Andy Goldstein.
 
 Now, much further down the line, VAX TECO-32 has been translated from MACRO-32
 to C making it portable to any operating system with a C compiler.
-
-----
-
-NOTES:
-
-* TECO job control support for UNIX....
-
-	Currently a ^Y (depending on certain flags) will return you
-	to the parent shell.  However, when you restore the job we
-	get our terminal characteristics screwed.  So, we need to
-	reset them when we become active again...
-
-  SIGCNT needs to be intercepted and handled appropriately...
-
-  This works now.  However...what doesn't work is ^Z...that is broken
-  after a 'fg'.
-
-  Probably need to be able to compile out job control on UNIX...
-
-* IO Notes...
-
-  Look to MMK for the FILEHANDLE (also the common IO code in gpl1).  This
-  is the method we want to implement for teco_getfl and the io_support
-  getfl member.  This way we can abstract the real nitty-gritty.
-
-  Also, think the package specific stuff with NETLIB would be useful.
-
-  -- need a parse routine in IO_SUPPORT...
