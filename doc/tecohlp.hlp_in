@@ -1,0 +1,20 @@
+1 Messages
+ TECO produces one informational and two warning messages.  These
+ messages do not abort the command and execution continues.
+
+#include "tecomsg.messages"
+
+1 Errors
+ All TECO error messages are of the form
+
+  ?XXX    Short text message
+         
+ and abort TECO's command execution.  
+         
+ Typing a question mark (?) immediately after TECO's input prompt will
+ print the erring command string up to and including the error point.
+
+ Typing a slash (/) immediately after TECO's input prompt will print a
+ longer explanation of the error. 
+
+#include "tecomsg.errors"
