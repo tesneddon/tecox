@@ -1,0 +1,2238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE appendix [
+<!ENTITY % isopub PUBLIC "ISO 8879:1986//ENTITIES Publishing//EN//XML" "http://www.w3.org/2003/entities/iso8879/isopub.ent">
+<!ENTITY % isonum PUBLIC "ISO 8879:1986//ENTITIES Numeric and Special Graphic//EN" "http://www.w3.org/2003/entities/iso8879/isonum.ent">
+<!ENTITY % isotech PUBLIC "ISO 8879:1986//ENTITIES General Technical//EN" "http://www.w3.org/2003/entities/iso8879/isotech.ent">
+%isopub;%isonum;%isotech;
+<!ENTITY % myEnt SYSTEM "teco.ent">
+%myEnt;
+]>
+ <appendix xmlns="http://docbook.org/ns/docbook" version="5.1" xml:id="APP_VTE"><title>VTEDIT &ndash; A keypad editing macro for TECO-11 and TECO-32</title>
+ <section xml:id="APP_VTE_INTRO"><title>Introduction</title>
+ <para>
+ The Video Terminal Editor (called VTEDIT) is a feature of the
+ TECO text editor which is available under RSTS/E, RT-11, RSX-11M,
+ IAS, and VAX/VMS. VTEDIT allows you to see all changes to the
+ text as you make them.
+ </para><para>
+ The Video Terminal Editor has two parts:
+ <itemizedlist>
+ <listitem><para>The scope driver, which keeps the terminal screen updated,
+ is a part of the TECO run-time system (RSTS/E), the TECO.SAV
+ program (RT-11), the TEC.TSK task (RSX-11M and IAS), or the
+ TEC.EXE image (VAX/VMS).
+ </para></listitem><listitem><para>The keyboard interface, which accepts your typed input and
+ either inserts it into the text buffer or interprets it as
+ an editing command, is a TECO macro called VTEDIT.TEC.
+ </para></listitem></itemizedlist>
+ </para><para>
+ This appendix describes the scope driver and the VTEDIT macro.
+ The scope driver is a standard part of TECO. However, VTEDIT is
+ just one of many possible keyboard interfaces. Your installation
+ may have modified it, and therefore may have its own version of
+ the scope editing keyboard interface.
+ </para><para>
+ </para><section><title>How to read this appendix</title>
+ <para>
+ The following conventions are used throughout this appendix:
+ <itemizedlist>
+ <listitem><para>An underlined dollar sign (<emphasis role="underline">$</emphasis>) indicates typing the ESCape
+ key.
+ </para></listitem><listitem><para>The notation 'CTRL/x' indicates a control character, which
+ you enter by holding down the CTRL key and typing the
+ indicated character.
+ </para></listitem><listitem><para>Items in square brackets are optional.
+ </para></listitem><listitem><para>The letter 'n' indicates a numeric argument. You enter a
+ numeric argument by typing <emphasis role="underline">$</emphasis>[&ndash;] followed by a series of
+ digits. The short sequence <emphasis role="underline">$</emphasis>&ndash; is equivalent to <emphasis role="underline">$</emphasis>&ndash;1.
+ The first non-numeric keystroke you type after entering a
+ numeric argument should be an editing function which takes
+ an argument. Any other keystroke will cause the editor to
+ discard the number. (It is also possible for a numeric
+ argument to be an expression using standard operators. This
+ is discussed later in the appendix.) Unless otherwise stated,
+ the editor uses a default value of 1 if you omit an optional
+ argument.
+ </para></listitem><listitem><para>The letter 'q' indicates any alphabetic Q-register name. If
+ the syntax of the editor requires a Q-register name and you
+ type any non-alphabetic character, VTEDIT sounds the
+ terminal bell and ignores the command.
+ </para></listitem></itemizedlist>
+ </para></section><section><title>Invoking the Video Terminal Editor Macro</title>
+ <para>
+ The Video Terminal Editor macro is stored in the file VTEDIT.TEC.
+ For RSTS/E and VAX/VMS, the file is usually stored in the system
+ library (SY:$ for RSTS/E, SYS$LIBRARY: for VAX/VMS). Other
+ operating systems may store VTEDIT.TEC elsewhere; this appendix
+ uses VAX/VMS for its examples. When you use the macro, it resides
+ in Q-register I and uses all of the numeric Q-registers. (The
+ macro saves these Q-registers when it starts and restores them
+ when it exits, but they are unavailable from command mode while
+ the macro is executing.) To load Q-register I with VTEDIT,
+ execute the following TECO command:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>EI$VTEDIT<emphasis role="underline">$$</emphasis></para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ The message 'VTEDIT.TEC loaded into Q-Reg I' is printed to
+ confirm the load. Start the macro by typing the TECO command:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>MI<emphasis role="underline">$$</emphasis></para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ These two commands cannot be in the same command sequence. You
+ must execute the EI command before you can execute Q-register I.
+ </para><para>
+ If you use the DCL commands TECO or MAKE to invoke TECO, you can
+ automatically load and start the VTEDIT macro by including the
+ following switch after the DCL command name:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>/VT</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ If you always want VTEDIT included, create a TECO start-up
+ command file called TECO.INI in your account. This file can
+ contain any TECO commands, and should end with the following
+ commands:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>ET&amp;512"N 1+ ' 0</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ Then, whenever you use the TECO or MAKE DCL commands on a DEC_CRT
+ terminal, TECO automatically loads and starts VTEDIT. To
+ suppress this loading, you must start editing with the command:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>TECO/NOINIT</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ The model TECO.INI file 
+ does a more advanced set of checks as well as implementing some
+ other random things (such as humorous messages based on the time
+ of day). Of course, experimentation is encouraged.
+ </para></section><section><title>Interpreting the Terminal Screen</title>
+ <para>
+ While you are running the Video Terminal Editor macro, your
+ terminal screen displays up to 24 lines of the text in TECO's
+ text buffer. This 'window' into your buffer always includes the
+ current line (the line containing the text pointer). The
+ location of the text pointer within the buffer is indicated by
+ the terminal's cursor. All characters that you type on the
+ keyboard that are not commands to VTEDIT are immediately inserted
+ into the text buffer at the current pointer position and are
+ displayed on the screen.
+ </para><para>
+ Certain other special symbols can appear on the screen:
+ <itemizedlist>
+ <listitem><para>A '<!-- <graphic>(F\F) -->' symbol indicates the
+ end of your text buffer and signifies that there is an
+ implicit form feed at the end of the buffer.
+ </para></listitem><listitem><para>A diamond (&diams;) indicates the
+ end of your text buffer if there is no implicit form feed
+ there.
+ </para></listitem><listitem><para>A diamond (&diams;) immediately
+ following one of the buffer end symbols above signifies that
+ your input file is at end-of-file.
+ </para></listitem><listitem><para>A '<!-- <graphic>(L\F) -->' symbol indicates that
+ the text pointer is positioned between a carriage return and
+ a line feed. This symbol appears only as the first symbol
+ on a line, and it overlays the first character of the line.
+ It allows you to tell the difference between the text
+ pointer being at the start of a line of text and being just
+ before the end of it.
+ </para></listitem><listitem><para>A '<!-- <graphic>(N\L) -->' symbol indicates that
+ the current line of text is too long to fit on the current
+ line of the screen. If TECO's truncate flag bit (bit 8,
+ value 256) is not set in the ET flag word (the normal case),
+ the remainder of the text appears on the next line of the
+ screen, preceded by the '<!-- <graphic>(N\L) -->' 
+ and a space. If the truncate flag is set (via the TECO
+ command ET#256ET), the remainder of the text is not
+ displayed, but the special symbol appears at the end of the
+ line to remind you that there are characters which cannot be
+ displayed. You can control the number of characters that
+ appear on each line by using the CTRL/V command.
+ </para></listitem></itemizedlist>
+ </para><para>
+ If you are using a DEC_CRT terminal in ANSI mode, VTEDIT will
+ display any text between the current text pointer and the marked
+ buffer location (see the Set Mark command) in reverse video to
+ highlight the marked region.
+ </para><para>
+ A feature of the scope driver which allows you to view the exact
+ contents of your text buffer is called 'see-all' mode. When
+ see-all mode is turned on, all special characters and hidden
+ spacing are visible on the screen as special graphic symbols:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para>TAB</para></entry><entry><para> appears as a or '<!-- <graphic>(H\T) -->' symbol. The spacing after the tab, which is
+          normally blank space on the screen that does not correspond to any characters in the text,
+          is shown as a series of centered dots (·).</para></entry></row>
+ <row><entry><para>LINE FEED</para></entry><entry><para>
+ not immediately preceeded by a RETURN appears as a
+ '<!-- <graphic>(L\F) -->' symbol. If the
+ line feed is in the middle of the line, the blank
+ space at the beginning of the next line is filled
+ (as for TAB).
+ </para><para>
+ A LINE FEED immediately after a RETURN is not
+ displayed with any special symbol (see RETURN
+ below).</para></entry></row>
+ <row><entry><para>RETURN</para></entry><entry><para>
+ followed by a line feed appears as a '<!-- <graphic>(C\R) -->' symbol. Any blank space
+ before the end of the line is thus visible.
+ </para><para>
+ A RETURN causing an overprint line (i.e., a RETURN
+ not immediately followed by a LINE FEED) appears
+ as a not-equal (&ne;) sign. The
+ overprint characters are displayed on the next
+ line instead of over (and thus clobbering) the
+ original characters. This allows full viewing of
+ all characters in overprint lines.</para></entry></row>
+ <row><entry><para>FORM FEED</para></entry><entry><para>
+ appears as a '<!-- <graphic>(F\F) -->' symbol.
+ No extra blank lines are shown. If the
+ form feed is in the middle of the line, the blank
+ space at the beginning of the next line is filled.</para></entry></row>
+ <row><entry><para>VERTICAL TAB</para></entry><entry><para>
+ appears as a '<!-- <graphic>(V\T) -->' symbol. If the vertical tab is in the
+ middle of the line, the blank space at the
+ beginning of the next line is filled.</para></entry></row>
+ <row><entry><para>ESCAPE</para></entry><entry><para>
+ appears as a Greek pi (&#x3c0;)
+ to distinguish it from a dollar sign.</para></entry></row>
+ <row><entry><para>CTRL/x</para></entry><entry><para>
+  appears as a plus-or-minus (&plusmn;) sign 
+ followed by the character 'x' to distinguish it
+ from a real uparrow.</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para></section><section><title>Numeric Arguments</title>
+ <para>
+ Simple numeric arguments consist of ESCape, an optional minus
+ sign, and a digit string which is always interpreted in decimal.
+ None of the keystrokes of a simple numeric argument echo on the
+ terminal.
+ </para><para>
+ More advanced numeric arguments can be expressions using standard
+ arithmetic operators. These numeric arguments also start with
+ ESCape, an optional minus sign, and, then, a digit. If the first
+ non-digit typed is one of the valid operators listed below,
+ expression mode is entered. The top line of the display is
+ erased and a line of the form:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>Radix x, Expression arg1 op arg2</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ is displayed. The initial radix is 10, arg1 will be the initial
+ digit string, and op will be the operator.
+ </para><para>
+ Further digit string typing will fill in arg2 until a non-digit
+ is typed. If it is another valid operator, the current
+ arg1 op arg2 expression will be evaluated, the result will
+ replace arg1, arg2 will be set to zero, and op will be the typed
+ operator.
+ </para><para>
+ If it is a radix change command, the radix is immediately
+ changed. No evaluation of the expression occurs. The radix
+ change is local to the current numeric expression; it is not
+ subsequently remembered.
+ </para><para>
+ If it is an arg2 stand-in, the current arg2 is replaced by the
+ specified value.
+ </para><para>
+ If it is RUBOUT, the current arg2 is reset to zero.
+ </para><para>
+ If it is CTRL/U, the entire expression is abandoned and the
+ display is fixed up.
+ </para><para>
+ Else it is assumed to be an editing command. The current
+ arg1 op arg2 will be evaluated and the result becomes the numeric
+ argument to that command.
+ </para><para>
+ The valid numeric expression operators are:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <thead>
+<row>
+<entry><para>Operator</para></entry><entry><para>Operation</para></entry>
+</row>
+</thead>
+ <tbody>
+<row><entry><para>+</para></entry><entry><para>Addition</para></entry></row>
+ <row><entry><para>&ndash;</para></entry><entry><para>Subtraction</para></entry></row>
+ <row><entry><para>*</para></entry><entry><para>Multiplication</para></entry></row>
+ <row><entry><para>/</para></entry><entry><para>Division</para></entry></row>
+ <row><entry><para>#</para></entry><entry><para>Logical .OR.</para></entry></row>
+ <row><entry><para>&amp;</para></entry><entry><para>Logical .AND.</para></entry></row>
+ <row><entry><para>=</para></entry><entry><para>Evaluate current arg1 op arg2</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ The valid radix change commands are:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <thead>
+<row>
+<entry><para>Command</para></entry><entry><para>Operation</para></entry>
+</row>
+</thead>
+ <tbody>
+<row><entry><para>^D</para></entry><entry><para>Change radix to decimal (base 10)</para></entry></row>
+ <row><entry><para>^O</para></entry><entry><para>Change radix to octal (base 8)</para></entry></row>
+ <row><entry><para>^X</para></entry><entry><para>Change radix to hexidecimal (base 16)</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ The valid arg2 stand-ins are:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <thead>
+<row>
+<entry><para>Argument</para></entry><entry><para>Value</para></entry>
+</row>
+</thead>
+ <tbody>
+<row><entry><para>^.</para></entry><entry><para>Current value of the text buffer pointer</para></entry></row>
+ <row><entry><para>^Z</para></entry><entry><para>Current total number of characters in the text buffer</para></entry></row>
+ <row><entry><para>^^x</para></entry><entry><para>The value of character 'x'</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para></section></section>
+  <section xml:id="APP_VTE_EDT"><title>Editing Text</title>
+ <para>
+ In addition to allowing you to enter text, the Video Terminal
+ Editor macro has a large repertoire of powerful editing commands.
+ You request an editing function by using the auxiliary keypad on
+ the terminal or by typing control characters or control sequences
+ on the standard keyboard. Some functions require you to type
+ several keys.
+ </para><para>
+ When you start the Video Terminal Editor macro with the TECO
+ command:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>&ndash;1MI<emphasis role="underline">$$</emphasis></para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ it draws a keypad layout on the screen. This is a summary of the
+ available editing functions. You can redisplay this keypad
+ layout by using the ESCape H command (see the section on
+ Miscellaneous Commands).
+ </para><para>
+ The following sections describe the editing functions available
+ in VTEDIT. When an editing function is equivalent to a simple
+ TECO command, the equivalent command appears after the
+ description. The macro sounds the terminal bell when it detects
+ an error (such as <emphasis role="underline">$</emphasis>!, which is an illegal sequence).
+ </para>
+  <section><title>Moving the Cursor</title>
+ <para>
+ This section describes the commands which move the cursor around the screen.
+ </para>
+ <refentry>
+<refmeta>
+<refentrytitle>Set Mark</refentrytitle>
+</refmeta>
+
+<refnamediv>
+     <refname>Set Mark</refname>
+     <refpurpose>Mark the current pointer position.</refpurpose>
+    </refnamediv>
+
+ 
+ <refsection><title>Syntax</title><synopsis><command>9 (keypad key)</command></synopsis>
+     <!-- <keypad_section> -->
+     <!-- <keypad> -->
+     <!-- <keypad_row>(\\\) -->
+     <!-- <keypad_row>(\\closed\) -->
+     <!-- <keypad_row>(\\\) -->
+     <!-- <keypad_row>(\\\) -->
+     <!-- <keypad_endrow>(\\) -->
+     <!-- <endkeypad> -->
+     <!-- <endkeypad_section> --></refsection>
+ <refsection><title>Description</title><para>
+ Mark the current text buffer pointer position for
+ use with later commands (see individual commands).
+ To move the mark, simply type the 9 key at the new
+ position. If you type the 9 key when the pointer
+ is at the marked position, the mark is removed and
+ the bell sounds. Thus, to remove a mark, type the
+ 9 key until the bell rings. The mark is always
+ removed when it is used.
+ </para></refsection>
+ </refentry>
+  <refentry>
+<refmeta>
+<refentrytitle>Jump</refentrytitle>
+</refmeta>
+
+<refnamediv>
+     <refname>Jump</refname>
+     <refpurpose>Move the pointer to a specific position.</refpurpose>
+    </refnamediv>
+
+ 
+ <refsection><title>Syntax</title><synopsis><command>[n]1 (keypad key)</command></synopsis>
+     <!-- <keypad_section> -->
+     <!-- <keypad> -->
+     <!-- <keypad_row>(\\\) -->
+     <!-- <keypad_row>(\\\) -->
+     <!-- <keypad_row>(\\\) -->
+     <!-- <keypad_row>(closed\\\) -->
+     <!-- <keypad_endrow>(\\) -->
+     <!-- <endkeypad> -->
+     <!-- <endkeypad_section> --></refsection>
+ <refsection><title>Description</title><para>
+ Move the text pointer to position n. If n is not
+ given but a mark is set, jump to the mark.
+ Otherwise, jump to the beginning of the text
+ buffer.
+ </para><para>
+ In TECO: nJ
+ </para></refsection>
+ </refentry>
+  <refentry>
+<refmeta>
+<refentrytitle>Jump to End of Buffer</refentrytitle>
+</refmeta>
+
+<refnamediv>
+     <refname>Jump to End of Buffer</refname>
+     <refpurpose>Move the pointer to End of Buffer.</refpurpose>
+    </refnamediv>
+
+ 
+ <refsection><title>Syntax</title><synopsis><command>2 (keypad key)</command></synopsis>
+     <!-- <keypad_section> -->
+     <!-- <keypad> -->
+     <!-- <keypad_row>(\\\) -->
+     <!-- <keypad_row>(\\\) -->
+     <!-- <keypad_row>(\\\) -->
+     <!-- <keypad_row>(\closed\\) -->
+     <!-- <keypad_endrow>(\\) -->
+     <!-- <endkeypad> -->
+     <!-- <endkeypad_section> --></refsection>
+ <refsection><title>Description</title><para>
+ Move the text pointer to the end of the text buffer.
+ </para><para>
+ In TECO: ZJ
+ </para></refsection>
+ </refentry>
+  <refentry>
+<refmeta>
+<refentrytitle>Advance Line</refentrytitle>
+</refmeta>
+
+<refnamediv>
+     <refname>Advance Line</refname>
+     <refpurpose>Move the pointer forward over lines.</refpurpose>
+    </refnamediv>
+
+ 
+ <refsection><title>Syntax</title><synopsis><command>[n]0 (keypad key)</command></synopsis>
+     <!-- <keypad_section> -->
+     <!-- <keypad> -->
+     <!-- <keypad_row>(\\\) -->
+     <!-- <keypad_row>(\\\) -->
+     <!-- <keypad_row>(\\\) -->
+     <!-- <keypad_row>(\\\) -->
+     <!-- <keypad_endrow>(closed\\) -->
+     <!-- <endkeypad> -->
+     <!-- <endkeypad_section> --></refsection>
+ <refsection><title>Description</title><para>
+ Advance the text pointer by n lines, leaving it at
+ the beginning of a line.
+ </para><para>
+ In TECO: nL
+ </para></refsection>
+ </refentry>
+  <refentry>
+<refmeta>
+<refentrytitle>Back Line</refentrytitle>
+</refmeta>
+
+<refnamediv>
+     <refname>Back Line</refname>
+     <refpurpose>Move the pointer backwards over lines.</refpurpose>
+    </refnamediv>
+
+ 
+ <refsection><title>Syntax</title><synopsis><command>[n]4 (keypad key)</command></synopsis>
+     <!-- <keypad_section> -->
+     <!-- <keypad> -->
+     <!-- <keypad_row>(\\\) -->
+     <!-- <keypad_row>(\\\) -->
+     <!-- <keypad_row>(closed\\\) -->
+     <!-- <keypad_row>(\\\) -->
+     <!-- <keypad_endrow>(\\) -->
+     <!-- <endkeypad> -->
+     <!-- <endkeypad_section> --></refsection>
+ <refsection><title>Description</title><para>
+ Back up the text pointer by n lines, leaving it at
+ the beginning of a line.
+ </para><para>
+ In TECO: &ndash;nL
+ </para></refsection>
+ </refentry>
+  <refentry>
+<refmeta>
+<refentrytitle>Start of Line</refentrytitle>
+</refmeta>
+
+<refnamediv>
+     <refname>Start of Line</refname>
+     <refpurpose>Move the pointer to the start of the line.</refpurpose>
+    </refnamediv>
+
+ 
+ <refsection><title>Syntax</title><synopsis><command>3 (keypad key)</command></synopsis>
+     <!-- <keypad_section> -->
+     <!-- <keypad> -->
+     <!-- <keypad_row>(\\\) -->
+     <!-- <keypad_row>(\\\) -->
+     <!-- <keypad_row>(\\\) -->
+     <!-- <keypad_row>(\\closed\) -->
+     <!-- <keypad_endrow>(\\) -->
+     <!-- <endkeypad> -->
+     <!-- <endkeypad_section> --></refsection>
+ <refsection><title>Description</title><para>
+ Move the text pointer to the start of the current line.
+ </para><para>
+ In TECO: 0L
+ </para></refsection>
+ </refentry>
+  <refentry>
+<refmeta>
+<refentrytitle>End of Line</refentrytitle>
+</refmeta>
+
+<refnamediv>
+     <refname>End of Line</refname>
+     <refpurpose>Move the pointer to the end of the line.</refpurpose>
+    </refnamediv>
+
+ 
+ <refsection><title>Syntax</title><synopsis><command>[n]BACKSPACE (special key or CTRL/H)</command></synopsis>
+     <!-- <keypad_section> -->
+     <!-- <keypad>(display) -->
+     <!-- <keypad_row>(F11\BS\F13\F14) -->
+     <!-- <endkeypad> -->
+     <!-- <endkeypad_section> --></refsection>
+ <refsection><title>Description</title><para>
+ Move the text pointer to the end of the nth line
+ from the current line. If n is not given or is
+ equal to 1, move to the end of the current line.
+ The end of the line is just before a carriage
+ return or form feed.
+ </para><para>
+ In TECO: nL 2R
+ </para></refsection>
+ </refentry>
+  <refentry>
+<refmeta>
+<refentrytitle>Advance Character</refentrytitle>
+</refmeta>
+
+<refnamediv>
+     <refname>Advance Character</refname>
+     <refpurpose>Move the pointer forward.</refpurpose>
+    </refnamediv>
+
+ 
+ <refsection><title>Syntax</title><synopsis><command>[n]> (right arrow keypad key)</command></synopsis>
+     <!-- <keypad_section> -->
+     <!-- <keypad> -->
+     <!-- <keypad_row>(\\\none) -->
+     <!-- <keypad_row>(\\\none) -->
+     <!-- <keypad_row>(none\\none\none) -->
+     <!-- <keypad_row>(\\closed\none) -->
+     <!-- <endkeypad> -->
+     <!-- <endkeypad_section> --></refsection>
+ <refsection><title>Description</title><para>
+ Advance the text pointer by n characters.
+ </para><para>
+ In TECO: nC
+ </para></refsection>
+ </refentry>
+  <refentry>
+<refmeta>
+<refentrytitle>Back Character</refentrytitle>
+</refmeta>
+
+<refnamediv>
+     <refname>Back Character</refname>
+     <refpurpose>Move the pointer backward.</refpurpose>
+    </refnamediv>
+
+ 
+ <refsection><title>Syntax</title><synopsis><command>[n]&larr;(left arrow keypad key)</command></synopsis>
+     <!-- <keypad_section> -->
+     <!-- <keypad> -->
+     <!-- <keypad_row>(\\\none) -->
+     <!-- <keypad_row>(\\\none) -->
+     <!-- <keypad_row>(none\\none\none) -->
+     <!-- <keypad_row>(closed\\\none) -->
+     <!-- <endkeypad> -->
+     <!-- <endkeypad_section> --></refsection>
+ <refsection><title>Description</title><para>
+ Meaning: Back up the text pointer by n characters.
+ </para><para>
+ In TECO: nR
+ </para></refsection>
+ </refentry>
+  <refentry>
+<refmeta>
+<refentrytitle>Down in Column</refentrytitle>
+</refmeta>
+
+<refnamediv>
+     <refname>Down in Column</refname>
+     <refpurpose>Move the pointer down in the same column.</refpurpose>
+    </refnamediv>
+
+ 
+ <refsection><title>Syntax</title><synopsis><command>[n]&darr;(down arrow keypad key)</command></synopsis>
+     <!-- <keypad_section> -->
+     <!-- <keypad> -->
+     <!-- <keypad_row>(\\\none) -->
+     <!-- <keypad_row>(\\\none) -->
+     <!-- <keypad_row>(none\\none\none) -->
+     <!-- <keypad_row>(\closed\\none) -->
+     <!-- <endkeypad> -->
+     <!-- <endkeypad_section> --></refsection>
+ <refsection><title>Description</title><para>
+ Advance the text pointer by n lines, keeping it in
+ the same column of the screen if possible. Column
+ position is determined by counting characters and
+ expanding TABs. If the target line is shorter
+ than the position of the pointer at the start, the
+ pointer is left at the end of the line. If the
+ desired column in the target line is in the middle
+ of a tab stop, the pointer is left at the TAB
+ character. Repeatedly typing this key and the up
+ arrow key preserves the target column, and
+ repositions to it when possible.
+ </para></refsection>
+ </refentry>
+  <refentry>
+<refmeta>
+<refentrytitle>Up in Column</refentrytitle>
+</refmeta>
+
+<refnamediv>
+     <refname>Up in Column</refname>
+     <refpurpose>Move the pointer up in the same column.</refpurpose>
+    </refnamediv>
+
+ 
+ <refsection><title>Syntax</title><synopsis><command>[n]&uarr;(up arrow keypad key)</command></synopsis>
+     <!-- <keypad_section> -->
+     <!-- <keypad> -->
+     <!-- <keypad_row>(\\\none) -->
+     <!-- <keypad_row>(\\\none) -->
+     <!-- <keypad_row>(none\closed\none\none) -->
+     <!-- <keypad_row>(\\\none) -->
+     <!-- <endkeypad> -->
+     <!-- <endkeypad_section> --></refsection>
+ <refsection><title>Description</title><para>
+ Back up the text pointer by n lines, keeping it in
+ the same column of the screen if possible. Column
+ position is determined by counting characters and
+ expanding TABs. If the target line is shorter
+ than the position of the pointer at the start, the
+ pointer is left at the end of the line. If the
+ desired column in the target line is in the middle
+ of a tab stop, the pointer is left at the TAB
+ character. Repeatedly typing this key and the
+ down arrow key preserves the target column, and
+ repositions to it when possible.
+ </para></refsection>
+ </refentry>
+  <refentry>
+<refmeta>
+<refentrytitle>Advance Word</refentrytitle>
+</refmeta>
+
+<refnamediv>
+     <refname>Advance Word</refname>
+     <refpurpose>Move pointer across words.</refpurpose>
+    </refnamediv>
+
+ 
+ <refsection><title>Syntax</title><synopsis><command>[n]CTRL/F</command></synopsis>
+     <para>
+      
+      <keycap>Ctrl</keycap>+<keycap>F</keycap>
+      
+     </para></refsection><refsection><title>Description</title><para>
+ Advance the text pointer by n words, leaving it at
+ the first character of the nth word. Words are
+ normally delimited by sequences of spaces, tabs,
+ commas, carriage returns, and line feeds. See the
+ section on selecting word delimiters.
+ </para></refsection>
+ </refentry>
+  <refentry>
+<refmeta>
+<refentrytitle>Back Word</refentrytitle>
+</refmeta>
+
+<refnamediv>
+     <refname>Back Word</refname>
+     <refpurpose>Move pointer backwards across words.</refpurpose>
+    </refnamediv>
+
+ 
+ <refsection><title>Syntax</title><synopsis><command>[n]CTRL/R</command></synopsis>
+     <para><keycap>Ctrl</keycap>+<keycap>R</keycap></para></refsection><refsection><title>Description</title><para>
+ Back up the text pointer by n words, leaving it at
+ the first character of the nth previous word.
+ </para></refsection>
+ </refentry>
+  <refentry>
+<refmeta>
+<refentrytitle>Advance or Back Continuously</refentrytitle>
+</refmeta>
+
+<refnamediv>
+     <refname>Advance or Back Continuously</refname>
+     <refpurpose>Advance or Back Continuously.</refpurpose>
+    </refnamediv>
+
+ 
+ <refsection><title>Syntax</title><synopsis><command><emphasis role="underline">$</emphasis> followed by one of the six motion commands</command></synopsis></refsection>
+ <refsection><title>Description</title><para>
+ <emphasis role="underline">$</emphasis> followed by one of the six motion commands for
+ advance or back by line (0 or 4 keypad keys),
+ character (left or right arrow keypad keys), or
+ word (CTRL/F or CTRL/R)
+ </para><para>
+ Move the text pointer continuously by one unit
+ (line, character, or word) in the selected
+ direction, updating the screen each time the
+ pointer moves. You can stop the motion by typing
+ any non-keypad key. The character typed to stop
+ the motion is otherwise ignored. Motion also
+ stops (and the bell sounds) when the text pointer
+ reaches the beginning or end of the buffer.
+ </para></refsection>
+ </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Advance Screen Image</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Advance Screen Image</refname>
+     <refpurpose>Move the pointer forward one full screen image.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>[n]<emphasis role="underline">$</emphasis>&darr;(ESCape, down arrow keypad key)</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>&darr;</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Advance the text pointer the correct number of lines to move the current bottom line of
+      the screen to just off the top of the screen. This allows you to 'page' through the text
+      buffer. Overflow lines (lines too long for the screen) and overprint lines will cause slightly
+      more or less than one screen's worth of data to be passed over. </para>
+     <para> In TECO: 24L </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Back Screen Image</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Back Screen Image</refname>
+     <refpurpose>Move the pointer backwards one full screen image.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>[n]<emphasis role="underline">$</emphasis>&uarr;(ESCape, up arrow keypad key)</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>&uarr;</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Back up the text pointer the correct number of lines to move the current top line of the
+      screen to just off the bottom of the screen. This allows you to 'page' through the text
+      buffer. Overflow lines (lines too long for the screen) and overprint lines will cause slightly
+      more or less than one screen's worth of data to be passed over. </para>
+     <para> In TECO: &ndash;24L </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Back Over Last Operation</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Back Over Last Operation</refname>
+     <refpurpose>Back up the pointer to where it was before the last operation.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command><emphasis role="underline">$</emphasis>6 (ESCape, 6 keypad key)</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>6</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Back up the text pointer the correct number of characters position it to where it was
+      prior to the last operation. For example, if you have just saved some text with the PF1 keypad
+      key, then this would re-position you to the start of the saved text. </para>
+     <para> In TECO: ^SC </para>
+    </refsection>
+   </refentry>
+ </section>
+ <section><title>Searching Text</title>
+ <para>
+ This section describes the commands which search for the occurrence of
+ specific text strings.
+ </para>
+ <refentry>
+<refmeta>
+<refentrytitle>Set Search Argument and Search Text Buffer</refentrytitle>
+</refmeta>
+
+<refnamediv>
+     <refname>Set Search Argument and Search Text Buffer</refname>
+     <refpurpose>Search the current text buffer for string.</refpurpose>
+    </refnamediv>
+
+ 
+ <refsection><title>Syntax</title><synopsis><command>[n]ENTER (keypad key)</command></synopsis></refsection>
+ <!-- <keypad_section> -->
+ <!-- <keypad> -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_endrow>(\\closed) -->
+ <!-- <endkeypad> -->
+ <!-- <endkeypad_section> -->
+ <refsection><title>Description</title><para>
+ Get a search argument from the keyboard and search
+ for the nth occurence of it in the text buffer.
+ When you type the ENTER key, VTEDIT erases the top
+ two lines of the screen and prompts you for a
+ search argument with 'Buffer search:'. Your
+ previous search argument (from any kind of search)
+ is initially displayed following the prompt. If
+ you wish to reuse your previous argument, simply
+ type either the keypad period (.) or a double
+ ESCape. To edit your previous argument, type an
+ initial RUBOUT. This deletes the last character
+ of your argument, but retains the rest as if you
+ had just entered it. Further editing and/or entry
+ is now done in the normal way. Any other initial
+ keystroke erases the entire previous search
+ argument; you may now proceed to enter your new
+ argument. The search argument may be any valid
+ TECO search construct. Your search string appears
+ on the screen as you type. You can use RUBOUT to
+ edit your typing, and you can type CTRL/U to
+ abandon the entry of the search string, abort the
+ search command, and clean up the screen. When you
+ are ready to perform the search, type either the
+ keypad period (.) or a double ESCape. VTEDIT
+ cleans up the screen, saves the search argument,
+ and positions the pointer after the nth occurence
+ of the string within the text buffer. If n is
+ negative, the search is done backwards in the
+ buffer. If the string is found and there is no
+ active mark set, the found string is shown in
+ reverse video (on those terminals that support it)
+ until the next keystroke. If the string is not
+ found, VTEDIT moves the pointer to the start of
+ the text buffer and sounds the bell.
+ </para><para>
+ In TECO: n:Stext<emphasis role="underline">$</emphasis>
+ </para></refsection>
+ </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Set Search Argument and Search through File</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Set Search Argument and Search through File</refname>
+     <refpurpose>Search the rest of the file for string.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>[n]CTRL/N</command></synopsis>
+     <para><keycap>Ctrl</keycap>+<keycap>N</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> This command is similar to the previous one, but performs a through the whole file
+      search. If you do not have an open output file, the terminal bell rings and the command is
+      ignored. The prompt is 'File search:'. During the file searching, the cursor is positioned in
+      the upper left corner of the screen. If the nth occurance is not found, the bell sounds (the
+      text buffer will be empty). </para>
+     <para> In TECO: n:Ntext<emphasis role="underline">$</emphasis>
+     </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Set Search Argument and Destructively Search File</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Set Search Argument and Destructively Search File</refname>
+     <refpurpose>Search the rest of the file for a string without output.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>[n]<emphasis role="underline">$</emphasis>CTRL/N</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>Ctrl</keycap>+<keycap>N</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> This command is similiar to the previous one, but doesn't output passed over text. If
+      you have an open output file and destructive mode (bit 1, value 2) in the TECO edit mode flag
+      (ED) is not set, the terminal bell rings and the command is ignored. The prompt is
+      'Destructive file search:'. During the file searching, the cursor is positioned in the upper
+      left corner of the screen. If the nth occurance is not found, the bell sounds (the text buffer
+      will be empty). </para>
+     <para> In TECO: n:_text<emphasis role="underline">$</emphasis>
+     </para>
+    </refsection>
+   </refentry>
+  <refentry>
+<refmeta>
+<refentrytitle>Search Again</refentrytitle>
+</refmeta>
+
+<refnamediv>
+<refname>Search Again</refname>
+<refpurpose>
+ Perform the same search as before.
+ </refpurpose>
+</refnamediv>
+
+ 
+ <refsection><title>Syntax</title><synopsis><command>[n]. (keypad key)</command></synopsis></refsection>
+ <!-- <keypad_section> -->
+ <!-- <keypad> -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_endrow>(\closed\) -->
+ <!-- <endkeypad> -->
+ <!-- <endkeypad_section> -->
+ <refsection><title>Description</title><para>
+ Search in the text buffer for the nth occurence of
+ the search argument which was most recently saved
+ via any search command. If n is negative, the
+ search is done backwards in the buffer. If you
+ have not yet used the ENTER command, VTEDIT
+ searches for the string you most recently searched
+ for from TECO before you started VTEDIT. If the
+ string is not found, VTEDIT moves the pointer to
+ the start of the text buffer and sounds the bell.
+ </para></refsection>
+ </refentry>
+ </section>
+ <section><title>Deleting Text</title>
+ <para>
+ This section describes the commands for deleting text.
+ </para>
+ <refentry>
+    <refmeta>
+     <refentrytitle>Rub Out Character</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Rub Out Character</refname>
+     <refpurpose>Delete the character before the pointer.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>[n]DEL</command></synopsis>
+     <para><keycap><!-- <delete_key> --></keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Delete n characters before the text pointer, starting with the character before the
+      cursor. </para>
+     <para> In TECO: &ndash;nD </para>
+    </refsection>
+   </refentry>
+  <refentry>
+<refmeta>
+<refentrytitle>Delete Character</refentrytitle>
+</refmeta>
+
+<refnamediv>
+     <refname>Delete Character</refname>
+     <refpurpose>Delete the character after the pointer.</refpurpose>
+    </refnamediv>
+
+ 
+ <refsection><title>Syntax</title><synopsis><command>[n]5 (keypad key)</command></synopsis></refsection>
+ <!-- <keypad_section> -->
+ <!-- <keypad> -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_row>(\closed\\) -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_endrow>(\\) -->
+ <!-- <endkeypad> -->
+ <!-- <endkeypad_section> -->
+ <refsection><title>Description</title><para>
+ Delete n characters, starting with the character
+ under the cursor.
+ </para><para>
+ In TECO: nD
+ </para></refsection>
+ </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Rub Out Word</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Rub Out Word</refname>
+     <refpurpose>Delete the word before the pointer.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>[n]CTRL/B</command></synopsis>
+     <para><keycap>Ctrl</keycap>+<keycap>B</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Delete the text between the start of the nth previous word and the current text pointer.
+     </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Delete Word</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Delete Word</refname>
+     <refpurpose>Delete the word after the pointer.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>[n]<emphasis role="underline">$</emphasis>CTRL/B</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>Ctrl</keycap>+<keycap>B</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Delete the text between the current text pointer and the start of the n+1st word beyond
+      the pointer. </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Rub Out Line</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Rub Out Line</refname>
+     <refpurpose>Delete from start-of-line to pointer.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>CTRL/U</command></synopsis>
+     <para><keycap>Ctrl</keycap>+<keycap>U</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Delete the text between the start of the current line and the text pointer. </para>
+     <para> In TECO: 0K </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Delete Line</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Delete Line</refname>
+     <refpurpose>Delete the rest of the line.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>[n]CTRL/K</command></synopsis>
+     <para><keycap>Ctrl</keycap>+<keycap>K</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Delete n lines of text, starting at the current text pointer (the character under the
+      cursor). If n is not given but a mark is set, delete the text between the mark and the current
+      text pointer. Otherwise, delete one line. </para>
+     <para> In TECO: nK </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Delete Rest of Line</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Delete Rest of Line</refname>
+     <refpurpose>Delete from the pointer to end-of-line.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>[n]CTRL/D</command></synopsis>
+     <para><keycap>Ctrl</keycap>+<keycap>D</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Delete the text between the current text pointer and the end of the nth line from the
+      pointer. The carriage return and line feed at the end of the nth line (if any) are not
+      deleted. </para>
+     <para> In TECO: nK 13I<emphasis role="underline">$</emphasis> 10I<emphasis role="underline"
+       >$</emphasis> 2R </para>
+    </refsection>
+   </refentry>
+  <refentry>
+<refmeta>
+<refentrytitle>Delete or Restore Text</refentrytitle>
+</refmeta>
+
+<refnamediv>
+     <refname>Delete or Restore Text</refname>
+     <refpurpose>Delete selected text or restore what was just deleted.</refpurpose>
+    </refnamediv>
+
+ 
+ <refsection><title>Syntax</title><synopsis><command>6 (keypad key)</command></synopsis></refsection>
+ <!-- <keypad_section> -->
+ <!-- <keypad> -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_row>(\\closed\) -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_endrow>(\\) -->
+ <!-- <endkeypad> -->
+ <!-- <endkeypad_section> -->
+ <refsection><title>Description</title><para>
+ If the previous keystroke was a VTEDIT deletion
+ command, restore the deleted text and return the
+ buffer pointer to its former position. Otherwise,
+ delete the spanned text block. The spanned text
+ is the text most recently located or inserted in
+ the text buffer via a Cut, Paste, Search, Get, or
+ Exchange command, or by a restoring 6.
+ </para><para>
+ In TECO: .+^S,.K
+ </para></refsection>
+ </refentry>
+ </section>
+ <section><title>Inserting and Moving Text</title>
+ <para>
+ This section describes the commands that insert and move text.
+ </para>
+ <refentry>
+<refmeta>
+<refentrytitle>Open Line</refentrytitle>
+</refmeta>
+
+<refnamediv>
+     <refname>Open Line</refname>
+     <refpurpose>Insert an empty line into the text buffer.</refpurpose>
+    </refnamediv>
+
+ 
+ <refsection><title>Syntax</title><synopsis><command>[n]7 (keypad key)</command></synopsis></refsection>
+ <!-- <keypad_section> -->
+ <!-- <keypad> -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_row>(closed\\\) -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_endrow>(\\) -->
+ <!-- <endkeypad> -->
+ <!-- <endkeypad_section> -->
+ <refsection><title>Description</title><para>
+ Insert n return/line feed sequences after the
+ current text pointer. The effect of this command
+ is to move the rest of the text on the current
+ line down to a new line.
+ </para><para>
+ In TECO: n&lt;13I<emphasis role="underline">$</emphasis> 10I<emphasis role="underline">$</emphasis>> 2*nR
+ </para></refsection>
+ </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Get Q-register Contents</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Get Q-register Contents</refname>
+     <refpurpose>Load q-register into text buffer.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>CTRL/Gq</command></synopsis>
+     <para><keycap>Ctrl</keycap>+<keycap>G</keycap>+<keycap>q</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Insert the contents of Q-register q in the text buffer. In this command, q can be any
+      alphabetic or numeric Q-register name, or it can be either of the special names '*' (file name
+      buffer) and '_' (search string buffer). </para>
+     <para> In TECO: Gq </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Load Q-register</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Load Q-register</refname>
+     <refpurpose>Load q-register from text buffer.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>[n]CTRL/X[:]q</command></synopsis>
+     <para><keycap>Ctrl</keycap>+<keycap>X</keycap>+<keycap>q</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Copy n lines from the text buffer into Q-register q. If n is not given and there is a
+      mark set, copy the text between the mark and the current text pointer. Otherwise, copy one
+      line. VTEDIT moves the text pointer to the end of the copied text. If the colon is present,
+      append the text to the Q-register instead of copying it. You can not specify Q-register I. <note>
+       <para> If you are using VAX/VMS, CTRL/X is intercepted by the terminal service as cancel all
+        type ahead. You can use a combination of CTRL/T and CTRL/G to cut and restore text to
+        Q-registers. </para>
+      </note>
+     </para>
+     <para> In TECO: nXq </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Load Q-register and Delete Text</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Load Q-register and Delete Text</refname>
+     <refpurpose>Load q-register from text buffer and delete.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>[n]CTRL/T[:]q</command></synopsis>
+     <para><keycap>Ctrl</keycap>+<keycap>T</keycap>+<keycap>q</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Similar to CTRL/X, but delete the copied text. </para>
+    </refsection>
+   </refentry>
+  <refentry>
+<refmeta>
+<refentrytitle>Save Text</refentrytitle>
+</refmeta>
+
+<refnamediv>
+     <refname>Save Text</refname>
+     <refpurpose>Save text into the cut buffer.</refpurpose>
+    </refnamediv>
+
+ 
+ <refsection><title>Syntax</title><synopsis><command>[n]PF1 (keypad key)</command></synopsis></refsection>
+ <!-- <keypad_section> -->
+ <!-- <keypad> -->
+ <!-- <keypad_row>(closed\\\) -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_endrow>(\\) -->
+ <!-- <endkeypad> -->
+ <!-- <endkeypad_section> -->
+ <refsection><title>Description</title><para>
+ Copy n lines from the text buffer into the VTEDIT
+ cut buffer. If n is not given and there is a mark
+ set, copy the text between the mark and the
+ current text pointer. Otherwise, copy one line.
+ VTEDIT moves the text pointer to the end of the
+ copied text. If you repeatedly type the PF1 key
+ with no intervening keystrokes, VTEDIT appends
+ successive lines of text to the cut buffer. You
+ can delete the text which was cut by typing the 6
+ keypad key.
+ </para></refsection>
+ </refentry>
+  <refentry>
+<refmeta>
+<refentrytitle>Paste Text</refentrytitle>
+</refmeta>
+
+<refnamediv>
+     <refname>Paste Text</refname>
+     <refpurpose>Insert cut buffer into text.</refpurpose>
+    </refnamediv>
+
+ 
+ <refsection><title>Syntax</title><synopsis><command>PF3 (keypad key)</command></synopsis></refsection>
+ <!-- <keypad_section> -->
+ <!-- <keypad> -->
+ <!-- <keypad_row>(\\closed\) -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_endrow>(\\) -->
+ <!-- <endkeypad> -->
+ <!-- <endkeypad_section> -->
+ <refsection><title>Description</title><para>
+ Insert the contents of the cut buffer into the text buffer.
+ </para></refsection>
+ </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Insert ASCII Value</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Insert ASCII Value</refname>
+     <refpurpose>Insert literal character in text buffer.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>[n]CTRL/\</command></synopsis>
+     <para><keycap>Ctrl</keycap>+<keycap>\</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Accept a character from the terminal and insert into the text buffer the string
+      representing the ASCII value of that character. If n is present, insert the string
+      representing n and do not accept an extra character. VTEDIT inserts the number using the radix
+      that was set when you started the macro. You can change this radix by executing a TECO command
+      with the PF2 key or CTRL/E function. </para>
+     <para> In TECO: ^^x\ (where x is the next character you type) </para>
+    </refsection>
+   </refentry>
+  <refentry>
+<refmeta>
+<refentrytitle>Insert Special Character</refentrytitle>
+</refmeta>
+
+<refnamediv>
+     <refname>Insert Special Character</refname>
+     <refpurpose>Insert character into the text buffer.</refpurpose>
+    </refnamediv>
+
+ 
+ <refsection><title>Syntax</title><synopsis><command>n9 (keypad key)</command></synopsis></refsection>
+ <!-- <keypad_section> -->
+ <!-- <keypad> -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_row>(\\closed\) -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_endrow>(\\) -->
+ <!-- <endkeypad> -->
+ <!-- <endkeypad_section> -->
+ <refsection><title>Description</title><para>
+ Insert into the text buffer the character whose ASCII value is n.
+ </para><para>
+ In TECO: nI<emphasis role="underline">$</emphasis>
+ </para></refsection>
+ </refentry>
+ </section>
+ <section><title>Advancing through the Input File</title>
+ <para>
+ This section describes the commands that are used to read the input file.
+ </para>
+ <refentry>
+<refmeta>
+<refentrytitle>Advance Page</refentrytitle>
+</refmeta>
+
+<refnamediv>
+     <refname>Advance Page</refname>
+     <refpurpose>Move pointer across pages of text.</refpurpose>
+    </refnamediv>
+
+ 
+ <refsection><title>Syntax</title><synopsis><command>[n]8 (keypad key)</command></synopsis></refsection>
+ <!-- <keypad_section> -->
+ <!-- <keypad> -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_row>(\closed\\) -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_row>(\\\) -->
+ <!-- <keypad_endrow>(\\) -->
+ <!-- <endkeypad> -->
+ <!-- <endkeypad_section> -->
+ <refsection><title>Description</title><para>
+ Go forward n pages in the file(s) being edited.
+ If you do not have an open output file, the
+ terminal bell sounds and the command is ignored.
+ </para><para>
+ In TECO: nP
+ </para></refsection>
+ </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Append Page or Line</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Append Page or Line</refname>
+     <refpurpose>Append a page or a line of text to the buffer.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>[n]CTRL/A</command></synopsis>
+     <para><keycap>Ctrl</keycap>+<keycap>A</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Append the next n pages from the input file to the current text buffer. If n is 0,
+      append only one line from the file. If n is negative (e.g., <emphasis role="underline"
+       >$</emphasis>&ndash;CTRL/A), keep appending pages from the input file until end-of-file. If
+      there are form feeds separating the text in the file, VTEDIT inserts form feeds in the text
+      buffer. </para>
+     <para> In TECO: n&lt; ^E"T 12I<emphasis role="underline">$</emphasis> ' A > </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Append Page or Line with no Form Feeds</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Append Page or Line with no Form Feeds</refname>
+     <refpurpose>Append a page or a line of text and discard form feeds.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>[n]<emphasis role="underline">$</emphasis>CTRL/A</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>Ctrl</keycap>+<keycap>A</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Append the next n pages from the input file to the current text buffer, discarding any
+      form feeds that appear in the input file. If n is negative (e.g., <emphasis role="underline"
+       >$</emphasis>&ndash;<emphasis role="underline">$</emphasis>CTRL/A), keep appending pages from
+      the input file until end-of-file. If n is 0, append only one line from the file. </para>
+     <para> In TECO: n&lt; A > </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Yank Page</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Yank Page</refname>
+     <refpurpose>Get a new page from the input file.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>[n]<emphasis role="underline">$</emphasis>Y</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>Y</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Yank n pages, leaving the nth page in the text buffer. If you have an open output file
+      and destructive mode (bit 1, value 2) in TECO's edit mode flag (ED) is not set, the terminal
+      bell rings and the command is ignored. </para>
+     <para> In TECO: n&lt; Y > </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Inhibit Yank Protection</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Inhibit Yank Protection</refname>
+     <refpurpose/>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command><emphasis role="underline">$</emphasis>&ndash;<emphasis role="underline">$</emphasis>Y</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>&ndash;</keycap>+<keycap>Esc</keycap>+<keycap>Y</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> This command inhibits yank protection; it sets destructive mode (bit 1, value 2) in
+      TECO's edit mode flag (ED). </para>
+     <para> In TECO: 0,2ED </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Enable Yank Protection</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Enable Yank Protection</refname>
+     <refpurpose/>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command><emphasis role="underline">$</emphasis>0<emphasis role="underline">$</emphasis>Y</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>0</keycap>+<keycap>Esc</keycap>+<keycap>Y</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> This command enables yank protection; it clears destructive mode (bit 1, value 2) in
+      TECO's edit mode flag (ED). </para>
+     <para> In TECO: 2,0ED </para>
+    </refsection>
+   </refentry>
+ </section>
+ <section><title>Executing TECO commands</title>
+ <para>
+ This section describes the commands that enable you to execute TECO commands
+ under control of the VTEDIT macro.
+ </para>
+ <refentry>
+    <refmeta>
+     <refentrytitle>Execute Q-register Macro</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Execute Q-register Macro</refname>
+     <refpurpose>Execute a macro contained in a q-register.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>[n]CTRL/Eq</command></synopsis>
+     <para><keycap>Ctrl</keycap>+<keycap>E</keycap>+<keycap>q</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Execute the macro in Q-register q. If n is present, use its value as an argument to the
+      macro; if not, execute the macro with no argument. VTEDIT moves the cursor to the top left
+      corner of the screen while the macro is being executed. </para>
+     <para> In TECO: nMq or Mq </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Repeat Q-register Macro</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Repeat Q-register Macro</refname>
+     <refpurpose>Repeatedly execute a macro in a q-register.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>[n]<emphasis role="underline">$</emphasis>CTRL/Eq</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>Ctrl</keycap>+<keycap>E</keycap>+<keycap>q</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Execute the macro in Q-register q in an iteration loop. If the value of n is zero, the
+      iteration is infinite. Otherwise, n is the iteration count for the loop. If n is not given,
+      this command is the same as CTRL/Eq. </para>
+     <para> In TECO: n&lt; Mq > or &lt; Mq > </para>
+    </refsection>
+   </refentry>
+  <refentry>
+<refmeta>
+<refentrytitle>Set TECO Command and Execute</refentrytitle>
+</refmeta>
+
+<refnamediv>
+     <refname>Set TECO Command and Execute</refname>
+     <refpurpose>Load a TECO command and execute it.</refpurpose>
+    </refnamediv>
+
+ 
+ <refsection><title>Syntax</title><synopsis><command>[n]PF2 (keypad key)</command></synopsis>
+     <!-- <keypad_section> -->
+     <!-- <keypad> -->
+     <!-- <keypad_row>(\closed\\) -->
+     <!-- <keypad_row>(\\\) -->
+     <!-- <keypad_row>(\\\) -->
+     <!-- <keypad_row>(\\\) -->
+     <!-- <keypad_endrow>(\\) -->
+     <!-- <endkeypad> -->
+     <!-- <endkeypad_section> --></refsection>
+ <refsection><title>Description</title><para>
+ Get a TECO command from the keyboard and execute
+ it. When you type the PF2 keypad key, VTEDIT
+ erases the top two lines of the screen and prompts
+ you for a command. Your previous command string
+ is initially displayed following the 'Command:'
+ prompt. If you wish to reuse your previous
+ command, simply type either the keypad period (.)
+ or a double ESCape. To edit your previous
+ command, type an initial RUBOUT. This deletes the
+ last character of your command, but retains the
+ rest as if you had just entered it. Further
+ editing and/or entry is now done in the normal
+ way. Any other initial keystroke erases the
+ entire previous command string; you may now
+ proceed to enter your new command. You may enter
+ any valid TECO command string. Your command
+ string appears on the screen as you type. You can
+ use RUBOUT to edit your typing, and you can type
+ CTRL/U to abandon the entry of the command, bypass
+ command execution, and clean up the screen. When
+ you are ready to execute the command, type the
+ keypad period (.) or a double ESCape. VTEDIT
+ cleans up the screen, saves the command string,
+ and executes the command. VTEDIT moves the cursor
+ to the top left corner of the screen while the
+ command is being executed.
+ </para><para>
+ If n is present, its value is used as an argument
+ to the TECO command string.
+ </para><para> In TECO:<simplelist>
+       <member>^U9command<emphasis role="underline">$</emphasis> nM9 </member>
+       <member>^U9command<emphasis role="underline">$</emphasis> M9 </member>
+      </simplelist><note>
+       <para> VTEDIT truely stores the TECO command in Q-register 9. A subsequent CTRL/G 9 command
+        will insert the command into the text buffer. To save the command in an alphabetic
+        Q-register for later usage, You can use the following keystroke sequence: <informaltable>
+         <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <colspec colname="c1"/>
+          <colspec colname="c2"/>
+          <tbody>
+           <row>
+            <entry>
+             <para>9</para>
+            </entry>
+            <entry>
+             <para>Keypad key 9 to set a mark</para>
+            </entry>
+           </row>
+           <row>
+            <entry>
+             <para>CTRL/G 9</para>
+            </entry>
+            <entry>
+             <para>Get TECO command from Q-register 9</para>
+            </entry>
+           </row>
+           <row>
+            <entry>
+             <para>CTRL/T q</para>
+            </entry>
+            <entry>
+             <para>Take command away to Q-register q</para>
+            </entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+      </note>
+     </para></refsection>
+ </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Re-execute TECO Command</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Re-execute TECO Command</refname>
+     <refpurpose>Execute stored TECO command.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>[n]<emphasis role="underline">$$</emphasis></command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>Esc</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Execute the TECO command most recently set with the PF2 keypad key. VTEDIT moves the
+      cursor to the top left corner of the screen while the command is being executed. </para>
+     <para> If n is present, its value is used as an argument to the TECO command. </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Set TECO Command and Repeat Execution</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Set TECO Command and Repeat Execution</refname>
+     <refpurpose>Get a TECO command and repeatedly execute it.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>[n]<emphasis role="underline">$</emphasis>PF2 (keypad key)</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>PF2</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> A TECO command is gotten from the keyboard just like the PF2 command. If n is present,
+      the TECO command is executed n times. Else the TECO command is executed in an infinite
+      iteration. </para>
+     <para> In TECO: <informaltable>
+       <tgroup cols="2" align="left" colsep="1" rowsep="1">
+        <colspec colname="c1"/>
+        <colspec colname="c2"/>
+        <tbody>
+         <row>
+          <entry>
+           <para/>
+          </entry>
+          <entry>
+           <para>^U9command<emphasis role="underline">$</emphasis> n&lt; M9 ></para>
+          </entry>
+         </row>
+         <row>
+          <entry>
+           <para/>
+          </entry>
+          <entry>
+           <para>^U9command<emphasis role="underline">$</emphasis> &lt; M9 ></para>
+          </entry>
+         </row>
+        </tbody>
+       </tgroup>
+      </informaltable>
+     </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Start/End Learning Mode</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Start/End Learning Mode</refname>
+     <refpurpose>Enter a command sequence and remember it.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command><emphasis role="underline">$</emphasis>L</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>L</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> VTEDIT can 'learn' a series of keystrokes and (re-)execute them upon request. An initial
+       <emphasis role="underline">$</emphasis>L puts VTEDIT into learning mode. Every subsequent
+      keystroke is remembered by VTEDIT until another <emphasis role="underline">$</emphasis>L is
+      typed. To cancel a learned sequence or to ensure that you are out of learning mode, type
+       <emphasis role="underline">$</emphasis>L until the terminal bell sounds. The bell signals
+      that the null learning sequence (i.e., <emphasis role="underline">$</emphasis>L<emphasis
+       role="underline">$</emphasis>L) has been entered. </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Execute Learned Sequence</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Execute Learned Sequence</refname>
+     <refpurpose>Execute a previously remembered command sequence.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>[n]<emphasis role="underline">$</emphasis>X</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>X</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> This command causes VTEDIT to (re-)execute the previously learned keystroke sequence. If
+      you do not have any learning sequence remembered, the terminal bell rings. The optional
+      numeric argument is the number of times to execute the learned keystroke sequence. </para>
+    </refsection>
+   </refentry>
+ </section>
+ <section><title>Controlling the Video Terminal</title>
+ <para>
+ This section describes the commands that are used to control the display.
+ </para>
+ <refentry>
+    <refmeta>
+     <refentrytitle>Repaint Screen</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Repaint Screen</refname>
+     <refpurpose>Repaint.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>CTRL/W</command></synopsis>
+     <para><keycap>Ctrl</keycap>+<keycap>W</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Repaint the screen. This command is useful if the display on the screen is destroyed by
+      a broadcast from the system manager. This command also restores special keypad mode on the
+      editing keypad, and can be used if the terminal was powered down. </para>
+     <para> VTEDIT requests your terminal to send its terminal id as part of this command. You
+      should, therefore, wait until the screen stops updating/flickering before further typing. As
+      part of the screen repaint, a series of ESCape sequences are sent to the terminal. </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Set Cursor Line</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Set Cursor Line</refname>
+     <refpurpose>Set the position of the line where the cursor remains.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>nCTRL/W</command></synopsis>
+     <para><keycap>n</keycap>+<keycap>Ctrl</keycap>+<keycap>W</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> The cursor line is set to n. The scope driver will try to keep the cursor on the nth
+      line of the screen. The initial value of this cursor line is 2/3rd's of the way down the
+      screen (16 for 24 line screens). </para>
+     <para> An effective CTRL/W command is executed after setting the cursor line; please read the
+      notes above. </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Toggle See-all Display Mode</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Toggle See-all Display Mode</refname>
+     <refpurpose>Set screen mode so that all characters are displayed.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>CTRL/V</command></synopsis>
+     <para><keycap>Ctrl</keycap>+<keycap>V</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> This command turns on the scope driver see-all mode, or turns it off if it is currently
+      on. </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Set Terminal Characteristics</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Set Terminal Characteristics</refname>
+     <refpurpose>Set the characteristics of the terminal.</refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>nCTRL/V</command></synopsis>
+     <para><keycap>n</keycap>+<keycap>Ctrl</keycap>+<keycap>V</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Change the display characteristics of the terminal. VTEDIT requests your terminal to
+      send its terminal id as part of this command. You should, therefore, wait until the screen
+      stops updating/flickering before further typing. If you have selected some illegal terminal
+      characteristic, VTEDIT should catch it and automatically establish something that will work. </para>
+     <para> If n has the value 0, VTEDIT tells the scope driver that your terminal is a VT52. Use
+      this command only if TECO made a wrong guess when it started (which shouldn't happen) or if
+      you detach and change terminal types during an editing session. The value 2 means that the
+      terminal is a DEC_CRT, but should be controlled in VT52 compatibility mode. The value 4 means
+      that the terminal is a DEC_CRT and should be controlled with ANSI standard escape sequences.
+      This is the optimal setting for DEC_CRT terminals, and must be used if you want to display 132
+      columns or to display the marked region in reverse video. When you change modes on a DEC_CRT,
+      the VTEDIT sends the proper escape sequence to the terminal to change its operation. </para>
+     <para> If n has an even value from 10 to 132, that value is used as the new width for the
+      display. You must be in DEC_CRT ANSI mode to set a width greater than 80. You can set a width
+      narrower than terminal can display. Setting a width wider than your terminal can handle may
+      cause unpredicatble results. Note that the scope driver reserves the last two characters of
+      each line, and therefore can display only n&ndash;2 characters if the width is set to n. The
+      default width is 80 characters when you start VTEDIT. </para>
+     <para> If n has a negative value from 10 to 24, it sets the height of the display. You should
+      not use this command, unless you have a DEC_CRT in ANSI mode which has the capability to
+      change the hardware scrolling region. </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Enter/Exit Screen Holding Mode</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Enter/Exit Screen Holding Mode</refname>
+     <refpurpose>Toggle hold screen mode. </refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>[n]<emphasis role="underline">$</emphasis>CTRL/V</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>Ctrl</keycap>+<keycap>V</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> This command toggles "holding screen" mode. In normal mode (the default), VTEDIT
+      attempts to keep the cursor positioned on the line specified by the nCTRL/W command. Any
+      advance or back line command will scroll the screen one line thus keeping the cursor in the
+      same physical location on the screen. In holding screen mode, VTEDIT will only scroll the
+      screen when the cursor position would have been off the screen. For example, an advance line
+      from the last line on the screen or a back line from the top line on the screen will cause the
+      screen to scroll and the cursor to be positioned at its default location, the line specified
+      by nCTRL/W. This mode is useful for terminals without reverse scrolling capabilities and/or
+      for operation over a low speed communication lines. </para>
+     <para> If n is present and has the value 0, holding screen mode is unconditionally turned off;
+      if n is -1, holding screen mode is unconditionally turned on. </para>
+     <para> If n is positive, holding screen mode is turned on with the cursor limit set to n.
+      VTEDIT will only scroll the screen if the cursor position would have been within the top or
+      bottom n lines on the screen. <note>
+       <para> This feature only works on VT52 terminals and should not be used on DEC_CRT terminals.
+       </para>
+      </note>
+     </para>
+    </refsection>
+   </refentry>
+ </section>
+ 
+ <section><title>Selecting Word Delimiters</title>
+ <para>
+ Several of the VTEDIT editing commands use the idea of a 'word'
+ in the text buffer. Normally, words are delimited by sequences
+ of spaces, tabs, commas, carriage returns, and line feeds. If
+ you have a special editing application, you may require a
+ different definition of a word. The following commands allow you
+ to change that definition.
+ </para>
+ <refentry>
+    <refmeta>
+     <refentrytitle>Use Standard Words</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Use Standard Words</refname>
+     <refpurpose> Set the standard word delimiting characters. </refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command><emphasis role="underline">$</emphasis>T</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>T</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Restore the set of word delimiters to the standard set: space, tab, comma, carriage
+      return, line feed. </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Use BASIC-PLUS Words</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Use BASIC-PLUS Words</refname>
+     <refpurpose> Use the BASIC-PLUS word delimiting characters. </refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command><emphasis role="underline">$</emphasis>0<emphasis role="underline">$</emphasis>T</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>0</keycap>+<keycap>Esc</keycap>+<keycap>T</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Use a set of word delimiters appropriate for editing BASIC-PLUS code. This command
+      appends the following special characters to the set of word delimiters: </para>
+     <para> &lpar; &rpar; + -&star; ^ \ ! = : &lt; > / </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Clear Delimiter Set</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Clear Delimiter Set</refname>
+     <refpurpose> Clear word delimiting characters. </refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command><emphasis role="underline">$</emphasis>&ndash;<emphasis role="underline">$</emphasis>T</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>&ndash;</keycap>+<keycap>ESC</keycap>+<keycap>T</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Clear out the word delimiter set. You must follow this command by adding one or more
+      word delimiters (see below). </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Add Word Delimiter</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Add Word Delimiter</refname>
+     <refpurpose> Add characters to the word delimiters. </refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>n<emphasis role="underline">$</emphasis>T</command></synopsis>
+     <para><keycap>n</keycap>+<keycap>Esc</keycap>+<keycap>T</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Add the character whose ASCII value is n to the set of word delimiters. The value of n
+      must be between 1 and 127. </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Get Next Word</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Get Next Word</refname>
+     <refpurpose> Move word(s) from surrounding lines to current line. </refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>[n]<emphasis role="underline">$</emphasis>N</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>N</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Move the next n words to the current line. If n is positive, the cursor should be at the
+      end of a line; the first n words of the next line(s) are moved to the end of the current line.
+      If n is negative, the cursor should be at the beginning of a line; the last n words of the
+      previous line(s) are moved to the beginning of the current line. </para>
+    </refsection>
+   </refentry>
+ </section>
+ <section><title>Exiting</title>
+ <para>
+ This section describes the commands used to exit from VTEDIT and TECO.
+ </para>
+ <refentry>
+    <refmeta>
+     <refentrytitle>Exit from VTEDIT</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Exit from VTEDIT</refname>
+     <refpurpose> </refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>CTRL/Z or CTRL/C</command></synopsis>
+     <para>
+      <keycap>Ctrl</keycap>+<keycap>Z</keycap> or
+       <keycap>Ctrl</keycap>+<keycap>C</keycap>
+      </para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Exit from the Video Terminal Editor macro to TECO's asterisk prompt. </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Exit from TECO</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Exit from TECO</refname>
+     <refpurpose> Exit from TECO. </refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command><emphasis role="underline">$</emphasis>CTRL/Z</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>Ctrl</keycap>+<keycap>Z</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Exit from the Video Terminal Editor macro and from TECO, copying the input file to the
+      output file and closing both files. This command turns off special keypad mode and moves the
+      cursor to the bottom of the screen. </para>
+     <para> In TECO: EX </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Exit from TECO Without Preserving Output</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Exit from TECO Without Preserving Output</refname>
+     <refpurpose> Exit from TECO and undo all changes. </refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command><emphasis role="underline">$</emphasis>&ndash;CTRL/Z</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>&ndash;</keycap>+<keycap>Ctrl</keycap>+<keycap>Z</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Delete any output file which may be open, undo any edit backup in effect, and exit from
+      TECO. This command turns off special keypad mode and moves the cursor to the bottom of the
+      screen. </para>
+     <para> In TECO: HK EK EX </para>
+    </refsection>
+   </refentry>
+ </section>
+ <section><title>Miscellaneous Commands</title>
+ <para>
+ This section describes the rest of the commands.
+ </para>
+ <refentry>
+    <refmeta>
+     <refentrytitle>Find Front of File</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Find Front of File</refname>
+     <refpurpose> Go back to the beginning of the file. </refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command><emphasis role="underline">$</emphasis>F</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>F</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> The current file open for editing is closed out and, then, re-opened. You are left
+      positioned at the first page of the file. If you have no current output file the terminal bell
+      sounds and the command is ignored. </para>
+     <para> In TECO: EC EBfile<emphasis role="underline">$</emphasis> Y </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Worry About Operating System Crashing</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Worry About Operating System Crashing</refname>
+     <refpurpose> Close the edit session and re-open at the current point. </refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command><emphasis role="underline">$</emphasis>1<emphasis role="underline">$</emphasis>F</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>1</keycap>+<keycap>Esc</keycap>+<keycap>F</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Close out the file currently open for editing, re-open it, and re-find your current
+      editing position. Similiar to the command above, but automatically re-positions you to where
+      you left off editing. This command is useful if your operating system tends to crash...
+     </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Exit from TECO Marking Position</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Exit from TECO Marking Position</refname>
+     <refpurpose> Exit TECO but remember where you are. </refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command><emphasis role="underline">$</emphasis>0<emphasis role="underline">$</emphasis>F</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>0</keycap>+<keycap>Esc</keycap>+<keycap>F</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Close out the file currently open for editing marking the current editing position.
+      TECO's memory file is updated to reflect the file currently being edited and the /FIND switch
+      is appended to the file specification. This command is used in conjunction with the command
+      below. </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Find Marked Position</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Find Marked Position</refname>
+     <refpurpose> Find the point where you stopped editing. </refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command><emphasis role="underline">$</emphasis>&ndash;<emphasis role="underline">$</emphasis>F</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>&ndash;</keycap>+<keycap>Esc</keycap>+<keycap>F</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> (Re-)find marked editing position. The editing position marked by some previous
+       <emphasis role="underline">$</emphasis>0<emphasis role="underline">$</emphasis>F command is
+      re-found. </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Redisplay Keypad Layout</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Redisplay Keypad Layout</refname>
+     <refpurpose> Help for keypad. </refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command><emphasis role="underline">$</emphasis>H</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>H</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Clear the screen and display the help text for the Video Terminal Editing macro. Type
+      any non-keypad character to redisplay the text window and resume editing. VTEDIT does not
+      insert that character into the text. </para>
+    </refsection>
+   </refentry>
+  <refentry>
+    <refmeta>
+     <refentrytitle>Set Left Margin</refentrytitle>
+    </refmeta>
+    <refnamediv>
+     <refname>Set Left Margin</refname>
+     <refpurpose> Set the position of the left margin. </refpurpose>
+    </refnamediv>
+    <refsection>
+     <title>Syntax</title>
+     <synopsis><command>[n]<emphasis role="underline">$</emphasis>M</command></synopsis>
+     <para><keycap>Esc</keycap>+<keycap>M</keycap></para>
+    </refsection>
+    <refsection>
+     <title>Description</title>
+     <para> Set the left margin at column n. If you have set a left margin, the VTEDIT automatically
+      inserts enough tabs and spaces to get the cursor to the margin whenever you type a carriage
+      return or an open line command (7 key on keypad). If n is negative, VTEDIT sets the margin to
+      &ndash;n and uses only spaces for filling. If n is not present, the margin is set at the
+      current column. If there is any text on the line when this you give this command, VTEDIT
+      shifts it to the new margin. </para>
+    </refsection>
+   </refentry>
+ </section>
+  </section>
+ </appendix>

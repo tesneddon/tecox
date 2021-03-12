@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter [
+<!ENTITY % isopub PUBLIC "ISO 8879:1986//ENTITIES Publishing//EN//XML" "http://www.w3.org/2003/entities/iso8879/isopub.ent">
+<!ENTITY % isonum PUBLIC "ISO 8879:1986//ENTITIES Numeric and Special Graphic//EN" "http://www.w3.org/2003/entities/iso8879/isonum.ent">
+<!ENTITY % isotech PUBLIC "ISO 8879:1986//ENTITIES General Technical//EN" "http://www.w3.org/2003/entities/iso8879/isotech.ent">
+%isopub;%isonum;%isotech;
+<!ENTITY % myEnt SYSTEM "teco.ent">
+%myEnt;
+]>
+ <chapter xmlns="http://docbook.org/ns/docbook" version="5.1" xml:id="CON"><title>Conventions and Structures</title>
+ <sect1 xml:id="CON_TCS"><title>TECO character set</title>
+ <para>
+ TECO accepts the full 8-bit ASCII character set. (In other than
+ TECO-11, characters typed at the terminal have their 8th bit
+ trimmed off. If your terminal does not transmit or receive all
+ of the ASCII codes, you can still insert the full character set
+ into your TECO buffer, using special commands (see <xref linkend="COM_INS"/>).
+ </para><para>
+ For more information on TECO's handling of 8-bit characters
+ (including on terminals capable of displaying only 7-bit data),
+ see the description of the 4096 ET bit, in <xref linkend="COM_MCF"/>.
+ </para><para>
+ When TECO is maintaining a window into the text buffer, a special
+ facility (called "SEEALL" or "View All" mode) is available to
+ explicitly show certain characters which normally do not print,
+ such as <literal>&lt;CR></literal>, <literal>&lt;FF></literal>, and <literal>&lt;TAB></literal>.
+ This mode is controlled by the
+ 3:W flag, which is described in <xref linkend="COM_SCO"/>.
+ </para><para>
+ TECO command strings may be entered using upper case characters
+ (as shown throughout this manual) or lower case characters. For
+ example, the commands MQ, mQ, Mq, and mq are executed
+ identically. A file containing upper and lower case text can be
+ edited in the same way as a file containing upper case only,
+ although this may be clumsy to do from an upper case only
+ terminal. TECO can be set to convert lower case alphabetics to
+ upper case as they are typed in; commands to enable or disable
+ lower case type-in will be presented in <xref linkend="COM_MCF"/>.
+ </para><para>
+ Control characters are generally echoed by TECO as a caret or
+ up-arrow followed by the character. Some control characters,
+ such as <literal>&lt;CTRL/L></literal> (form feed) and <literal>&lt;CTRL/G></literal>
+ (bell) echo as the
+ function they perform. In many cases, you can type a control
+ character as a caret (up-arrow) followed by a character, and it
+ will be treated as if it had been entered using the control key.
+ </para><para> There are exceptions to the interchangeable use of the CONTROL key and the caret. When a
+   control character is used as the delimiter of a text string (as explained in <xref
+    linkend="CON_TCF_TXT"/> below), it must be entered in its <literal>&lt;CTRL/x></literal> form.
+   This form must also be used if the control character is the second character of a two-character
+   command, or is being entered as an immediate action command. Since certain control characters
+   have special meaning in text arguments, some of them (such as <literal>&lt;CTRL/N></literal> and
+    <literal>&lt;CTRL/X></literal>), must be entered into a text string using the CONTROL key and
+   preceded by <literal>&lt;CTRL/Q></literal>, ^Q, <literal>&lt;CTRL/R></literal>, or ^R. </para></sect1><sect1 xml:id="CON_TCF"><title>TECO Command Format</title>
+ <para>
+ Each TECO commands consists of one or two characters.
+ </para><para>
+ TECO commands may be strung together (concatenated) into a
+ command string. If a command in the string returns numeric
+ value(s), it or they will be passed to the following command.
+ <note><para>
+ Most commands which return a value are expressly designed
+ for that purpose. A few commands (such as n%q and m,n:W,
+ q.v.) can be used to cause an action, and also return a
+ value. Good programming practice suggests following such
+ a command with <literal>&lt;DELIM></literal> or caret-[ if the returned value
+ is not intended to affect the following command.
+ </para></note>
+ </para><para>
+ A TECO command may be preceded by one or two numeric arguments.
+ Some TECO commands may be followed by a text argument. Many TECO
+ commands can be modified by "@" (see <xref linkend="CON_TCF_TXT"/>) and/or by ":"
+ (see <xref linkend="CON_TCF_COL"/>).
+ </para><para>
+ When TECO commands are concatenated into a command string, no
+ delimiter is necessary between commands except for one necessary
+ to delimit a text argument or one as suggested in the note above.
+ </para><para>
+ TECO commands are accumulated into a command string as they are
+ typed. The command string is executed when it is terminated by
+ typing two consecutive <literal>&lt;DELIM></literal> characters. TECO then executes
+ the commands in the order in which they appear in the command
+ string, until the string is exhausted or an error occurrs. (Some
+ TECO commands cause branching or looping, so altering the order
+ of execution.)
+ </para><para> TECO's <literal>&lt;DELIM></literal> character is (internally) the ESCape (octal 33). Because
+   newer terminals use the ESCape character as part of control sequences (and some terminals no
+   longer even possess an ESCape key), provision is made for you to designate a key on your terminal
+   to cause an ESCape to be sent to TECO &ndash; that is, to act as an ESCape surrogate. (See the EE
+   flag and the 8192 ET bit, <xref linkend="COM_MCF"/>.) Because the key you press to delimit text
+   strings and TECO commands may be the ESCape key or may be the surrogate, this manual uses the
+   indirect term <literal>&lt;DELIM></literal> to mean whichever one you are using. When an ESCape
+   surrogate is active, the character you see is `. (When no surrogate is active, you see $.) This
+   manual uses the ` character. </para><sect2 xml:id="CON_TCF_NUM"><title>Numeric Arguments</title>
+ <para>
+ Most TECO commands may be preceded by a numeric argument. Some
+ numeric arguments must be positive; others can be negative or
+ zero. The maximum size of any numeric argument is restricted, as
+ summarized in the following table:
+ <table xml:id="CON_TAB_RES"><title>Restrictions on numeric arguments</title>
+ 
+ <tgroup cols="4" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+<colspec colname="c3"/>
+<colspec colname="c4"/>
+ <thead>
+<row>
+<entry><para>System</para></entry><entry><para>Signed Min</para></entry><entry><para>Max</para></entry><entry><para>Unsigned Max</para></entry>
+</row>
+</thead>
+ <tbody>
+<row><entry><para>TECO-8</para></entry><entry><para>&ndash;2**12+1</para></entry><entry><para>+2**12-1</para></entry><entry><para>2**13-1</para></entry></row>
+ <row><entry><para>TECO-10</para></entry><entry><para>&ndash;2**34</para></entry><entry><para>+2**34-1</para></entry><entry><para>2**35-1</para></entry></row>
+ <row><entry><para>TECO-11</para></entry><entry><para>&ndash;2**15</para></entry><entry><para>+2**15-1</para></entry><entry><para>2**16-1</para></entry></row>
+ <row><entry><para>TECO-32</para></entry><entry><para>&ndash;2**31</para></entry><entry><para>+2**31-1</para></entry><entry><para>2**32-1</para></entry></row>
+ 
+</tbody>
+</tgroup></table>
+ </para><para>
+ Exceeding these ranges of values can cause unpredictable results.
+ So can using a negative argument with a command that takes only
+ an unsigned argument.
+ </para><para>
+ Numeric arguments can be used in the following ways:
+ <itemizedlist>
+ <listitem><para>Character commands such as J, C, R, and D take a single
+ numeric argument which represents the number of
+ characters that the command is to act on.
+ </para></listitem><listitem><para>Such commands as P, PW, and &lt; perform an action that
+ can be repeated. The numeric argument is the
+ repetition count.
+ </para></listitem><listitem><para>Some commands, such as ED, ET, ^E, ^X, ES, EU, and EV,
+ control the setting of variables called flags. When a
+ numeric argument is specified, the value of that
+ argument becomes the new value of the associated flag.
+ When no numeric argument is specified, these command
+ return the value of the associated flag.
+ </para></listitem><listitem><para>Line commands such as T, K, X, FB, and FC operate on
+ lines. They take zero, one, or two numeric arguments.
+ If one argument (n) is specified, it represents the
+ number of lines over which the command is to have
+ effect, beginning at the current buffer pointer
+ position. A positive (non-zero) n affects a text
+ running from the current pointer position to the nth
+ following line delimiter. A negative n affects a text
+ running from the pointer back to the beginning of the
+ line containing the nth previous line delimiter. When
+ n is zero, the affected text runs from the beginning of
+ the current line to the current pointer position. When
+ n is omitted, n = 1 is assumed.
+ </para></listitem></itemizedlist>
+ </para><para>
+ When a line command contains two numeric arguments
+ (m,n), these represent the pointer positions between
+ which text is affected. Unless the description of the
+ command says the order of these two arguments is
+ important, they may be entered in either order.
+ </para><para>
+ When a command that normally takes an argument is specified with
+ no argument, TECO executes the command in the most common or most
+ useful way, as shown in the following table:
+ <table xml:id="CON_TAB_DEF"><title>Default Arguments</title>
+ 
+ <tgroup cols="3" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+<colspec colname="c3"/>
+
+ <thead>
+<row>
+<entry><para>Command</para></entry><entry><para>Default Argument</para></entry><entry><para>Default Action</para></entry>
+</row>
+</thead>
+ <tbody>
+<row><entry><para>C</para></entry><entry><para>1</para></entry><entry><para>Advance 1 character</para></entry></row>
+ <row><entry><para>R</para></entry><entry><para>1</para></entry><entry><para>Back over 1 character</para></entry></row>
+ <row><entry><para>L</para></entry><entry><para>1</para></entry><entry><para>Advance 1 line</para></entry></row>
+ <row><entry><para>J</para></entry><entry><para>0</para></entry><entry><para>Jump to start of buffer</para></entry></row>
+ <row><entry><para>V</para></entry><entry><para>1</para></entry><entry><para>View 1 line</para></entry></row>
+ <row><entry><para>D</para></entry><entry><para>1</para></entry><entry><para>Delete 1 character</para></entry></row>
+ <row><entry><para>K</para></entry><entry><para>1</para></entry><entry><para>Kill 1 line</para></entry></row>
+ <row><entry><para>S, N, etc.</para></entry><entry><para>1</para></entry><entry><para>Search for first occurrence</para></entry></row>
+ <row><entry><para>%</para></entry><entry><para>1</para></entry><entry><para>Increment Q-register by 1</para></entry></row>
+ <row><entry><para>X</para></entry><entry><para>1</para></entry><entry><para>Extract one line</para></entry></row>
+ 
+</tbody>
+</tgroup></table>
+ </para><para>
+ These default arguments reduce the number of keystrokes needed
+ for common TECO actions.
+ </para></sect2><sect2 xml:id="CON_TCF_TXT"><title>Text Arguments</title>
+ <para>
+ Many TECO commands take a text (character string) argument. The
+ string is placed immediately after the command and consists of a
+ sequence of ASCII characters terminated by a <literal>&lt;DELIM></literal> character
+ (or in the case of ! and ^A commands, by the command character).
+ The string of ASCII characters may not include a <literal>&lt;DELIM></literal>, since
+ this would terminate the string prematurely, but may include any
+ other character. (Some characters may be difficult to enter from
+ a terminal because they are TECO immediate action commands or
+ because they have been filtered out by the operating system).
+ </para><para>
+ Examples of text arguments:
+ <simplelist>
+ <member>Sabc` Search for the string "abc" </member><member>^UAHELLO` Insert the text "HELLO" into Q-register A </member><member>OBEGIN` Branch to the tag specified by the string "BEGIN" </member></simplelist>
+ </para><para>
+ Some TECO commands require two text arguments. Each argument
+ must be followed by a <literal>&lt;DELIM></literal> character, as follows:
+ <simplelist>
+ <member>FSabc`def` Replace string "abc" by "def" </member></simplelist>
+ </para><para>
+ You can include a <literal>&lt;DELIM></literal> character in a text string by using
+ another format of text argument. In this alternate form, the
+ string is delimited on both sides by any ASCII code that does not
+ otherwise appear in the string. You signal that this format is
+ being used by inserting an @ character before the command, as
+ follows:
+ <simplelist>
+ <member>@ER5TEST.FOR5 Open the file "TEST.FOR" for
+ input. The delimiter used is "5"
+ </member><member>@^A+Hello out there!+ Type the message "Hello out
+ there!" on the terminal. The
+ delimiter is "+"
+ </member></simplelist>
+ </para><para>
+ Unpredictable results will occur if another TECO command
+ intervenes between an @ sign and the command that it is supposed
+ to affect. Note that a control character used as a delimiter
+ must be entered as <literal>&lt;CTRL/x></literal> (that is, in its single-keystroke
+ form).
+ </para></sect2><sect2 xml:id="CON_TCF_COL"><title>Colon Modifiers</title>
+ <para>
+ The colon (:) command modifies the action of the next command.
+ In some cases, it will cause the next command to return a value
+ indicating whether it has failed or succeeded. A zero (0)
+ indicates that the command has failed, while a -1 indicates that
+ it has succeeded. The colon modifier is used this way with such
+ commands as :ER, :EB, :EN, :S, :N, :FS, :FN, :FB, and :FC. If
+ the next sequential command requires a positive argument, the -1
+ is interpreted as the largest possible positive number. In other
+ cases, such as :Gq and :=, the colon modifier changes the meaning
+ of the command. Unpredictable results may occur if you place a
+ colon directly before a TECO command that does not normally
+ accept a colon modifier.
+ </para><para>
+ If both the : and the @ (string delimiter) are used with the
+ same command, they may be placed in either order.
+ </para></sect2></sect1><sect1 xml:id="CON_DAT"><title>Data Structures</title>
+ <para>
+ A good way to begin the study of a programming language is to
+ forget the commands, for the moment, and concentrate instead on
+ the data structures. This section follows that approach,
+ describing both the values on which TECO operates and the buffers
+ and registers in which these values are stored.
+ </para><para>
+ TECO manipulates two types of data, namely,
+ <itemizedlist>
+ <listitem><para>The character string: a sequence of zero or more ASCII
+ characters, and
+ </para></listitem><listitem><para>The integer: a numeric value that may be signed or
+ unsigned.
+ </para></listitem></itemizedlist>
+ </para><para>
+ The text that TECO edits is, of course, a character string. Less
+ obviously, the command string by which the user controls TECO is
+ also a character string. The counters and indices for character
+ string manipulation, and the repetition counts for loops are
+ integers.
+ </para><para>
+ Character strings and integers have distinct internal
+ representation and this is reflected in the design of the TECO
+ commands. Commands designed for character strings do not work on
+ integers and vice versa.
+ </para><para>
+ The data structures described in this section are frequently
+ applied to character strings. Structure is never "built into"
+ the data, but rather is attributed to the data by particular
+ commands and conventions. Thus "lines" of characters are
+ recognized by line manipulation commands, but not by character
+ manipulation commands, which view an end-of-line character as
+ just another ASCII code.
+ </para><para>
+ The following are definitions for the line and the page in TECO:
+ <itemizedlist>
+ <listitem><para>Any character string can be divided into TECO lines by
+ considering the line to be ended by either:
+ <simplelist>
+ <member>a line feed (octal 12)
+ </member><member>a form feed (octal 14)
+ </member><member>a vertical tab (octal 13) or
+ </member><member>the end of the given character string
+ </member></simplelist>
+ </para></listitem><listitem><para>Any character string can be divided into TECO pages by
+ considering the page to be ended by either
+ <simplelist>
+ <member>a form feed (octal 14) or
+ </member><member>the end of the given character string
+ </member></simplelist>
+ </para></listitem></itemizedlist>
+ </para><para>
+ These data structures are used to achieve two quite separate
+ results: the formatting of type out and the logical division of
+ data.
+ </para><sect2 xml:id="CON_DAT_TXB">
+   <title>Text Buffer</title>
+   <para> The main storage of TECO is the text buffer. The text buffer stores a single character
+    string that TECO edits. A text buffer pointer is used to address text in the buffer; it is moved
+    about by many TECO commands. The text buffer pointer never points to characters in the buffer;
+    it is always pointing at pointer positions (between characters). The available pointer positions
+    in the text buffer are sequentially numbered beginning with 0. Pointer position 0 is the
+    position at the start of the buffer, just to the left of the first character. Pointer position 1
+    is the next position, just to the right of the first character, etc. As an example, suppose the
+    text buffer contains the string FOOBAR. Then seven text buffer pointer positions are determined
+    as shown by the arrows in the following figure: </para>
+   <screen>FOOBAR
+&darr;&darr;&darr;&darr;&darr;&darr;&darr;
+0123456</screen>
+   <para> Note that there are 6 characters in the buffer and that the highest numbered pointer
+    position is 6. The pointer position number is equal to the number of characters preceding that
+    position. </para>
+   <para> Useful definitions of "current" objects are made with respect to the text buffer pointer
+    as follows: <orderedlist>
+     <listitem>
+      <para>The current character of the text buffer is the character just to the right of the
+       pointer. If the pointer is at the end of the text buffer, there is no character to the right
+       of the buffer pointer, and the current character does not exist. </para>
+     </listitem>
+     <listitem>
+      <para>The current line of the text buffer is the TECO line that contains the current
+       character. In the special case that the pointer is at the end of the buffer, the current line
+       is everything back to (but not including) the last end-of-line character. </para>
+     </listitem>
+     <listitem>
+      <para>The current page of the text buffer is the TECO page that contains the current
+       character. In the special case that the pointer is at the end of the buffer, the current page
+       is everything back to (but not including) the last form feed character (or the beginning of
+       the buffer). </para>
+     </listitem>
+    </orderedlist>
+   </para>
+   <para> When the text buffer pointer is at the end of the text buffer and the last character of
+    the buffer is an end-of-line character, then the current line is an empty string according to
+    the definition just given. In this case, TECO performs the required operation on this empty
+    string. For example, if the pointer is at the end of the buffer and TECO is commanded to kill
+    (delete) the next 3 lines, then the empty string is killed 3 times. Similarly, if the pointer is
+    at the end of the buffer and TECO is commanded to advance the pointer 5 lines, the pointer will
+    remain at the end of the buffer. No error message will be given. In a like fashion, if the
+    pointer is at the end of the first line of the buffer, and TECO is instructed to extract the
+    previous 4 lines (into a Q-register), then only the first line is extracted since it is presumed
+    to be preceded by 3 empty lines. </para>
+  </sect2><sect2 xml:id="CON_DAT_QRG"><title>Q-registers</title>
+ <para>
+ TECO provides data storage registers, called Q-registers, which
+ may be used to store single integers and/or ASCII character
+ strings. Each Q-register is divided into two storage areas. In
+ its numeric storage area, each Q-register can store one signed
+ integer. In its text storage area, each Q-register can store an
+ ASCII character string (which can be any text, including the
+ important case of a TECO command string).
+ </para><para>
+ There are global Q-registers and (in TECO-11) local Q-registers.
+ </para><para>
+ In every TECO, there are 36 global Q-registers, each of which has
+ a one-character name: A through Z and 0 through 9. The global
+ Q-registers are available to all macro levels, including
+ "outside" macros altogether (that is, at prompt level).
+ </para><para>
+ In TECO-11, there are additionally 36 local Q-registers, each of
+ which has a two-character name: .A through .Z and .0 through .9.
+ Effectively, there is a complete and unique set of local
+ Q-registers available to each and every macro level, including
+ prompt level. TECO automatically saves and restores a given
+ macro level's local Q-registers around execution of a nested
+ (lower level) macro. When a macro is invoked via an Mq command
+ (where the command is not colon-modified, and q is a global
+ Q-register), the current set of local Q-registers is saved and a
+ new set of local Q-registers created. When the macro exits, its
+ local Q-registers are destroyed and those of the calling macro
+ level are restored. (If a fatal error occurs and TECO goes back
+ to prompt level, local Q-registers from all macro levels are
+ destroyed and prompt level's set is restored.)
+ </para><para>
+ (A new set of local Q-registers is not created when the command
+ is colon-modified, as in :MA, or when the invoked macro itself
+ resides in a local Q-register, as in M.A &ndash; see <xref linkend="COM_TAB_MIC"/>.)
+ A local Q-register name can be used in any command that takes a
+ Q-register name.
+ </para><para>
+ Various TECO commands allow the storing and retrieving of numeric
+ values from the numeric storage areas of the Q-registers. Other
+ TECO commands allow the storage and retrieval of strings from the
+ text storage areas of the Q-registers.
+ </para></sect2><sect2 xml:id="CON_DAT_QPD"><title>Q-register Push-down List [not in TECO-8]</title>
+ <para>
+ The Q-register pushdown list is a stack that permits the numeric
+ and text storage areas of Q-registers to be saved (the [ command)
+ and restored (the ] command). The command sequence [A ]B
+ replicates the text string and numeric value from Q-register A
+ into Q-register B. (Note that in TECO-11, macros can be written
+ to use local Q-registers, avoiding the need to save and restore
+ Q-registers via the pushdown list.)
+ </para></sect2><sect2 xml:id="CON_DAT_NUM"><title>Numeric Values and Flags</title>
+ <para>
+ TECO has many special numeric values and flags which are
+ accessible through TECO commands. Some of these values, such as
+ the text buffer pointer, reflect the state of TECO. Others
+ control TECO's behavior in various ways.
+ 
+</para></sect2></sect1></chapter>

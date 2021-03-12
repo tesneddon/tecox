@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter [
+<!ENTITY % isopub PUBLIC "ISO 8879:1986//ENTITIES Publishing//EN//XML" "http://www.w3.org/2003/entities/iso8879/isopub.ent">
+<!ENTITY % isonum PUBLIC "ISO 8879:1986//ENTITIES Numeric and Special Graphic//EN" "http://www.w3.org/2003/entities/iso8879/isonum.ent">
+<!ENTITY % isotech PUBLIC "ISO 8879:1986//ENTITIES General Technical//EN" "http://www.w3.org/2003/entities/iso8879/isotech.ent">
+%isopub;%isonum;%isotech;
+<!ENTITY % myEnt SYSTEM "teco.ent">
+%myEnt;
+]>
+ <chapter xmlns="http://docbook.org/ns/docbook" version="5.1" xml:id="INV"><title>Invoking TECO</title>
+ <sect1 xml:id="INV_RUN"><title>Running TECO</title>
+ <para>
+ To run TECO with no special options or defaults, use the same
+ command on your operating system that you would use to run any
+ other program. The command is system dependent but is usually
+ something like
+ </para>
+  <screen>RUN TECO</screen><para>
+ Consult the appendix that describes your operating system's
+ characteristics for details.
+ </para></sect1><sect1 xml:id="INV_CNF"><title>Creating a new file</title>
+ <para>
+ As described in <xref linkend="BAS"/>, most operating systems use the same
+ command to invoke TECO for the purpose of creating a new file:
+ </para>
+  <screen>MAKE filespec</screen><para>
+ The "MAKE filespec" command takes as its single argument the file
+ specification for the file to be created. This file
+ specification must conform to the conventions used by your
+ operating system. If a file by that name already exists, TECO
+ will give you a warning message telling you that you are
+ superseding an existing file.
+ </para><para> The MAKE command invokes TECO and performs an effective EWfilespec`` command, as described in
+    <xref linkend="BAS"/>. </para></sect1><sect1 xml:id="INV_EEF"><title>Editing an existing file</title>
+ <para>
+ As <xref linkend="BAS"/> states, most operating systems use the same command
+ to invoke TECO for the purpose of editing an existing file:
+ </para>
+  <screen>TECO filespec</screen><para>
+ The "TECO filespec" command takes as its argument the file
+ specification for the file to be edited. The file will be opened
+ for input and output, with back-up protection. That means that
+ the system will save the original version of the source file (in
+ case you 'blow' the edit). If your operating system supports
+ file version numbers, a new version will be created. If your
+ operating system does not support file version numbers, the
+ original file will be preserved in a file with the same name but
+ with a backup extension (.BAK).
+ </para><para>
+ <note><para> On VMS systems you can set the version limit of files and directories to a maximum value, so
+     that VMS will automatically delete the oldest versions when more files than the version limit
+     are present.</para>
+    <para> When you use the EB command to open a file (either explicitly or implicitly) TECO will
+     open the input file and the output file. If the version limit for that file is 1, VMS will
+     automatically mark the input file for deletion upon closure of that file. So make sure that you
+     do not terminate the edit in any way without writing the contents of the buffers and the
+     remainder of the input file to the output file, or your input file will be lost! </para></note>
+ </para><para> The TECO command invokes TECO and performs an effective EBfilespec`Y`` command. Note that the
+   first page of the file is brought into memory and that the text buffer pointer is positioned at
+   the start of the file. </para><para>
+ If, at any time during the edit, you discover that the edit is
+ invalid, slowly (so TECO can respond to them) type enough
+ <literal>&lt;CTRL/C></literal>s to get you back to the operating system. You will find
+ s to get you back to the operating system. You will find
+ that your original file has been preserved.
+ </para><para>
+ TECO remembers the filespec given in a MAKE or TECO command. If
+ TECO is invoked with the command "TECO", with no filespec, it
+ will open the file edited last (i.e., the remembered filespec).
+ </para></sect1><sect1 xml:id="INV_SWI"><title>Switches on TECO and MAKE Commands</title>
+ <para>
+ The TECO and MAKE commands can take switches (qualifiers) of the
+ form /SWITCH. These switches are described below.
+ <table xml:id="INV_TAB_SWI"><title>Switches on command lines</title>
+ <tgroup cols="3" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+<colspec colname="c3"/>
+
+ <thead>
+<row>
+<entry><para>System</para></entry><entry><para>Switch</para></entry><entry><para>Meaning</para></entry>
+</row>
+</thead>
+ <!-- <table_unit> -->
+ <tbody>
+<row><entry><para>RSTS/E</para></entry><entry><para>/SIZE:n</para></entry><entry><para>start with nK word editing area</para></entry></row>
+ <row><entry><para/></entry><entry><para>/SIZE:+n</para></entry><entry><para>start with nK additional words of editing area</para></entry></row>
+ <!-- <endtable_unit> -->
+ <!-- <table_unit> -->
+ <row><entry><para>RSTS/E --- </para>
+        <para>RSX-11 --- </para>
+        <para>VAX/VMS</para></entry><entry><para>/INSPECT</para></entry><entry><para>Do not create an output file.</para></entry></row>
+ <row><entry><para/></entry><entry><para>/FIND</para></entry><entry><para>Initially position to the position marker left in the file
+ by the VTEDIT macro and delete the marker.</para></entry></row>
+ <row><entry><para/></entry><entry><para>/NOCREATE</para></entry><entry><para>Do not automatically create a new file
+ if the file specified by the TECO command does not exist.</para></entry></row>
+ <row><entry><para/></entry><entry><para>/NOINI</para></entry><entry><para>Do not use TECO.INI to perform initialization.</para></entry></row>
+ <row><entry><para/></entry><entry><para>/NOMEMORY</para></entry><entry><para>Do not remember the argument to the
+ invocation command.</para></entry></row>
+ <row><entry><para/></entry><entry><para>/SCROLL</para></entry><entry><para>Automatically enter split screen scrolling mode, using
+ 1/4 of the screen's lines as the scrolling area (available on DEC_CRT terminals
+ only).</para></entry></row>
+ <row><entry><para/></entry><entry><para>/VTEDIT</para></entry><entry><para>Load VTEDIT video terminal editor.</para></entry></row>
+ <!-- <endtable_unit> -->
+ <!-- <table_unit> -->
+ <row><entry namest="c1" nameend="c3" align="left"><para>The /SCROLL switch may take a value of 
+ the following form:</para></entry></row>
+ <row><entry><para/></entry><entry><para>/SCROLL:n</para></entry><entry><para>Enter split screen scrolling mode, using
+ n lines for the scrolling area.</para></entry></row>
+ <!-- <endtable_unit> -->
+ <!-- <table_unit> -->
+ <row><entry namest="c1" nameend="c3" align="left"><para>The /VTEDIT switch may also take values 
+ (of the form :value)</para></entry></row>
+ <row><entry><para/></entry><entry><para>/VTEDIT:HOLD</para></entry><entry><para>Start up in hold screen mode.</para></entry></row>
+ <row><entry><para/></entry><entry><para>/VTEDIT:SEEALL</para></entry><entry><para>Start up in SEEALL mode.</para></entry></row>
+ <!-- <endtable_unit> -->
+ <!-- <table_unit> -->
+ <row><entry namest="c1" nameend="c3" align="left"><para>These values can be combined, 
+ viz.: /VTEDIT:HOLD:SEEALL.</para></entry></row>
+ <row><entry><para/></entry><entry><para/></entry><entry><para/></entry></row>
+ <!-- <endtable_unit> -->
+ 
+</tbody>
+</tgroup></table>
+ </para></sect1><sect1 xml:id="INV_PRG"><title>Invoking a TECO program</title>
+ <para>
+ All operating systems except TOPS-10 and TOPS-20 use the same
+ command to let you start up execution of a TECO program (macro).
+ This is the MUNG command.
+ </para><para>
+ The MUNG command has the form:
+ </para>
+  <screen>MUNG filespec</screen><para> where filespec is the name of the TECO program that is to be run. If no file extension (file
+   type) is specified, .TEC is assumed. This command executes the TECO code that appears within the
+   specified file. It invokes TECO and performs an effective EIfilespec`` command (consult the
+   appendices for operating-system dependent differences). The contents of the specified file should
+   generally end with a double ESCAPE so that execution will start immediately. </para><para>
+ Another form of this command is:
+ </para>
+  <screen>MUNG filespec,data</screen><para> where "data" is any string of ASCII characters to be passed to the TECO program. This version
+   of the MUNG command invokes TECO and issues an effective: </para>
+  <screen>Idata*** `EIfilespec``</screen><para>
+ command. Under TECO-11, a space, tab, or a slash (/) may be used
+ instead of the comma.
+ </para></sect1><sect1 xml:id="INV_INI"><title>User Initialization</title>
+ <para>
+ You can specify initialization commands to TECO by creating a
+ file called TECO.INI. If, upon start-up, TECO finds a file
+ called TECO.INI in your area, TECO executes the commands in that
+ file. You can use TECO.INI commands to set initial values of
+ flags and to tailor TECO to your needs. You must, however, be
+ very careful in constructing code for your TECO.INI file: an
+ error in this code may keep TECO from running at all!
+ </para><para>
+ If you include unusual commands in your initialization file, you
+ would be prudent to surround such commands with the ? command.
+ This causes TECO to type the commands out when they are executed
+ (see <xref linkend="COM_AID_TRC"/>). You should also print an informative
+ message on the terminal reminding other users that this version
+ of TECO has been customized.
+ </para><para> Example 1:</para>
+  <screen>?1ED?</screen><para>
+ The user initialization file sets the ED flag to 1 so that ^
+ characters in search strings have their traditional meaning (do
+ not convert the next character to a control character). The file
+ also causes the command to be typed out when it is executed.
+ </para><para>
+ Example 2:
+ </para>
+  <screen>0,16ED ^A[Dot preserved on failing searches]^A 13^T 10^T</screen><para>
+ The user initialization file causes future search string failures
+ to preserve the pointer position. It also prints a message
+ informing all users of this feature.
+ </para><para>
+ In TECO-11, the TECO.INI commands may return a value to the
+ command processor. Such a value, if present, is interpreted as a
+ set of bit encoded flags that control the startup processing.
+ The following bits may be set:
+ <table xml:id="INV_TAB_FLG"><title>Startup flags</title>
+ 
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <thead>
+<row>
+<entry><para>Value</para></entry><entry><para>Meaning</para></entry>
+</row>
+</thead>
+ <tbody>
+<row><entry><para>Value&amp;1</para></entry><entry><para>Automatically load the VTEDIT macro (as if
+ the user had typed TECO/VTEDIT).</para></entry></row>
+ <row><entry><para>Value&amp;4</para></entry><entry><para>Inhibit use of the memory file (as if the
+ user had typed TECO/NOMEMORY).</para></entry></row>
+ <row><entry><para>Value&amp;16</para></entry><entry><para>Automatically load VTEDIT and start it in
+ SEEALL mode (as if the user had typed TECO/VTEDIT:SEEALL).</para></entry></row>
+ <row><entry><para>Value&amp;32</para></entry><entry><para>Automatically load VTEDIT and start it in
+ HOLDSCREEN mode (as if the user had typed TECO/VTEDIT:HOLD).</para></entry></row>
+ <row><entry><para>Value&amp;128</para></entry><entry><para>Automatically enter split screen scrolling
+ mode (as if the user had typed TECO/SCROLL).</para></entry></row>
+ <row><entry><para>Value&amp;256</para></entry><entry><para>Inhibit automatic creation of the output file
+ if the input file does not exist (as if the user had typed TECO/NOCREATE).</para></entry></row>
+ 
+</tbody>
+</tgroup></table>
+ </para><para>
+ For additional information on initialization, consult the
+ operating system specific appendices.
+ 
+</para></sect1></chapter>

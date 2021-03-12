@@ -1,0 +1,780 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE appendix [
+<!ENTITY % isopub PUBLIC "ISO 8879:1986//ENTITIES Publishing//EN//XML" "http://www.w3.org/2003/entities/iso8879/isopub.ent">
+<!ENTITY % isonum PUBLIC "ISO 8879:1986//ENTITIES Numeric and Special Graphic//EN" "http://www.w3.org/2003/entities/iso8879/isonum.ent">
+<!ENTITY % isotech PUBLIC "ISO 8879:1986//ENTITIES General Technical//EN" "http://www.w3.org/2003/entities/iso8879/isotech.ent">
+%isopub;%isonum;%isotech;
+<!ENTITY % myEnt SYSTEM "teco.ent">
+%myEnt;
+]>
+ <appendix xmlns="http://docbook.org/ns/docbook" version="5.1" xml:id="APP_OS8"><title>OS/8 Operating Characteristics</title>
+ <sect1 xml:id="APP_OS8_STA"><title>Startup</title>
+ <para>
+ TECO is started with the:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.R TECO</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ command. TECO is now immediately ready to accept commands. The
+ text buffer and Q-register areas are empty.
+ </para><para>
+ The TECO command
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.TECO filespec</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ is used to edit an already existing file. It is equivalent to:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.R TECO</para></entry></row>
+ <row><entry><para/></entry><entry><para>&star;EBfilespec`Y``</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ OS/8 "remembers" the filespec as the name of the last file that
+ has been edited.
+ </para><para>
+ The MAKE command:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.MAKE filespec</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ is used to create a new file. It is equivalent to:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.R TECO</para></entry></row>
+ <row><entry><para/></entry><entry><para>&star;EWfilespec``</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ OS/8 "remembers" the filespec as the name of the last file that
+ was edited.
+ </para><para>
+ The command:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.TECO filespec1=filespec2</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ is used to edit filespec2 into filespec1. That is, filespec2 is
+ opened as the input file, and filespec1 is created as the output
+ file. It is equivalent to:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.R TECO</para></entry></row>
+ <row><entry><para/></entry><entry><para>&star;ERfilespec2`EWfilespec1`Y``</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ OS/8 "remembers" the filespec1 as the name of the last file that
+ was edited.
+ </para><para>
+ The command:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.TECO</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ with no arguments, causes CCL to execute the command:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.TECO filespec</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ where filespec was the file that was previously remembered as the
+ last file to be edited. The system purposely does not remember
+ filenames from one day to the next, but it will remember names
+ across bootstraps.
+ </para><para>
+ The command:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.MUNG filespec</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ executes the specified TECO program. The default extension is
+ .TEC . This is equivalent to the sequence:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.R TECO</para></entry></row>
+ <row><entry><para/></entry><entry><para>&star;ERfilespec`YHXYHKMY``</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ Another format of this command is:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.MUNG filespec,argument</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ which is used to pass an argument to the TECO program to control
+ its action. This is equivalent to the sequence:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.R TECO</para></entry></row>
+ <row><entry><para/></entry><entry><para>&star;ERfilespec`YHXYHKIargument`MY``</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ The argument may be the name of a file that the TECO program is
+ to mung, or it may be a command to the program to specify what
+ action to take, or whatever. It is up to the TECO program to
+ decode this argument (which is left in the text buffer) and take
+ appropriate action. A TECO program executed via the MUNG command
+ must never destroy the text storage area of Q-register Y and
+ expect to ever see the light of day again.
+ </para><para>
+ Note the input file remains open and can provide more input to
+ the macro.
+ </para></sect1><sect1 xml:id="APP_OS8_CND"><title>Startup Conditions</title>
+ <para>
+ The initial value of the EU flag is 0 if the CCL command SET TTY
+ NO SCOPE had been previously issued, and is -1 if the CCL command
+ SET TTY SCOPE had previously been issued.
+ </para><para>
+ The initial value of the ET flag is as follows:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <thead>
+<row>
+<entry><para>Bit</para></entry><entry><para>Initial value</para></entry>
+</row>
+</thead>
+ <tbody>
+<row><entry><para>1</para></entry><entry><para>0</para></entry></row>
+ <row><entry><para>2</para></entry><entry><para>0 (1 if terminal is a scope)</para></entry></row>
+ <row><entry><para>4</para></entry><entry><para>0</para></entry></row>
+ <row><entry><para>8</para></entry><entry><para>0</para></entry></row>
+ <row><entry><para>16</para></entry><entry><para>0</para></entry></row>
+ <row><entry><para>32</para></entry><entry><para>0</para></entry></row>
+ <row><entry><para>64</para></entry><entry><para>0</para></entry></row>
+ <row><entry><para>128</para></entry><entry><para>1 (TECO's prompt sets this to 0)</para></entry></row>
+ <row><entry><para>256</para></entry><entry><para>0</para></entry></row>
+ <row><entry><para>512</para></entry><entry><para>0 (1 if VT support is present)</para></entry></row>
+ <row><entry><para>1024</para></entry><entry><para>0 (1 if VR12 support is present)</para></entry></row>
+ <row><entry><para>2048</para></entry><entry><para>0</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ The initial value of the ED flag is 1.
+ </para></sect1><sect1 xml:id="APP_OS8_FS"><title>File Specification</title>
+ <para>
+ The file access commands ER, EB, and EW accept a file
+ specification in the standard OS/8 format:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>dev:filename.type</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ in which dev: is a physical device name or a user assigned
+ logical name; if dev: is not specified, the default DSK: is
+ assumed. The filename field must be specified in the commands
+ ER, EB, and EW and be a legal OS/8 filename. The type field is a
+ file extension and must be explicitly given if used (there is no
+ default). Any characters after the second will be ignored, thus
+ the filespecs FOO.TEC and FOO.TE are equivalent. The EB and EW
+ commands do not accept the extended notation for an output file
+ size:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>dev:filename.type[n]</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ specifying an output size allocation.
+ </para></sect1><sect1 xml:id="APP_OS8_BF"><title>Backup Files</title>
+ <para>
+ The EB command maintains one level of file backup on OS/8. The
+ pre-edited input file name is changed to:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>filename.BK</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ before the new output file is closed with the original name.
+ Only normal file closing commands (EC, EF, EG, and EX) cause this
+ renaming to happen. If TECO is aborted or the output file is
+ purged by the EK command, the input filename remains unchanged.
+ Note only one .BK file for a given name is kept; earlier .BK
+ backup files are deleted each time a new backup file is created.
+ </para><para>
+ A good policy to follow when editing is to close the edited file
+ frequently enough so that an unexpected incident would not cause
+ a substantial loss of work. Files should be backed up regularly.
+ TECO has the power to let an unsuspecting user alter a good file
+ into a completely useless state. The SRCCOM program can be used
+ to verify an editing session.
+ </para></sect1><sect1 xml:id="APP_OS8_EG"><title>EXIT and GO</title>
+ <para>
+ If TECO is exited via the EGstring` command, the string is
+ passed to the system as the next command to execute. This string may be
+ any valid command or an indirect command file specification. The
+ command may be either a KBM or a CCL command. This command is
+ especially useful while running under BATCH.
+ </para><para>
+ If TECO is exited via the EG` command, then OS/8 will re-execute
+ the last explicit compile-class command that was executed that
+ day. The commands that are considered to be compile-class
+ commands are:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>COMPILE file</para></entry></row>
+ <row><entry><para/></entry><entry><para>LOAD file</para></entry></row>
+ <row><entry><para/></entry><entry><para>EXECUTE file</para></entry></row>
+ <row><entry><para/></entry><entry><para>LINK file</para></entry></row>
+ <row><entry><para/></entry><entry><para>MACRO file</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ This feature, combined with OS/8's other remembering features,
+ minimizes the number of keystrokes necessary to do normal program
+ development. The programmer does not have to constantly type in
+ the name of the file he is working with. A typical debugging
+ session would look like this:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.MAKE FOO.MAC</para></entry></row>
+ <row><entry><para/></entry><entry><para>&star;!type in assembly language file to be executed!</para></entry></row>
+ <row><entry><para/></entry><entry><para>&star;EX``</para></entry></row>
+ <row><entry><para/></entry><entry><para>.EXECUTE FOO</para></entry></row>
+ <row><entry><para/></entry><entry><para>(get error messages)</para></entry></row>
+ <row><entry><para/></entry><entry><para>.TECO</para></entry></row>
+ <row><entry><para/></entry><entry><para>&star;!fix bugs!</para></entry></row>
+ <row><entry><para/></entry><entry><para>&star;EG`` !re-compile and execute program!</para></entry></row>
+ <row><entry><para/></entry><entry><para>(watch program work or repeat process)</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para></sect1><sect1 xml:id="APP_OS8_CTC"><title><literal>&lt;CTRL/C></literal></title>
+ <para>
+ The action taken when the user types <literal>&lt;CTRL/C></literal> depends on what
+ TECO is doing. At command level <literal>&lt;CTRL/C></literal> is an immediate action
+ command. If typed as the very first character in a command
+ string (not necessarily the first keystroke) it aborts TECO and
+ returns to the keyboard monitor. If this was done accidentally,
+ TECO may be restarted (at your own risk) by using ODT to branch
+ to location 207 in your program's image. If <literal>&lt;CTRL/C></literal> is typed in
+ the middle of entering a command string, then the ?XAB error
+ message is given and TECO reprompts with its asterisk. Note that
+ if TECO executes <literal>&lt;CTRL/C></literal> as a command from command level, TECO
+ is aborted. If TECO executes a <literal>&lt;CTRL/C></literal> command from within a
+ macro, TECO is also aborted. If a <literal>&lt;CTRL/C></literal> is typed while TECO
+ is running, or while TECO is typing on the terminal, or while an
+ error message is printing, then the ?XAB error message is given
+ and TECO reprompts with its asterisk. TECO will abort similarly,
+ if <literal>&lt;CTRL/C></literal> is typed while TECO is waiting for input because of a
+ ^T command. Note that if TECO is performing I/O using non-system
+ handlers, the non-system handler may intercept the <literal>&lt;CTRL/C></literal> and
+ abort back to the keyboard monitor. In such a case, you may
+ attempt to re-enter TECO. However, part of your file has been
+ lost; good luck in attempting to issue an EF command. Manually
+ resetting the value of Z might recover your data.
+ </para><para>
+ If TECO is executing commands or doing I/O, a <literal>&lt;CTRL/C></literal> will stop
+ the operation and generate the ?XAB error message.
+ </para><para>
+ Sometimes it is desireable for a TECO macro to detect when a
+ <literal>&lt;CTRL/C></literal> was typed. By detecting the <literal>&lt;CTRL/C></literal>,
+ the macro can
+ exit cleanly back to command level (restore any flag values,
+ etc.). To do this, the macro sets Bit 0 (Octal 4000, Decimal
+ 2048) of the ET flag. When a <literal>&lt;CTRL/C></literal> is typed, TECO will
+ automatically turn off Bit 0, but will continue execution of the
+ macro. The macro periodically checks Bit 0 and exits cleanly if
+ it ever goes off. If the <literal>&lt;CTRL/C></literal> trap bit is on, then the ^T
+ can read a <literal>&lt;CTRL/C></literal> typed at the terminal. It has an ASCII value
+ of 3.
+ </para></sect1><sect1 xml:id="APP_OS8_FR"><title>File Recovery</title>
+ <para>
+ TECO can be a useful tool in recovering ASCII files lost on a
+ block replaceable device. TECO allows non-file-structured
+ devices to be opened in a non-file structured mode. This gives
+ the user the capability to open a disk and access ASCII data
+ anywhere on it, independent of file boundaries. To do this, you
+ must issue a command of the form:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.SET dev: NOFILES</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ to the monitor to make it think that your disk is
+ non-file-structured. The command:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>ERdev:`</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ is used to open the device at which point _ (underscore or
+ backarrow) searches may be used to locate specific ASCII data and
+ transfer it to new output files. Note that files tend to get
+ reproduced, in whole or part, many places on a block replaceable
+ device; be sure to verify that any given text is indeed complete
+ and the correct version.
+ </para><para>
+ If the disk's directory has not been clobbered (or if you are
+ willing to create a new one), then it is not necessary to turn
+ the disk into a non-file-structured device. Merely open up a
+ file early on the disk for input and read through end-of-files
+ until you locate the lost file. To read through end-of-files,
+ you must use the /S switch on an ER, EB, or EW command. For
+ example, the command:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>ERFOO.MAC/S`</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ will open the file FOO.MA for input and put TECO into "SUPERTECO"
+ mode. In this mode, TECO will not treat a <literal>&lt;CTRL/Z></literal> found in a
+ file as an end-of-file character. Instead, <literal>&lt;CTRL/Z></literal> will be
+ treated like any other character. It is not a line terminator or
+ a page terminator. This mode continues until an ER, EW, or EB
+ command is issued without a /S switch.
+ </para></sect1><sect1 xml:id="APP_OS8_V12"><title>VR12 Graphics Support</title>
+ <para>
+ If TECO is run on a PDP-12, TECO will automatically start up in
+ display mode, adjusting to both the size of the display screen
+ and to the presence or absence of the scroller.
+ </para><para>
+ On a PDP-12, TECO only permits one-page input and output
+ handlers.
+ </para><para>
+ See <xref linkend="COM_SCO"/> for a description of the available commands to
+ interact with the display.
+ </para><para>
+ Various aspects of the display screen become immediately obvious
+ upon seeing them; the text pointer, its position and shape and
+ its position between lines; wrap around of more than 72
+ characters per line, and so on. Experiment with a scratch file
+ for more familiarity.
+ </para></sect1><sect1 xml:id="APP_OS8_EXC"><title>Exceptions</title>
+ <para>
+ TECO-8 does not support the following commands which are
+ described in this manual:
+ <orderedlist>
+ <listitem><para>Secondary streams (EP, EA, ER`, EW`)
+ </para></listitem><listitem><para>Auxiliary command streams (EI)
+ </para></listitem><listitem><para>Wildcards (EN)
+ </para></listitem><listitem><para>Zeroing of directories (EZ)
+ </para></listitem><listitem><para>Magtape commands (EM)
+ </para></listitem><listitem><para>View command (nV)
+ </para></listitem><listitem><para>Bounded searches
+ </para></listitem><listitem><para>Anchored searches
+ </para></listitem><listitem><para>Search verification (ES)
+ </para></listitem><listitem><para>Command verification (EV)
+ </para></listitem><listitem><para>Backward searches
+ </para></listitem><listitem><para>Extended string build or match constructs (^Ex)
+ </para></listitem></orderedlist>
+ </para><para>
+ The following incompatibilities exist between TECO-8 and Standard
+ TECO:
+ <orderedlist>
+ <listitem><para>In octal mode, the digits 8 and 9 are not treated as
+ errors when occurring in a numeric string.
+ </para></listitem><listitem><para>The &star;q immediate action command is not implemented.
+ Instead, the immediate action command &star; has the same
+ effect as &star;Z of the standard. (The immediate mode
+ command ^S is still accepted for compatibility with OS/8
+ TECO V5.)
+ </para></listitem></orderedlist>
+ </para></sect1><sect1 xml:id="APP_OS8_CHA"><title>Chaining to TECO</title>
+ <para>
+ A user program may chain to TECO passing it a command to be
+ executed. There are two formats that such a command may take.
+ </para><para>
+ Format 1 (the TECO command format) passes TECO a valid TECO
+ command to be executed. This TECO command is placed in a buffer
+ starting at location 17600, one 7-bit ASCII character per word.
+ A negative word represents a pointer to a continuation buffer in
+ field 1. There may be any number of continuation buffers, but
+ they must all begin above location 4000 in field 1. Since TECO
+ clobbers most of field 1, these buffers must in fact start above
+ location 7400. TECO will never load into page 7400 of field 1.
+ The buffer ends with a fullword 0.
+ </para><para>
+ Format 2 (the CCL command format) passes TECO a CCL command to be
+ parsed and executed. Such a command usually begins with the
+ words TECO, MAKE, or MUNG, but is not limited to these words.
+ Such a CCL command is placed in a buffer starting at location
+ 17601, one 7-bit ASCII character per word. Location 17600 must
+ be a fullword 0 to specify that this format is being used. A
+ negative word in the buffer represents a pointer to a
+ continuation buffer in field 1 as described above. The buffer
+ ends with a fullword 0. If this format is used, the passed CCL
+ command will be parsed and executed by TECO.TEC as described
+ below. A user may write his own TECO.TEC, thus implementing his
+ own CCL commands. There is no limit to the possiblities, other
+ than the user's imagination.
+ </para></sect1><sect1 xml:id="APP_OS8_INI"><title>User Initialization</title>
+ <para>
+ If a user has a file called TECO.INI on SYS:, then when TECO
+ starts up (via a CCL command, it will execute the contents of
+ this file (as a TECO macro). This file must contain a valid TECO
+ program (which will execute out of Q-register W). God help you
+ if you have any errors in this program. This start-up file must
+ not modify itself (Q-register W) and must not modify the contents
+ of Q-register V. It should not indiscriminately modify the
+ contents of Q-register Z or the text buffer. TECO.INI will be
+ executed before TECO opens any files. That is, if TECO was
+ invoked via a MAKE command, TECO.INI will be executed before the
+ EW command (for the MAKE) is executed. At this point, the text
+ buffer will contain a copy of the CCL command that invoked TECO
+ (assuming your monitor has TECO.TEC support). However, TECO has
+ not as yet parsed this line. The user may examine this line for
+ himself, and modify it, but you had better know what you are
+ doing (and do it right!). TECO.TEC will parse the contents of
+ the text buffer at the conclusion of execution of TECO.INI.
+ </para><para>
+ If your monitor does not have TECO.TEC support, or if a user
+ program chained to TECO passing it a TECO command (rather than a
+ CCL command), then the initial TECO command will be in Q-register
+ Z when TECO.INI gets control. That command has not as yet been
+ executed. The initialization file may examine the contents of
+ Q-register Z to determine what TECO command will be executed and
+ proceed accordingly. It may also modify the contents of
+ Q-register Z (but you better know what you are doing).
+ </para><para>
+ In this case, TECO.INI is started up via the sequence
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>@:ER/SYS:TECO.INI/"SYHXWHK</para></entry></row>
+ <row><entry><para/></entry><entry><para>@^UZ^@teco command^@</para></entry></row>
+ <row><entry><para/></entry><entry><para>MW+0ES.,.XWMZES"N0ESMX'``</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ which loads TECO.INI into Q-register W, loads the chain argument
+ consisting of an appropriate teco command into Q-register Z, and
+ temporarily stores the value returned by TECO.INI in the search
+ verification flag (this feature may change in a subsequent
+ release). Q-register W and ES are cleared before the
+ post-processing command in Q-register X is executed. Note that
+ the chain argument may not contain any embedded nulls.
+ </para></sect1><sect1 xml:id="APP_OS8_RTV"><title>Returned Values from TECO.INI</title>
+ <para>
+ TECO.INI may also return a value. If your monitor does not
+ support TECO.TEC, then only two values are permitted. Returning
+ a 0 (or not returning anything) is the normal sequence of events.
+ Returning a 1 means that TECO should execute the contents of
+ Q-register X (via an MX command) after it executes the initial
+ TECO command (in Q-register Z). TECO.INI may set up Q-register X
+ with the appropriate post-processing commands. A typical use of
+ this feature would be to have TECO.INI load up Q-register I with
+ an editing macro and then put an "MI" command in Q-register X for
+ subsequent execution. If your monitor does have TECO.TEC
+ support, then TECO.TEC can support additional returned values.
+ It is recommended that TECO.TEC support the returned values of 0
+ and 1 as above, but in addition, it may support additional values
+ determined by the user.
+ </para><para>
+ Note that TECO.INI is not invoked if TECO is started with a RUN
+ or R command.
+ </para></sect1><sect1 xml:id="APP_OS8_TEC"><title>TECO.TEC Support</title>
+ <para>
+ If the version of CCL you are using to invoke TECO supports
+ TECO.TEC, then it will chain to TECO with a 0 at location 17600
+ and will pass TECO the invokig CCL command (beginning at location
+ 17601). If TECO is invoked in this manner, it will parse this
+ CCL command by executing the TECO command line parser macro
+ stored in SYS:TECO.TEC. This macro can be modified by the user
+ to parse switches or do any special processing that is desired.
+ TECO.TEC is started up via the command:
+ </para><para>
+ @I^@ccl command^@:ER/SYS:TECO.TEC/"F^ACan't find SYS:TECO.TEC
+ ^A^C^CA.,ZXV.,ZKMV.,.XV``
+ </para><para>
+ which puts your CCL command in the text buffer and then loads
+ (the first page of) TECO.TEC into Q-register V. TECO.TEC is then
+ executed with the MV command and then Q-register V is cleared.
+ It is the responsibility of TECO.TEC to parse the command line in
+ the text buffer and do the appropriate processing and clean-up.
+ It is also the responsibility of TECO.TEC to execute a user's
+ start-up file (TECO.INI) if one is present. Note that TECO.TEC
+ is not invoked if TECO is started via a RUN or R command. Also
+ note, that the CCL command may not contain any embedded nulls.
+ </para></sect1><sect1 xml:id="APP_OS8_OVE"><title>Overlays</title>
+ <para>
+ The key to writing fast TECO programs lies in understanding
+ TECO-8's overlay structure. If TECO-8 is run in 16K or more (20K
+ or more if VT support is present), then the overlays will be
+ memory-resident rather than disk-resident. Although this is much
+ faster than swapping from the disk, swapping from memory still
+ involves some overhead, so it would be wise to structure your
+ TECO program to minimize the number of swaps necessary.
+ </para><para>
+ The overlay structure is designed so that the minimal number of
+ swaps will be required unless obscure TECO features are used.
+ There are five overlays to TECO:
+ <orderedlist>
+ <listitem><para>The I/O-overlay. This overlay handles file opening and
+ is initially resident. Thus no swapping is necessary to
+ do an initial ER, EW, or EB.
+ </para></listitem><listitem><para>The Q-overlay. This overlay contains most of the
+ frequently used conditional commands and branching
+ commands. It is intended that this overlay swap in once
+ and remain in memory until TECO is exited.
+ </para></listitem><listitem><para>The X-overlay. This is the exit overlay and handles
+ commands needed only when TECO is exiting, such as EX,
+ EF, EC, and EG. It is intended that this overlay will
+ swap in only once when you are ready to leave TECO.
+ </para></listitem><listitem><para>The F-overlay. This overlay contains the flag commands
+ and other little-used commands. It is intended that
+ this overlay be not used at all, or if it is used, it
+ will be used so infrequently that it will not slow down
+ system performance.
+ </para></listitem><listitem><para>The E-overlay. This is the error overlay. It is
+ swapped in only when an error occurs. It is intended
+ that this overlay never be swapped in.
+ </para></listitem></orderedlist>
+ </para><para>
+ To write efficient TECO code, the user must know exactly which
+ commands are handled by which overlay. This information is
+ summarized below.
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <thead>
+<row>
+<entry><para>Overlay</para></entry><entry><para>Commands</para></entry>
+</row>
+</thead>
+ <tbody>
+<row><entry><para>I-overlay</para></entry><entry><para>
+ ERfile`, EWfile`, EBfile`,
+ :ERfile`, :EBfile`</para></entry></row>
+ <row><entry><para>Q-overlay</para></entry><entry><para>
+ Otag`, n"Xthen|else', n;, search;, n&lt;...>, &lt;...></para></entry></row>
+ <row><entry><para>X-overlay</para></entry><entry><para>
+ EC, EG`, EGcmd`, EF, EK, EX,
+ &star;q, ?, nEJ, n^_, V, ^B, ^E, ^F, ^L, ^N,
+ ^Uqtext`</para></entry></row>
+ <row><entry><para>F-overlay</para></entry><entry><para>
+ ED, EH, EO, ES, ET, EU, ^D, ^O, \, n\,
+  n=, n==, n:=, n:==, |</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ Several things are immediately obvious. The command 0TT should
+ always be preferred to the V command. ELSE clauses should be
+ avoided. (In future releases, we will try to move the processing
+ of the | command into overlay Q.) The commands \
+ and = should be
+ used as infrequently as possible from within long-running macros.
+ Xq is preferred to ^Uq to load up a Q-register. -n-1 is
+ preferred to n^_ to take a one's complement. Radix changes
+ should be avoided. Flags, such as ET and ED, should be set once
+ at the beginning of a macro, and then not fiddled with if at all
+ possible.
+ </para></sect1><sect1 xml:id="APP_OS8_INS"><title>Installation Instructions</title>
+ <para>
+ The source of TECO consists of the following modules:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para>TECO.MAC</para></entry><entry><para>Main module</para></entry></row>
+ <row><entry><para>TECINI.MAC</para></entry><entry><para>Initialization module</para></entry></row>
+ <row><entry><para>TECTBL.MAC</para></entry><entry><para>Tables</para></entry></row>
+ <row><entry><para>TECDEF.MAC</para></entry><entry><para>Global definitions</para></entry></row>
+ <row><entry><para>TECO12.MAC</para></entry><entry><para>VR12 support</para></entry></row>
+ <row><entry><para>TECOVT.MAC</para></entry><entry><para>VT support</para></entry></row>
+ <row><entry><para>TECOVI.MAC</para></entry><entry><para>I/O-overlay</para></entry></row>
+ <row><entry><para>TECOVQ.MAC</para></entry><entry><para>Q-overlay</para></entry></row>
+ <row><entry><para>TECOVX.MAC</para></entry><entry><para>X-overlay</para></entry></row>
+ <row><entry><para>TECOVF.MAC</para></entry><entry><para>F-overlay</para></entry></row>
+ <row><entry><para>TECERR.MAC</para></entry><entry><para>E-overlay and error processor</para></entry></row>
+ <row><entry><para>TECSRH.MAC</para></entry><entry><para>Search processor</para></entry></row>
+ <row><entry><para>TECNUM.MAC</para></entry><entry><para>Arithmetic processor</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ Each of these modules should be assembled (using MACREL V2 or
+ later). This can be accomplished via the command
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.MAC TEC???.MAC</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ if your monitor supports wildcards in compile-class commands.
+ </para><para>
+ The resulting relocatable modules are then linked together (using
+ LINK V2 or later) to produce the executable TECO.SV image which
+ should be put on SYS: (but it may reside on any device). If
+ your monitor supports TECO.TEC, then TECO.TEC must be placed on
+ SYS:.
+ </para></sect1><sect1 xml:id="APP_OS8_ARI"><title>Arithmetic Precision</title>
+ <para>
+ TECO-8 performs 13-bit arithmetic except that multiplication and
+ division by negative numbers gives unpredictable results. All
+ numbers stored in Q-registers are 13 bits long. Numbers stored
+ in flags (such as ET, EU, etc.) are only 12-bits long. When
+ storing a number into a flag, the high order (sign bit) is lost.
+ When using the value of a flag in an arithmetic expression, the
+ 12-bit value is sign extended first.
+ </para></sect1><sect1 xml:id="APP_OS8_ALT"><title>Alternate Starting Address</title>
+ <para>
+ The normal starting address of TECO is location 00200. In this
+ (normal) mode, TECO will simulate tabs by spaces on type out and
+ will simulate vertical tabs and form feeds by line feeds. If
+ your terminal has hardware tabs and vertical tabs (such as a
+ KSR-35), then TECO can take advantage of these features. To
+ enable this ability, you should change TECO's starting address to
+ be 05200. This can be done by the monitor commands:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.GET SYS:TECO</para></entry></row>
+ <row><entry><para/></entry><entry><para>.SAVE SYS:TECO;5200</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para></sect1><sect1 xml:id="APP_OS8_V05"><title>VT05 Support</title>
+ <para>
+ TECO will automatically handle command string scope editing
+ correctly on a VT05. The VT support (obtained via use of the -1W
+ command) will handle VT05's correctly. The VTEDIT macro does not
+ currently support the VT05 keypad.
+ </para></sect1></appendix>

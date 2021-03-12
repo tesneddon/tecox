@@ -1,0 +1,493 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE appendix [
+<!ENTITY % isopub PUBLIC "ISO 8879:1986//ENTITIES Publishing//EN//XML" "http://www.w3.org/2003/entities/iso8879/isopub.ent">
+<!ENTITY % isonum PUBLIC "ISO 8879:1986//ENTITIES Numeric and Special Graphic//EN" "http://www.w3.org/2003/entities/iso8879/isonum.ent">
+<!ENTITY % isotech PUBLIC "ISO 8879:1986//ENTITIES General Technical//EN" "http://www.w3.org/2003/entities/iso8879/isotech.ent">
+%isopub;%isonum;%isotech;
+<!ENTITY % myEnt SYSTEM "teco.ent">
+%myEnt;
+]>
+ <appendix xmlns="http://docbook.org/ns/docbook" version="5.1" xml:id="APP_IDX"><title>Index to TECO commands and special characters</title>
+ <table xml:id="APP_IDX_TAB"><title>Index to TECO commands</title>
+ <tgroup cols="3" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+<colspec colname="c3"/>
+
+ <thead>
+<row>
+<entry><para>Char</para></entry><entry><para>Meaning</para></entry><entry><para>Section</para></entry>
+</row>
+</thead>
+ <tbody>
+<row><entry><para>NULL</para></entry><entry><para>Discarded on input; Ignored in command</para></entry><entry><para>
+ <xref linkend="COM_AID_CON" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^A</para></entry><entry><para>Output message to terminal</para></entry><entry><para>
+ <xref linkend="COM_TTO" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^B</para></entry><entry><para>Current date</para></entry><entry><para>
+ <xref linkend="COM_SNV" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^C</para></entry><entry><para>Stop execution</para></entry><entry><para>
+ <xref linkend="CSE_IAEC" xrefstyle="select: labelnumber"/>, <xref linkend="COM_FSC_FCE" xrefstyle="select: labelnumber"/>,
+ <xref linkend="COM_BRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^D</para></entry><entry><para>Set radix to decimal</para></entry><entry><para>
+ <xref linkend="COM_ARI" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^E</para></entry><entry><para>Form Feed flag</para></entry><entry><para>
+ <xref linkend="COM_SNV" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^E<literal>&lt;n></literal></para></entry><entry><para>(Match char) Match ASCII code n</para></entry><entry><para>
+ <xref linkend="COM_SRA" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^EA</para></entry><entry><para>(Match char) Match alphabetics</para></entry><entry><para>
+ <xref linkend="COM_SRA" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^EB</para></entry><entry><para>(Match char) Match separator character</para></entry><entry><para>
+ <xref linkend="COM_SRA" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^EC</para></entry><entry><para>(Match char) Match Symbol Constituent</para></entry><entry><para>
+ <xref linkend="COM_SRA" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^ED</para></entry><entry><para>(Match char) Match numerics</para></entry><entry><para>
+ <xref linkend="COM_SRA" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^EGq</para></entry><entry><para>(Match char) Match contents of Q-reg</para></entry><entry><para>
+ <xref linkend="COM_SRA" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^EL</para></entry><entry><para>(Match char) Match line terminators</para></entry><entry><para>
+ <xref linkend="COM_SRA" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^EMx</para></entry><entry><para>(Match char) Match any number of x</para></entry><entry><para>
+ <xref linkend="COM_SRA" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^EQq</para></entry><entry><para>(String char) Use contents of Q-reg q</para></entry><entry><para>
+ <xref linkend="COM_SRA" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^ER</para></entry><entry><para>(Match char) Match alphanumerics</para></entry><entry><para>
+ <xref linkend="COM_SRA" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^ES</para></entry><entry><para>(Match char) Match non-null space/tab</para></entry><entry><para>
+ <xref linkend="COM_SRA" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^EUq</para></entry><entry><para>(String char) Use ASCII code in Q-reg</para></entry><entry><para>
+ <xref linkend="COM_SRA" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^EV</para></entry><entry><para>(Match char) Match lower case alphabetic</para></entry><entry><para>
+ <xref linkend="COM_SRA" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^EW</para></entry><entry><para>(Match char) Match upper case alphabetic</para></entry><entry><para>
+ <xref linkend="COM_SRA" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^EX</para></entry><entry><para>(Match char) Match any character</para></entry><entry><para>
+ <xref linkend="COM_SRA" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^E[]</para></entry><entry><para>(Match char) Match one of list</para></entry><entry><para>
+ <xref linkend="COM_SRA" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^F</para></entry><entry><para>Contents of console switch register</para></entry><entry><para>
+ <xref linkend="COM_SNV" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n^F</para></entry><entry><para>Return terminal number of job n</para></entry><entry><para>
+ <xref linkend="COM_SNV" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^G^G</para></entry><entry><para>Kill command string</para></entry><entry><para>
+ <xref linkend="CSE_IAEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^G<literal>&lt;sp></literal></para></entry><entry><para>Retype current command line</para></entry><entry><para>
+ <xref linkend="CSE_IAEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^G&star;</para></entry><entry><para>Retype current command input</para></entry><entry><para>
+ <xref linkend="CSE_IAEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^H</para></entry><entry><para>Current time of day</para></entry><entry><para>
+ <xref linkend="COM_SNV" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>BS</para></entry><entry><para>Back up and type one line</para></entry><entry><para>
+ <xref linkend="BAS_TOC_IIC" xrefstyle="select: labelnumber"/>, <xref linkend="CSE_IAEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>TAB</para></entry><entry><para>Insert tab and text</para></entry><entry><para>
+ <xref linkend="COM_INS" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>LF</para></entry><entry><para>Line terminator; Ignored in commands</para></entry><entry><para>
+ <xref linkend="BAS_DSF" xrefstyle="select: labelnumber"/>, <xref linkend="CON_DAT" xrefstyle="select: labelnumber"/>,
+ <xref linkend="COM_AID" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>LF</para></entry><entry><para>Advance and type one line</para></entry><entry><para>
+ <xref linkend="BAS_TOC_IIC" xrefstyle="select: labelnumber"/>, <xref linkend="CSE_IAC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>VT</para></entry><entry><para>Line terminator; Not a TECO command</para></entry><entry><para>
+ <xref linkend="CON_DAT" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>FF</para></entry><entry><para>Page terminator; Output Form Feed</para></entry><entry><para>
+ <xref linkend="BAS_DSF" xrefstyle="select: labelnumber"/>, <xref linkend="CON_DAT" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>CR</para></entry><entry><para>End input line; Ignored in commands</para></entry><entry><para>
+ <xref linkend="BAS_DSF" xrefstyle="select: labelnumber"/>, <xref linkend="CSE_IAEC" xrefstyle="select: labelnumber"/>,
+ <xref linkend="COM_AID" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^N</para></entry><entry><para>End of file flag</para></entry><entry><para>
+ <xref linkend="COM_SNV" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^Nx</para></entry><entry><para>(Match char) Match all but x</para></entry><entry><para>
+ <xref linkend="COM_SRA" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^O</para></entry><entry><para>Set radix to octal</para></entry><entry><para>
+ <xref linkend="COM_ARI" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^O</para></entry><entry><para>Kill terminal output</para></entry><entry><para>
+ <xref linkend="COM_TTO" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^P</para></entry><entry><para>Not a TECO command</para></entry><entry><para/></entry></row>
+ <row><entry><para>^Q</para></entry><entry><para>Resume terminal output</para></entry><entry><para>
+ <xref linkend="COM_TTO" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^Q</para></entry><entry><para>Convert line arg into character arg</para></entry><entry><para>
+ <xref linkend="APP_INC_T11" xrefstyle="select: labelnumber"/>, <xref linkend="APP_INC_TOPS" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^Qx</para></entry><entry><para>(String char) Use x literally</para></entry><entry><para>
+ <xref linkend="COM_SRA" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^R</para></entry><entry><para>Value of current radix</para></entry><entry><para>
+ <xref linkend="COM_SNV" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n^R</para></entry><entry><para>Set radix to n</para></entry><entry><para>
+ <xref linkend="COM_SNV" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^Rx</para></entry><entry><para>(String char) Use x literally</para></entry><entry><para>
+ <xref linkend="COM_SRA" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^S</para></entry><entry><para>-(length) of last referenced string</para></entry><entry><para>
+ <xref linkend="COM_SNV" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^S</para></entry><entry><para>Suspend terminal output</para></entry><entry><para>
+ <xref linkend="COM_TTO" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^S</para></entry><entry><para>Save last command string</para></entry><entry><para>
+ <xref linkend="APP_INC_OS8" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^S</para></entry><entry><para>(Match char) Match separator character</para></entry><entry><para>
+ <xref linkend="COM_SRA" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^T</para></entry><entry><para>ASCII value of next character typed</para></entry><entry><para>
+ <xref linkend="COM_SNV" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^T</para></entry><entry><para>Read and decode next keystroke typed</para></entry><entry><para>
+ <xref linkend="COM_SNV" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n^T</para></entry><entry><para>Type ASCII character of value n</para></entry><entry><para>
+ <xref linkend="COM_TTO" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n:^T</para></entry><entry><para>Output binary byte of value n</para></entry><entry><para>
+ <xref linkend="COM_TTO" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^U</para></entry><entry><para>Kill command line</para></entry><entry><para>
+ <xref linkend="CSE_IAEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^Uq</para></entry><entry><para>Put string into Q-register q</para></entry><entry><para>
+ <xref linkend="COM_QRG" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>:^Uq</para></entry><entry><para>Append string to Q-register q</para></entry><entry><para>
+ <xref linkend="COM_QRG" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n^Uq</para></entry><entry><para>Put ASCII char "n" into Q-register q</para></entry><entry><para>
+ <xref linkend="COM_QRG" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n:^Uq</para></entry><entry><para>Append ASCII char "n" to Q-register q</para></entry><entry><para>
+ <xref linkend="COM_QRG" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^V</para></entry><entry><para>Enable lower case conversion</para></entry><entry><para>
+ <xref linkend="COM_AID_CAS" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^Vx</para></entry><entry><para>(String char) Force x to lower case</para></entry><entry><para>
+ <xref linkend="COM_SRA" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^W</para></entry><entry><para>Enable upper case conversion</para></entry><entry><para>
+ <xref linkend="COM_AID_CAS" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^W</para></entry><entry><para>Refresh scrolled display</para></entry><entry><para>
+ <xref linkend="CSE_IAC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^Wx</para></entry><entry><para>(String char) Force x to upper case</para></entry><entry><para>
+ <xref linkend="COM_SRA" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^X</para></entry><entry><para>Search mode flag</para></entry><entry><para>
+ <xref linkend="COM_MCF" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^X</para></entry><entry><para>(Match char) Match any character</para></entry><entry><para>
+ <xref linkend="COM_SRA" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^Y</para></entry><entry><para>Equivalent to ".+^S,."</para></entry><entry><para>
+ <xref linkend="COM_SNV" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^Z</para></entry><entry><para>Size of text in all Q-registers</para></entry><entry><para>
+ <xref linkend="COM_SNV" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^Z^Z^Z</para></entry><entry><para>Immediate exit from TECO</para></entry><entry><para>
+ <xref linkend="CSE_IAEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>ESC</para></entry><entry><para>String and command terminator</para></entry><entry><para>
+ <xref linkend="BAS_USING" xrefstyle="select: labelnumber"/>, <xref linkend="CSE_IAEC" xrefstyle="select: labelnumber"/>,
+ <xref linkend="COM_BRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>ESC</para></entry><entry><para>String and command terminator</para></entry><entry><para>
+ <xref linkend="COM_AID_CON" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^[</para></entry><entry><para>String and command terminator</para></entry><entry><para>
+ <xref linkend="COM_AID_CON" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^\</para></entry><entry><para>Not a TECO command</para></entry><entry><para/></entry></row>
+ <row><entry><para>^]</para></entry><entry><para>Not a TECO command</para></entry><entry><para/></entry></row>
+ <row><entry><para>^^x</para></entry><entry><para>ASCII value of x</para></entry><entry><para>
+ <xref linkend="COM_SNV" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>^_</para></entry><entry><para>Ones complement (logical NOT)</para></entry><entry><para>
+ <xref linkend="COM_ARI" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>SP</para></entry><entry><para>Ignored in commands</para></entry><entry><para>
+ <xref linkend="COM_AID" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>!</para></entry><entry><para>Define label</para></entry><entry><para>
+ <xref linkend="COM_BRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>"</para></entry><entry><para>Start conditional</para></entry><entry><para>
+ <xref linkend="COM_CEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n"&lt;</para></entry><entry><para>Test for less than zero</para></entry><entry><para>
+ <xref linkend="COM_CEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n"=</para></entry><entry><para>Test for equal to zero</para></entry><entry><para>
+ <xref linkend="COM_CEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n"></para></entry><entry><para>Test for greater than zero</para></entry><entry><para>
+ <xref linkend="COM_CEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n"A</para></entry><entry><para>Test for alphabetic</para></entry><entry><para>
+ <xref linkend="COM_CEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n"C</para></entry><entry><para>Test for symbol constituent</para></entry><entry><para>
+ <xref linkend="COM_CEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n"D</para></entry><entry><para>Test for numeric</para></entry><entry><para>
+ <xref linkend="COM_CEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n"E</para></entry><entry><para>Test for equal to zero</para></entry><entry><para>
+ <xref linkend="COM_CEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n"F</para></entry><entry><para>Test for false</para></entry><entry><para>
+ <xref linkend="COM_CEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n"G</para></entry><entry><para>Test for greater than zero</para></entry><entry><para>
+ <xref linkend="COM_CEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n"L</para></entry><entry><para>Test for less than zero</para></entry><entry><para>
+ <xref linkend="COM_CEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n"N</para></entry><entry><para>Test for not equal to zero</para></entry><entry><para>
+ <xref linkend="COM_CEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n"R</para></entry><entry><para>Test for alphanumeric</para></entry><entry><para>
+ <xref linkend="COM_CEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n"S</para></entry><entry><para>Test for successful</para></entry><entry><para>
+ <xref linkend="COM_CEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n"T</para></entry><entry><para>Test for true</para></entry><entry><para>
+ <xref linkend="COM_CEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n"U</para></entry><entry><para>Test for unsuccessful</para></entry><entry><para>
+ <xref linkend="COM_CEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n"V</para></entry><entry><para>Test for lower case</para></entry><entry><para>
+ <xref linkend="COM_CEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n"W</para></entry><entry><para>Test for upper case</para></entry><entry><para>
+ <xref linkend="COM_CEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>#</para></entry><entry><para>Logical OR</para></entry><entry><para>
+ <xref linkend="COM_ARI" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>$</para></entry><entry><para>Separate TECO commands</para></entry><entry><para>
+ <xref linkend="COM_AID_CON" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n%q</para></entry><entry><para>Add n to Q-register q and return result</para></entry><entry><para>
+ <xref linkend="COM_QRG" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>&amp;</para></entry><entry><para>Logical AND</para></entry><entry><para>
+ <xref linkend="COM_ARI" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>'</para></entry><entry><para>End conditional</para></entry><entry><para>
+ <xref linkend="COM_CEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>&lpar;</para></entry><entry><para>Expression grouping</para></entry><entry><para>
+ <xref linkend="COM_ARI" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>&rpar;</para></entry><entry><para>Expression grouping</para></entry><entry><para>
+ <xref linkend="COM_ARI" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>&star;</para></entry><entry><para>Multiplication</para></entry><entry><para>
+ <xref linkend="COM_ARI" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>&star;q</para></entry><entry><para>Save last command in Q-register q</para></entry><entry><para>
+ <xref linkend="CSE_IAC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>+</para></entry><entry><para>Addition</para></entry><entry><para>
+ <xref linkend="COM_ARI" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>,</para></entry><entry><para>Argument separator</para></entry><entry><para>
+ <xref linkend="COM_ARI" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>&ndash;</para></entry><entry><para>Subtraction or negation</para></entry><entry><para>
+ <xref linkend="COM_ARI" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>.</para></entry><entry><para>Current pointer position</para></entry><entry><para>
+ <xref linkend="COM_SNV" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>/</para></entry><entry><para>Division</para></entry><entry><para>
+ <xref linkend="COM_ARI" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>/</para></entry><entry><para>Type detailed explanation of error</para></entry><entry><para>
+ <xref linkend="CSE_IAC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>0-9</para></entry><entry><para>Digit</para></entry><entry><para/></entry></row>
+ <row><entry><para>:</para></entry><entry><para>Modify next command</para></entry><entry><para>
+ <xref linkend="CON_TCF_COL" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>;</para></entry><entry><para>Exit iteration on search failure</para></entry><entry><para>
+ <xref linkend="COM_BRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n;</para></entry><entry><para>Exit iteration if n is positive</para></entry><entry><para>
+ <xref linkend="COM_BRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>:;</para></entry><entry><para>Exit iteration on search success</para></entry><entry><para>
+ <xref linkend="COM_BRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n:;</para></entry><entry><para>Exit iteration if n is negative</para></entry><entry><para>
+ <xref linkend="COM_BRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n&lt;</para></entry><entry><para>Iterate n times</para></entry><entry><para>
+ <xref linkend="COM_LOO" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>=</para></entry><entry><para>Type in decimal</para></entry><entry><para>
+ <xref linkend="COM_ARI" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>==</para></entry><entry><para>Type in octal</para></entry><entry><para>
+ <xref linkend="COM_ARI" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>===</para></entry><entry><para>Type in hexadecimal</para></entry><entry><para>
+ <xref linkend="COM_ARI" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>:=</para></entry><entry><para>Type in decimal, no carriage return</para></entry><entry><para>
+ <xref linkend="COM_ARI" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>:==</para></entry><entry><para>Type in octal, no carriage return</para></entry><entry><para>
+ <xref linkend="COM_ARI" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>:===</para></entry><entry><para>Type in hexadecimal, no carriage return</para></entry><entry><para>
+ <xref linkend="COM_ARI" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>></para></entry><entry><para>End iteration</para></entry><entry><para>
+ <xref linkend="COM_LOO" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>?</para></entry><entry><para>Toggle trace mode</para></entry><entry><para>
+ <xref linkend="COM_AID_TRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>?</para></entry><entry><para>Type out command string in error</para></entry><entry><para>
+ <xref linkend="CSE_IAC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>@</para></entry><entry><para>Modify next text argument</para></entry><entry><para>
+ <xref linkend="CON_TCF_TXT" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>A</para></entry><entry><para>Append to buffer</para></entry><entry><para>
+ <xref linkend="COM_PMC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nA</para></entry><entry><para>ASCII value of char in buffer</para></entry><entry><para>
+ <xref linkend="COM_SNV" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n:A</para></entry><entry><para>Append n lines to buffer</para></entry><entry><para>
+ <xref linkend="COM_PMC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>B</para></entry><entry><para>0 - beginning of buffer</para></entry><entry><para>
+ <xref linkend="COM_SNV" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nC</para></entry><entry><para>Advance n characters</para></entry><entry><para>
+ <xref linkend="COM_BPC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nD</para></entry><entry><para>Delete n characters</para></entry><entry><para>
+ <xref linkend="COM_DEL" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>m,nD</para></entry><entry><para>Delete between m and n</para></entry><entry><para>
+ <xref linkend="COM_DEL" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>DELIM</para></entry><entry><para>Character typed as surrogate for ESCape</para></entry><entry><para>
+ <xref linkend="BAS_USING" xrefstyle="select: labelnumber"/>, <xref linkend="CON_TCF_TXT" xrefstyle="select: labelnumber"/>,
+ <xref linkend="CSE_IAEC" xrefstyle="select: labelnumber"/>, <xref linkend="COM_MCF" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>DELIM</para></entry><entry><para>Advance and type one line</para></entry><entry><para>
+ <xref linkend="BAS_TOC_IIC" xrefstyle="select: labelnumber"/>, <xref linkend="CSE_IAC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>E%q</para></entry><entry><para>Write Q-register q into a file</para></entry><entry><para>
+ <xref linkend="COM_FSC_IOQ" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>EA</para></entry><entry><para>Select secondary output stream</para></entry><entry><para>
+ <xref linkend="COM_FSC_SSC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>EB</para></entry><entry><para>Open input and output</para></entry><entry><para>
+ <xref linkend="COM_FSC_FOC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>EC</para></entry><entry><para>Close out (copy in to out and close)</para></entry><entry><para>
+ <xref linkend="COM_FSC_FCE" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>ED</para></entry><entry><para>Edit mode flag</para></entry><entry><para>
+ <xref linkend="COM_MCF" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>EE</para></entry><entry><para>ESCape surrogate character</para></entry><entry><para>
+ <xref linkend="COM_MCF" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>EF</para></entry><entry><para>Close output file</para></entry><entry><para>
+ <xref linkend="COM_FSC_FCE" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>EG</para></entry><entry><para>Close out and exit with command</para></entry><entry><para>
+ <xref linkend="COM_FSC_FCE" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>:EG</para></entry><entry><para>Execute operating system function</para></entry><entry><para>
+ <xref linkend="COM_FSC_FCE" xrefstyle="select: labelnumber"/>, <xref linkend="APP_INC_RSTS" xrefstyle="select: labelnumber"/>,
+ <xref linkend="APP_INC_RSX" xrefstyle="select: labelnumber"/>, <xref linkend="APP_INC_VMS" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>EH</para></entry><entry><para>Help level flag</para></entry><entry><para>
+ <xref linkend="COM_MCF" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>EI</para></entry><entry><para>Open indirect command file</para></entry><entry><para>
+ <xref linkend="COM_FSC_SSC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>m,nEJ</para></entry><entry><para>Set environment characteristics</para></entry><entry><para>
+ <xref linkend="COM_REC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nEJ</para></entry><entry><para>Return environment characteristics</para></entry><entry><para>
+ <xref linkend="COM_REC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>EK</para></entry><entry><para>Kill output file</para></entry><entry><para>
+ <xref linkend="COM_FSC_FCE" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>EL</para></entry><entry><para>Open log file</para></entry><entry><para>
+ <xref linkend="COM_FSC_FCE" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nEM</para></entry><entry><para>Position magtape</para></entry><entry><para>
+ <xref linkend="APP_INC_TOPS" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>EN</para></entry><entry><para>Wildcard lookup</para></entry><entry><para>
+ <xref linkend="COM_FSC_WCC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>EO</para></entry><entry><para>Version of TECO</para></entry><entry><para>
+ <xref linkend="COM_SNV" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nEO</para></entry><entry><para>Set TECO to function as version n</para></entry><entry><para>
+ <xref linkend="COM_MCF" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>EP</para></entry><entry><para>Select secondary input stream</para></entry><entry><para>
+ <xref linkend="COM_FSC_SSC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>EQq</para></entry><entry><para>Read file into Q-register q</para></entry><entry><para>
+ <xref linkend="COM_FSC_IOQ" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>ER</para></entry><entry><para>Open input file</para></entry><entry><para>
+ <xref linkend="COM_FSC_FOC" xrefstyle="select: labelnumber"/>, <xref linkend="COM_FSC_SSC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>ES</para></entry><entry><para>Search verification flag</para></entry><entry><para>
+ <xref linkend="COM_MCF" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>ET</para></entry><entry><para>Type out control flag</para></entry><entry><para>
+ <xref linkend="COM_MCF" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>EU</para></entry><entry><para>Case flagging flag</para></entry><entry><para>
+ <xref linkend="COM_MCF" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>EV</para></entry><entry><para>Edit verify flag</para></entry><entry><para>
+ <xref linkend="COM_MCF" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>EW</para></entry><entry><para>Open output file</para></entry><entry><para>
+ <xref linkend="COM_FSC_FOC" xrefstyle="select: labelnumber"/>, <xref linkend="COM_FSC_SSC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>EX</para></entry><entry><para>Close out and exit</para></entry><entry><para>
+ <xref linkend="COM_FSC_FCE" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>EY</para></entry><entry><para>Read without yank protection</para></entry><entry><para>
+ <xref linkend="COM_PMC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>EZ</para></entry><entry><para>Zero output tape</para></entry><entry><para>
+ <xref linkend="COM_FSC_FCE" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nE_</para></entry><entry><para>Search without yank protection</para></entry><entry><para>
+ <xref linkend="COM_SRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>F'</para></entry><entry><para>Flow to end of conditional</para></entry><entry><para>
+ <xref linkend="COM_BRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>F&lt;</para></entry><entry><para>Flow to start of iteration</para></entry><entry><para>
+ <xref linkend="COM_BRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>F></para></entry><entry><para>Flow to end of iteration</para></entry><entry><para>
+ <xref linkend="COM_BRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>F|</para></entry><entry><para>Flow to ELSE part of conditional</para></entry><entry><para>
+ <xref linkend="COM_BRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>m,nFB</para></entry><entry><para>Search between locations m and n</para></entry><entry><para>
+ <xref linkend="COM_SRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nFB</para></entry><entry><para>Search, bounded by n lines</para></entry><entry><para>
+ <xref linkend="COM_SRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>m,nFC</para></entry><entry><para>Search and replace between m and n</para></entry><entry><para>
+ <xref linkend="COM_SRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nFC</para></entry><entry><para>Search and replace over n lines</para></entry><entry><para>
+ <xref linkend="COM_SRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nFD</para></entry><entry><para>Search and delete string</para></entry><entry><para>
+ <xref linkend="COM_DEL" xrefstyle="select: labelnumber"/>, <xref linkend="COM_SRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nFK</para></entry><entry><para>Search and delete intervening text</para></entry><entry><para>
+ <xref linkend="COM_DEL" xrefstyle="select: labelnumber"/>, <xref linkend="COM_SRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nFN</para></entry><entry><para>Global string replace</para></entry><entry><para>
+ <xref linkend="COM_SRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>FR</para></entry><entry><para>Replace last string</para></entry><entry><para>
+ <xref linkend="COM_INS" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nFS</para></entry><entry><para>Local string replace</para></entry><entry><para>
+ <xref linkend="COM_SRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nF_</para></entry><entry><para>Destructive search and replace</para></entry><entry><para>
+ <xref linkend="COM_SRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>Gq</para></entry><entry><para>Get string from Q-register q into buf</para></entry><entry><para>
+ <xref linkend="COM_QRG" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>G&star;</para></entry><entry><para>Get last filespec string into buffer</para></entry><entry><para>
+ <xref linkend="APP_INC_T11" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>:Gq</para></entry><entry><para>Type Q-register q on terminal</para></entry><entry><para>
+ <xref linkend="COM_QRG" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>G_</para></entry><entry><para>Get last search string into buffer</para></entry><entry><para>
+ <xref linkend="APP_INC_T11" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>H</para></entry><entry><para>Equivalent to "B,Z"</para></entry><entry><para>
+ <xref linkend="COM_SNV" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>I</para></entry><entry><para>Insert text</para></entry><entry><para>
+ <xref linkend="COM_INS" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nI</para></entry><entry><para>Insert ASCII character "n"</para></entry><entry><para>
+ <xref linkend="COM_INS" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nJ</para></entry><entry><para>Move pointer to "n"</para></entry><entry><para>
+ <xref linkend="COM_BPC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nK</para></entry><entry><para>Kill n lines</para></entry><entry><para>
+ <xref linkend="COM_DEL" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>m,nK</para></entry><entry><para>Delete between m and n</para></entry><entry><para>
+ <xref linkend="COM_DEL" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nL</para></entry><entry><para>Advance n lines</para></entry><entry><para>
+ <xref linkend="COM_BPC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>Mq</para></entry><entry><para>Execute string in Q-register q</para></entry><entry><para>
+ <xref linkend="COM_QRG" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nN</para></entry><entry><para>Global search</para></entry><entry><para>
+ <xref linkend="COM_SRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>O</para></entry><entry><para>Go to label</para></entry><entry><para>
+ <xref linkend="COM_BRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nO</para></entry><entry><para>Computed goto</para></entry><entry><para>
+ <xref linkend="COM_BRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nP</para></entry><entry><para>Advance or back up n pages</para></entry><entry><para>
+ <xref linkend="COM_PMC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>m,nP</para></entry><entry><para>Write out chars m to n</para></entry><entry><para>
+ <xref linkend="COM_PMC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nPW</para></entry><entry><para>Write buffer n times</para></entry><entry><para>
+ <xref linkend="COM_PMC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>m,nPW</para></entry><entry><para>Write out chars m to n</para></entry><entry><para>
+ <xref linkend="COM_PMC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>Qq</para></entry><entry><para>Number in Q-register q</para></entry><entry><para>
+ <xref linkend="COM_QRG" xrefstyle="select: labelnumber"/>, <xref linkend="COM_SNV" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>:Qq</para></entry><entry><para>Size of text in Q-register q</para></entry><entry><para>
+ <xref linkend="COM_QRG" xrefstyle="select: labelnumber"/>, <xref linkend="COM_SNV" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nR</para></entry><entry><para>Back up n characters</para></entry><entry><para>
+ <xref linkend="COM_BPC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nS</para></entry><entry><para>Local search</para></entry><entry><para>
+ <xref linkend="COM_SRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>m,nS</para></entry><entry><para>Search for nth occurrence within m characters</para></entry><entry><para>
+ <xref linkend="APP_INC_T11" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>::S</para></entry><entry><para>Compare string</para></entry><entry><para>
+ <xref linkend="COM_SRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>SEEALL</para></entry><entry><para>"View All" characters display mode</para></entry><entry><para>
+ <xref linkend="CON_TCS" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nT</para></entry><entry><para>Type n lines</para></entry><entry><para>
+ <xref linkend="COM_TTO" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>m,nT</para></entry><entry><para>Type from m to n</para></entry><entry><para>
+ <xref linkend="COM_TTO" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nUq</para></entry><entry><para>Put number n into Q-register q</para></entry><entry><para>
+ <xref linkend="COM_QRG" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nV</para></entry><entry><para>Type n current lines</para></entry><entry><para>
+ <xref linkend="COM_TTO" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>m,nV</para></entry><entry><para>Type m before &amp; n after current line</para></entry><entry><para>
+ <xref linkend="COM_TTO" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>W</para></entry><entry><para>Scope "WATCH"</para></entry><entry><para>
+ <xref linkend="COM_SCO_VID" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n:W</para></entry><entry><para>Return scope characteristics</para></entry><entry><para>
+ <xref linkend="COM_SCO_VID" xrefstyle="select: labelnumber"/>, <xref linkend="APP_INC_T11" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>m,n:W</para></entry><entry><para>Set scope characteristics</para></entry><entry><para>
+ <xref linkend="COM_SCO_VID" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>nXq</para></entry><entry><para>Put n lines into Q-register q</para></entry><entry><para>
+ <xref linkend="COM_QRG" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>m,nXq</para></entry><entry><para>Put characters m to n into Q-register</para></entry><entry><para>
+ <xref linkend="COM_QRG" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n:Xq</para></entry><entry><para>Append n lines to Q-register q</para></entry><entry><para>
+ <xref linkend="COM_QRG" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>m,n:Xq</para></entry><entry><para>Append characters m to n into Q-register</para></entry><entry><para>
+ <xref linkend="COM_QRG" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>Y</para></entry><entry><para>Read into buffer</para></entry><entry><para>
+ <xref linkend="COM_PMC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>Z</para></entry><entry><para>End of buffer value</para></entry><entry><para>
+ <xref linkend="COM_SNV" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>[q</para></entry><entry><para>Q-register push</para></entry><entry><para>
+ <xref linkend="COM_QRG" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>\</para></entry><entry><para>Value of digit string in buffer</para></entry><entry><para>
+ <xref linkend="COM_ARI" xrefstyle="select: labelnumber"/>, <xref linkend="COM_SNV" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n\</para></entry><entry><para>Convert n to digits in buffer</para></entry><entry><para>
+ <xref linkend="COM_ARI" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>]q</para></entry><entry><para>Q-register pop</para></entry><entry><para>
+ <xref linkend="COM_QRG" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>n_</para></entry><entry><para>Global search without output</para></entry><entry><para>
+ <xref linkend="COM_SRC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>`</para></entry><entry><para>ESCape surrogate typeout</para></entry><entry><para>
+ <xref linkend="BAS_USING" xrefstyle="select: labelnumber"/>, <xref linkend="CON_TCF_TXT" xrefstyle="select: labelnumber"/>,
+ <xref linkend="CSE_IAEC" xrefstyle="select: labelnumber"/>, <xref linkend="COM_MCF" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>a-z</para></entry><entry><para>Treated the same as upper case A-Z</para></entry><entry><para/></entry></row>
+ <row><entry><para>{</para></entry><entry><para>Not a TECO command</para></entry><entry><para/></entry></row>
+ <row><entry><para>|</para></entry><entry><para>Start ELSE part of conditional</para></entry><entry><para>
+ <xref linkend="COM_CEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ <row><entry><para>}</para></entry><entry><para>Not a TECO command</para></entry><entry><para/></entry></row>
+ <row><entry><para>~</para></entry><entry><para>Not a TECO command</para></entry><entry><para/></entry></row>
+ <row><entry><para>DEL</para></entry><entry><para>Delete last character typed in</para></entry><entry><para>
+ <xref linkend="CSE_IAEC" xrefstyle="select: labelnumber"/></para></entry></row>
+ 
+</tbody>
+</tgroup></table>
+ </appendix>

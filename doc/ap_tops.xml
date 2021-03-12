@@ -1,0 +1,510 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE appendix [
+<!ENTITY % isopub PUBLIC "ISO 8879:1986//ENTITIES Publishing//EN//XML" "http://www.w3.org/2003/entities/iso8879/isopub.ent">
+<!ENTITY % isonum PUBLIC "ISO 8879:1986//ENTITIES Numeric and Special Graphic//EN" "http://www.w3.org/2003/entities/iso8879/isonum.ent">
+<!ENTITY % isotech PUBLIC "ISO 8879:1986//ENTITIES General Technical//EN" "http://www.w3.org/2003/entities/iso8879/isotech.ent">
+%isopub;%isonum;%isotech;
+<!ENTITY % myEnt SYSTEM "teco.ent">
+%myEnt;
+]>
+ <appendix xmlns="http://docbook.org/ns/docbook" version="5.1" xml:id="APP_TOPS"><title>TOPS-10 Operating Characteristics</title>
+ <sect1 xml:id="APP_TOPS_STA"><title>STARTUP</title>
+ <para>
+ TECO is started with the:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.R TECO</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ command. TECO is now immediately ready to accept commands. The
+ text buffer and Q-register areas are empty. Initial commands may
+ also be specifified by following the monitor command with a
+ dollar sign ($) and then some TECO commands. For example:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.R TECO $3EH</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ starts TECO with the help level flag set to 3.
+ </para><para>
+ The TECO command
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.TECO filespec</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ is used to edit an already existing file. It is equivalent to:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.R TECO</para></entry></row>
+ <row><entry><para/></entry><entry><para>&star;EBfilespec`Y``</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ TOPS-10 "remembers" the filespec as the name of the last file
+ that has been edited.
+ </para><para>
+ The MAKE command:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.MAKE filespec</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ is used to create a new file. It is equivalent to:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.R TECO</para></entry></row>
+ <row><entry><para/></entry><entry><para>&star;EWfilespec``</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ TOPS-10 "remembers" the filespec as the name of the last file
+ that was edited.
+ </para><para>
+ The command:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.MAKE filespec1=filespec2</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ is used to edit filespec2 into filespec1. That is, filespec2 is
+ opened as the input file, and filespec1 is created as the output
+ file. It is equivalent to:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.R TECO</para></entry></row>
+ <row><entry><para/></entry><entry><para>&star;ERfilespec2`EWfilespec1`Y``</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ TOPS-10 "remembers" the filespec1 as the name of the last file
+ that was edited.
+ </para><para>
+ The command:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.TECO</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ with no arguments, causes CCL to execute the command:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.TECO filespec</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ where filespec was the file that was previously remembered as the
+ last file to be edited. The system purposely does not remember
+ filenames from one editing session to the next, that is, when you
+ log out, the system "forgets" the name of the file you were
+ editing.
+ </para><para>
+ TECO-10 does not require the use of the MUNG command to execute
+ TECO macros because runnable TECO programs can be created via use
+ of the EE command and these can then be run with the standard R
+ or RUN command. This TECO command has the format:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>EEfilespec`</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ which saves away the current image of TECO in the filename
+ specified. The default extension is .EXE. When the file is
+ subsequently run (using the R or RUN monitor command), TECO
+ resumes execution with the TECO command immediately following the
+ EE command.
+ </para></sect1><sect1 xml:id="APP_TOPS_STC"><title>Startup Conditions</title>
+ <para>
+ The initial value of the EU flag is 0 if you are running on a
+ terminal that does not support lower case, and is -1 if you are
+ running on a terminal that does support lower case.
+ </para><para>
+ The initial value of the ET flag is as follows:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <thead>
+<row>
+<entry><para>Bit</para></entry><entry><para>Initial value</para></entry>
+</row>
+</thead>
+ <tbody>
+<row><entry><para>1</para></entry><entry><para>0</para></entry></row>
+ <row><entry><para>2</para></entry><entry><para>0 (1 if terminal is a scope)</para></entry></row>
+ <row><entry><para>4</para></entry><entry><para>1</para></entry></row>
+ <row><entry><para>8</para></entry><entry><para>0</para></entry></row>
+ <row><entry><para>16</para></entry><entry><para>0</para></entry></row>
+ <row><entry><para>32</para></entry><entry><para>0</para></entry></row>
+ <row><entry><para>64</para></entry><entry><para>0</para></entry></row>
+ <row><entry><para>128</para></entry><entry><para>1 (TECO's prompt sets this to 0)</para></entry></row>
+ <row><entry><para>256</para></entry><entry><para>0</para></entry></row>
+ <row><entry><para>512</para></entry><entry><para>0 (1 if VT support is present)</para></entry></row>
+ <row><entry><para>1024</para></entry><entry><para>0</para></entry></row>
+ <row><entry><para>2048</para></entry><entry><para>0</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ The initial value of the ED flag is 1.
+ </para></sect1><sect1 xml:id="APP_TOPS_FS"><title>File Specification</title>
+ <para>
+ The file access commands ER, EB, and EW accept a file
+ specification in the standard TOPS-10 format:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>dev:filename.type[p,pn]</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ in which dev: is a physical device name or a user assigned
+ logical name; if dev: is not specified, the default DSK: is
+ assumed. The filename field must be specified in the commands
+ ER, EB, and EW and be a legal TOPS-10 filename. The type field
+ is a file extension and must be explicitly given the first time.
+ Thereafter, if a corresponding command is given with no extension
+ specified, the system uses the previously specified extension as
+ the default. The same defaulting rules hold for the dev: field.
+ The <literal>&lt;prot></literal> construct is permitted on any output filespecification
+ to allow setting the protection of the file being created.
+ </para></sect1><sect1 xml:id="APP_TOPS_BF"><title>Backup Files</title>
+ <para>
+ The EB command maintains one level of file backup on TOPS-10.
+ The pre-edited input file name is changed to:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>filename.BAK</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ before the new output file is closed with the original name.
+ Only normal file closing commands (EC, EF, EG, and EX) cause this
+ renaming to happen. If TECO is aborted or the output file is
+ purged by the EK command, the input filename remains unchanged.
+ Note only one .BAK file for a given name is kept; earlier .BAK
+ backup files are deleted each time a new backup file is created.
+ </para><para>
+ A good policy to follow when editing is to close the edited file
+ frequently enough so that an unexpected incident would not cause
+ a substantial loss of work. Files should be backed up regularly.
+ TECO has the power to let an unsuspecting user alter a good file
+ into a completely useless state. The FILCOM program can be used
+ to verify an editing session.
+ </para></sect1><sect1 xml:id="APP_TOPS_EG"><title>EXIT and GO</title>
+ <para>
+ If TECO is exited via the EG` command, then TOPS-10 will
+ re-execute the last explicit compile-class command that was
+ executed during that session.
+ </para></sect1><sect1><title><literal>&lt;CTRL/C></literal></title>
+ <para>
+ The action taken when the user types <literal>&lt;CTRL/C></literal> depends on what
+ TECO is doing. At command level <literal>&lt;CTRL/C></literal> is an immediate action
+ command. If typed as the very first character in a command
+ string (not necessarily the first keystroke) it aborts TECO and
+ returns to the monitor. No Control-C trapping is available under
+ TOPS-10. The ?XAB error message is not supported. If <literal>&lt;CTRL/C></literal>
+ is typed in the middle of entering a command string, then TECO
+ returns control to the monitor. Note that if TECO executes
+ <literal>&lt;CTRL/C></literal> as a command from command level, TECO is aborted. If
+ TECO executes a <literal>&lt;CTRL/C></literal> command from within a macro, TECO is
+ also aborted. If two consecutive <literal>&lt;CTRL/C></literal>s are typed while TECO
+ is running, or while TECO is typing on the terminal, or while an
+ error message is printing, then control returns to the operating
+ system. If one <literal>&lt;CTRL/C></literal> is typed to TECO while it is waiting for
+ input, then control returns to the operating system.
+ </para></sect1><sect1 xml:id="APP_TOPS_EXC"><title>Exceptions</title>
+ <para>
+ TECO-10 does not support the following commands which are
+ described in this manual:
+ <orderedlist>
+ <listitem><para>Secondary streams (EP, EA, ER`, EW`)
+ </para></listitem><listitem><para>Wildcards (EN)
+ </para></listitem><listitem><para>Immediate aids LF and BS.
+ </para></listitem></orderedlist>
+ </para><para>
+ The following incompatibility exists between TECO-10 and DEC's
+ TOPS-10 TECO V24:
+ <simplelist>
+ <member>The nA command under TOPS-10 TECO V24 always returned
+ the value of the current character, regardless of the
+ value of n. In TECO-10, 0A gives the value of the
+ current character.
+ </member></simplelist>
+ </para></sect1><sect1 xml:id="APP_TOPS_INI"><title>User Initialization</title>
+ <para>
+ If a user has a file called TECO.INI in his area, then when TECO
+ starts up (via a CCL command), it will execute the contents of
+ this file (as a TECO macro). This file must contain a valid TECO
+ program. TECO.INI will be executed before TECO opens any files.
+ That is, if TECO was invoked via a MAKE command, TECO.INI will be
+ executed before the EW command (for the MAKE) is executed.
+ </para></sect1><sect1 xml:id="APP_TOPS_INS"><title>Installation Instructions</title>
+ <para>
+ To create TECO for TOPS-10 from the sources, issue the following
+ commands:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.LOAD/MAC/COMPILE TECO10.T10+TECO10.MAC</para></entry></row>
+ <row><entry><para/></entry><entry><para>.SAVE TECO10</para></entry></row>
+ <row><entry><para/></entry><entry><para>.LOAD/MAC/COMPILE TECERR.T10+TECO10.MAC</para></entry></row>
+ <row><entry><para/></entry><entry><para>.SAVE TECERR</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ To create TECO for TOPS-20 from the sources, issue the following
+ commands:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>@LOAD/MAC/COMPILE TECO10</para></entry></row>
+ <row><entry><para/></entry><entry><para>@SAVE TECO20</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ This builds a raw TECO. This version of TECO does not contain
+ any window support since the W and :W commands are implemented as
+ macros. To load window support, issue the following commands:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.RUN TECO10 (or TECO20)</para></entry></row>
+ <row><entry><para/></entry><entry><para>&star;EITECO10.TEC``</para></entry></row>
+ <row><entry><para/></entry><entry><para>&star;EETECO``</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ You now have a runnable TECO image with window support.
+ </para></sect1><sect1 xml:id="APP_TOPS_TMPCOR"><title>TMPCOR Support</title>
+ <para>
+ The EQ and E% commands support the pseudo-device TMP: for
+ TMPCOR. Only the first three letters of the file name will be
+ used, to try and access a TMPCOR file. If that fails, it will
+ try nnnNAM.TMP where nnn is your job number and NAM is the
+ three-character name. For example: for job 23, EQqTMP:FOOBAR`
+ will read TMPCOR file FOO or 023FOO.TMP.
+ </para></sect1><sect1 xml:id="APP_TOPS_QRG"><title>Q-Register Names</title>
+ <para>
+ Any printable character (except open parenthesis) is valid as a
+ Q-register name. A Q-register whose name is a lower case
+ alphabetic character is the same as the Q-register whose name
+ consists of the corresponding upper case letter. Thus Qa and QA
+ are equivalent commands. Q-register names may also be up to 6
+ characters long, by enclosing the name in parentheses, for
+ example, Q(FOOBAR). Q-register names may contain any printable
+ characters, however all characters other than letters, digits,
+ dollar-sign, space, and underline are reserved for special use by
+ TECO. A Q-register name consisting entirely of zero or more
+ spaces is the same as Q-register (), which is special and
+ discussed below. Trailing spaces in Q-register names are
+ discarded, and lower case is converted to upper case.
+ </para></sect1><sect1 xml:id="APP_TOPS_TBQ"><title>Referencing the Text Buffer as a Q-Register</title>
+ <para>
+ The Q-register with the null name: () is the text buffer. The
+ numeric part of this Q-register is the value of dot. The
+ sequence [A ]() causes Q-register A to share with the text
+ buffer. The old main text buffer is lost (unless it is also
+ sharing with some Q-register or if it has been saved on the
+ Q-register push-down list). The text in Q-register A becomes the
+ text buffer and the numeric part of Q-register A is used for "."
+ if it is in range, otherwise dot is set to 0.
+ </para></sect1><sect1 xml:id="APP_TOPS_QRP"><title>Sharing of Q-Register Pointers</title>
+ <para>
+ Q-registers may share their text with each other and with the
+ text buffer as a result of [ and ] commands. When a Q-register
+ is pushed onto the Q-register pushdown list, all that is pushed
+ is the numeric part of the Q-register and a pointer to the text
+ part of the Q-register. Thus a command such as [A ]B would cause
+ Q-registers A and B to share the same text. The commands X, ^U,
+ and EQ could be applied to either Q-register without modifying
+ the other, since the Q-register is unbound from its previous text
+ first. However, the colon-modified forms of X and ^U append to
+ the existing text, so a :X or :^U command for either of them
+ would affect the other.
+ </para></sect1><sect1 xml:id="APP_TOPS_LSN"><title>Editing Line Sequence Numbered Files</title>
+ <para>
+ Some ASCII files have a special type of line number at the
+ beginning of each line. These "line-sequence numbers" conform to
+ certain rules so that they may be ignored or treated specially by
+ compilers and other programs. The standards for line-sequence
+ numbers are given in the LINED Program Reference Manual.
+ </para><para>
+ TECO does not need line-sequence numbers for operation, but TECO
+ can be used to edit files containing them. If such a file is
+ edited with TECO-10, the line-sequence numbers are, in the normal
+ case, simply preserved as additional text at the beginning of
+ each line. The line-sequence numbers may be deleted, edited, and
+ inserted exactly like any other text. On output, the
+ line-sequence numbers are output according to the standard,
+ except that the tab after the number is output only if it is
+ already there. Leading zeros are added as necessary. If a line
+ without a line-sequence number is encountered, a line-sequence
+ number word of five spaces is placed at the beginning of the
+ line.
+ </para><para>
+ The following switches are available for use with line-sequence
+ numebred files. These switches are merely added to the
+ appropriate file selection command.
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>ERfilespec/SUPLSN`</para></entry></row>
+ <row><entry><para/></entry><entry><para>EBfilespec/SUPLSN`</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ causes line sequence numbers to be suppressed at input time. The
+ numbers will not be read into the editing buffer. Also, the tabs
+ following the line-sequence numbers, if they exist, will be
+ suppressed.
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>EWfilespec/SUPLSN`</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ causes the line-sequence numbers to be suppressed at output time.
+ Tabs following the line-sequence numbers will also be suppressed
+ if they exist.
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>EWfilespec/GENLSN`</para></entry></row>
+ <row><entry><para/></entry><entry><para>EBfilespec/GENLSN`</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ causes line sequence numbers to be generated for the output file
+ if they did not already exist in the input file. Generated
+ line-sequence numbers begin at 00010 and continue with increments
+ of 10 for each line.
+ </para><para>
+ Note that these switches are needed only if a change is to be
+ made in the format of the file being edited. If no switches are
+ specified, a file is output in the same form as it was input.
+ </para></sect1><sect1 xml:id="APP_TOPS_RES"><title>Compiler Restrictions</title>
+ <para>
+ TECO-10 is a compiler rather than an interpreter. This means,
+ that before your command string is executed, TECO-10 compiles it
+ into assembly language code. This makes it must faster than most
+ other TECOs. Before executing a macro (with the Mq command) TECO
+ compiles the program in the macro. The next time the macro is
+ executed, TECO notes that the macro has already been compiled and
+ merely branches to the compiled code. If the contents of the
+ Q-register are changed (via an X or U command), then TECO notes
+ that it must re-compile the commands should the Q-register be
+ invoked as a macro.
+ </para><para>
+ One consequence of this is that if a syntax error is detected in
+ a command, no portion of that command will have been executed.
+ For example, typing the command HK= will yield the ?NAE error
+ message and the text buffer will NOT be cleared. Another
+ consequence of this is that you must not invoke a macro two
+ different times using two different numbers of arguments. If a
+ macro gets initially invoked with two arguments, then all
+ subsequent invocations must supply two arguments. Also, TECO
+ cannot tell while compiling an Mq command whether or not the
+ macro returns a value. Therefore it assumes that a value is
+ always returned. This value can be explicitly removed by
+ followed the Mq command with an <literal>&lt;ESCAPE></literal>. The MqA command will
+ compile the A command as if it were an nA command rather than an
+ APPEND.
+ </para></sect1></appendix>

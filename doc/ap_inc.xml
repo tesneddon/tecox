@@ -1,0 +1,627 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE appendix [
+<!ENTITY % isopub PUBLIC "ISO 8879:1986//ENTITIES Publishing//EN//XML" "http://www.w3.org/2003/entities/iso8879/isopub.ent">
+<!ENTITY % isonum PUBLIC "ISO 8879:1986//ENTITIES Numeric and Special Graphic//EN" "http://www.w3.org/2003/entities/iso8879/isonum.ent">
+<!ENTITY % isotech PUBLIC "ISO 8879:1986//ENTITIES General Technical//EN" "http://www.w3.org/2003/entities/iso8879/isotech.ent">
+%isopub;%isonum;%isotech;
+<!ENTITY % myEnt SYSTEM "teco.ent">
+%myEnt;
+]>
+ <appendix xmlns="http://docbook.org/ns/docbook" version="5.1" xml:id="APP_INC"><title>Incompatible, Obsolete, and System-Specific Commands</title>
+ <para>
+ This appendix describes commands that are peculiar to specific
+ operating systems. These commands fall into many categories.
+ Some are obsolete, and are kept around only as a convenience to
+ the user. Others are so system specific or so obscure that it
+ was felt best not to include them in the main body of the manual.
+ Some are incompatible across operating systems. Some are new
+ commands that have not become firmly established and may change
+ in the future. In general, use these commands at your own risk
+ and with the understanding that in future releases of TECO, these
+ commands may change or go away completely. Implementors of TECO
+ on other operating systems should contact the TECO SIG before
+ implementing any of these features.
+ </para><sect1 xml:id="APP_INC_T11"><title>Specific Features of TECO-11</title>
+ <table xml:id="APP_INC_TAB_T11"><title>TECO-11 and TECO-32 Commands</title>
+ <tgroup cols="3" align="left" colsep="1" rowsep="1">
+    <colspec colname="c1"/>
+    <colspec colname="c2"/>
+    <colspec colname="newCol3"/>
+    <thead>
+     <row>
+      <entry>
+       <para>Command</para>
+      </entry>
+      <entry namest="c2" nameend="newCol3">
+       <para>Description</para>
+      </entry>
+     </row>
+    </thead>
+    <tbody>
+     <row>
+      <entry>
+       <para>m,nStext`</para>
+      </entry>
+      <entry namest="c2" nameend="newCol3">
+       <para> Performs the same function as the nS command, but m serves a bound limit for the
+        search. If the search string can be found without moving the pointer more than ABS(m)-1
+        places, the search succeeds and the pointer is repositioned to immediately after the last
+        character of the string. Otherwise, the pointer is left unchanged. The ^Q operator,
+        described below, is useful in conjunction with this command.</para>
+       <para> Note that m,Stext` is identical to
+        m,1Stext` and m,-Stext` is identical to
+        m,-1Stext`.</para>
+      </entry>
+     </row>
+     <row>
+      <entry>
+       <para>m,-nStext`</para>
+      </entry>
+      <entry namest="c2" nameend="newCol3">
+       <para> Performs the same function as the m,nS command, but searches in the reverse
+        direction.</para>
+      </entry>
+     </row>
+     <row>
+      <entry>
+       <para>0,nStext`</para>
+      </entry>
+      <entry namest="c2" nameend="newCol3">
+       <para> Performs the same function as the nS command, except that the pointer position will
+        remain unchanged on search string failure. (Essentially an unbounded search with no pointer
+        movement on failure.)</para>
+      </entry>
+     </row>
+     <row>
+      <entry>
+       <para>G&star;</para>
+      </entry>
+      <entry namest="c2" nameend="newCol3">
+       <para>Get most recent filespec string. The asterisk represents TECO's filespec string area,
+        which contains the fully expanded filespec of the last E command (see appendices). Copy the
+        contents of the filespec string area into the buffer at the current position of the buffer
+        pointer, leaving the pointer positioned after the last character copied.</para>
+      </entry>
+     </row>
+     <row>
+      <entry>
+       <para>:G&star;</para>
+      </entry>
+      <entry namest="c2" nameend="newCol3">
+       <para>Print the contents of the filespec buffer on the terminal.</para>
+      </entry>
+     </row>
+     <row>
+      <entry>
+       <para>G_</para>
+      </entry>
+      <entry namest="c2" nameend="newCol3">
+       <para>Get most recent search string. The underscore (backarrow) represents TECO's search
+        string area. Copy the contents of the search string area into the buffer at the current
+        position of the buffer pointer, leaving the pointer positioned after the last character
+        copied.</para>
+      </entry>
+     </row>
+     <row>
+      <entry>
+       <para>:G_</para>
+      </entry>
+      <entry namest="c2" nameend="newCol3">
+       <para>Print the contents of the search string buffer on the terminal.</para>
+      </entry>
+     </row>
+     <row>
+      <entry>
+       <para>n^Q</para>
+      </entry>
+      <entry namest="c2" nameend="newCol3">
+       <para>n^QC is identical to nL. The n^Q command returns the number of characters between the
+        buffer pointer and the nth line separator (both positive and negative). This command
+        converts line oriented command argument values into character oriented argument values. Used
+        after an expression.</para>
+      </entry>
+     </row>
+     <row>
+      <entry morerows="10">
+       <para>m,-256+n:W</para>
+      </entry>
+      <entry namest="c2" nameend="newCol3">
+       <para>Inserts characters at "dot" until... Characters are read (echo off) from the terminal
+        and inserted at "dot" until and according to the microcoded bits in n. The terminating
+        character is not inserted. </para>
+      </entry>
+     </row>
+     <row>
+      <entry><emphasis role="bold">bit</emphasis></entry>
+      <entry><emphasis role="bold">meaning</emphasis></entry>
+     </row>
+     <row>
+      <entry>128</entry>
+      <entry>Return immediately if no typed characters</entry>
+     </row>
+     <row>
+      <entry>64</entry>
+      <entry>Terminate on any character</entry>
+     </row>
+     <row>
+      <entry>32</entry>
+      <entry>Don't keep screen updated (i.e., no -1W)</entry>
+     </row>
+     <row>
+      <entry>8</entry>
+      <entry>Treat m as terminating character(s)</entry>
+     </row>
+     <row>
+      <entry>4</entry>
+      <entry>Convert any alphabetic inserts to upper case</entry>
+     </row>
+     <row>
+      <entry>2</entry>
+      <entry>
+       <para>Terminate on <literal>&lt;TAB></literal></para>
+      </entry>
+     </row>
+     <row>
+      <entry>1</entry>
+      <entry>Screen is initially O.K.</entry>
+     </row>
+     <row>
+      <entry namest="c2" nameend="newCol3">
+       <para>Control characters (octal 0 through 37 and 177 except <literal>&lt;TAB></literal>) are
+        always terminating characters. The returned value has the terminating character code in low
+        byte (octal 0 through 177 or 377 for returned immediately). The sign bit is set if one or
+        more inserts were done. The return value may be a character code that normally would have
+        been inserted, but could not be for some reason (e.g., convert alphabetic inserts to upper
+        case requested, but not supported in this implementation).</para>
+      </entry>
+     </row>
+     <row>
+      <entry namest="c2" nameend="newCol3">
+       <para>The m of m,-256+n:W is always optional. If bit value 8 of n is set, m contains up to
+        two additional termination character codes, one in the low 8 bits (low byte) and another in
+        the high 8 bits (high byte). If only one extra termination character is desired, it is
+        placed simply placed in m thus setting the high 8 bits to zero (which is already a
+        termination character). If bit value 8 of n is not set, passing the m argument is
+        undefined...</para>
+      </entry>
+     </row>
+    </tbody>
+   </tgroup></table>
+ <para>
+ <table xml:id="APP_INC_TAB_SBC"><title>String Build Constructs</title>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <thead>
+<row>
+<entry><para>Construct</para></entry><entry><para>Description</para></entry>
+</row>
+</thead>
+ <tbody>
+<row><entry><para><literal>&lt;CTRL/E></literal>Q&star;</para></entry><entry><para><literal>&lt;CTRL/E></literal>Q&star;
+ indicates that the string stored in the
+ filespec buffer is to be used in the position
+ occupied by the ^EQ&star; in the search string.</para></entry></row>
+ <row><entry><para><literal>&lt;CTRL/E></literal>Q_</para></entry><entry><para><literal>&lt;CTRL/E></literal>Q_
+ indicates that the string stored in the
+ search string buffer is to be used in the position
+ occupied by the ^EQ_ in the search string.</para></entry></row>
+ 
+</tbody>
+</tgroup></table>
+ </para></sect1><sect1 xml:id="APP_INC_RT"><title>Specific Features of RT-11</title>
+ <para>
+ [For "RT-11 Operating Characteristics", refer to <xref linkend="APP_RT"/>.]
+ </para></sect1><sect1 xml:id="APP_INC_RSTS"><title>Specific Features of RSTS/E</title>
+ <para>
+ [For "RSTS/E Operating Characteristics", refer to <xref linkend="APP_RSTS"/>.]
+ <table xml:id="APP_INC_TAB_RSTS"><title>TECO/E Commands</title>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <thead>
+<row>
+<entry><para>Command</para></entry><entry><para>Description</para></entry>
+</row>
+</thead>
+ <tbody>
+<row><entry><para>:EGRTS`</para></entry><entry><para>Switch to private default run-time-system.</para></entry></row>
+ <row><entry><para>:EGRTS foo`</para></entry><entry><para>Switch to RTS "foo".</para></entry></row>
+ <row><entry><para>:EGFSS string`</para></entry><entry><para>File string scan "string".</para></entry></row>
+ <row><entry><para>:EGCCL cmd`</para></entry><entry><para>Try "cmd" as a CCL command.</para></entry></row>
+ <row><entry><para>:EGRUN file`</para></entry><entry><para>Try to run "file".</para></entry></row>
+ <row><entry><para>:EGRUN file=xx`</para></entry><entry><para>
+ Try to run "file" with "xx" placed in core common.</para></entry></row>
+ <row><entry><para>:EGEMT`</para></entry><entry><para>
+ Issue a monitor directive. The FIRQB is loaded
+ from Q-registers A through P and the XRB is loaded
+ from Q-registers Q through W. The low byte of the
+ value in Q-register A is the monitor EMT code to
+ issue. If the high byte of the value in
+ Q-register A is >0 then the text part of
+ Q-register A is put into the XRB for a 'write'
+ (XRLEN= size of A, XRBC=size of A, XRLOC->A); if
+ Q-register A high byte is &lt;0 then the text part of
+ Q-register A is put into the XRB for a 'read'
+ (XRLEN=size of A, XRBC=0, XRLOC->A).
+ Returned value is -1 for success, 0 for
+ unrecognized command, or >0 for the RSTS/E error
+ code. The FIRQB is placed in the numeric part of
+ Q-regs A, B, C, D, E, F, G, H, I, J, K, L, M, N,
+ O, P. The XRB is placed in the numeric part of
+ Q-regs Q, R, S, T, U, V, W.</para></entry></row>
+ 
+</tbody>
+</tgroup></table>
+ </para><para>
+ See also <xref linkend="COM_FSC_FSS" xrefstyle="select: label title"/>.
+ </para></sect1><sect1 xml:id="APP_INC_RSX"><title>Specific Features of RSX-11/M, RSX-11/D, and IAS</title>
+ <para>
+ [For "RSX-11 Operating Characteristics", refer to <xref linkend="APP_RSX"/>.]
+ <table xml:id="APP_INC_TAB_RSX"><title>TECO/RSX Commands</title>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <thead>
+<row>
+<entry><para>Command</para></entry><entry><para>Description</para></entry>
+</row>
+</thead>
+ <tbody>
+<row><entry><para><literal>&lt;CTRL/Z></literal><literal>&lt;CTRL/Z></literal>
+ <literal>&lt;CTRL/Z></literal></para></entry><entry><para>
+ Returns control to the operating system
+ immediately. Equivalent to typing
+ <literal>&lt;CTRL/C></literal><literal>&lt;CTRL/C></literal>.</para></entry></row>
+ 
+</tbody>
+</tgroup></table>
+ </para><para>
+ See also <xref linkend="COM_FSC_FSS" xrefstyle="select: label title"/>.
+ </para></sect1><sect1 xml:id="APP_INC_VMS"><title>Specific Features of VAX/VMS</title>
+ <para>
+ [For "VAX/VMS Operating Characteristics", refer to <xref linkend="APP_VMS"/>.]
+ <table xml:id="APP_INC_TAB_VMS"><title>TECO/VMS Commands</title>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <thead>
+<row>
+<entry><para>Command</para></entry><entry><para>Description</para></entry>
+</row>
+</thead>
+ <tbody>
+<row><entry><para><literal>&lt;CTRL/Z></literal><literal>&lt;CTRL/Z></literal>
+ <literal>&lt;CTRL/Z></literal></para></entry><entry><para>
+ Returns control to VAX/VMS immediately.
+ Equivalent to typing <literal>&lt;CTRL/C></literal><literal>&lt;CTRL/C></literal>.</para></entry></row>
+ <row><entry><para>EG`</para></entry><entry><para>Exit with special status
+ TECO's normal exit status code (as reflected by
+ the DCL symbols $STATUS and $SEVERITY) is 1
+ (success). If the exit was due to an EG` command,
+ the exit status code is 9 (also success).</para></entry></row>
+ <row><entry><para>:EGSYM symbol_name symbol_value`</para></entry><entry><para>
+ Defines the DCL local symbol "symbol_name" with a
+ value string of "symbol_value". Useful for
+ creating symbols that will be used by a command
+ procedure upon TECO's exit.</para></entry></row>
+ 
+</tbody>
+</tgroup></table>
+ </para><para>
+ See also section 5.1.2, File Specification Switches.
+ </para></sect1><sect1 xml:id="APP_INC_OS8"><title>Specific Features of OS/8</title>
+ <para>
+ [For "OS/8 Operating Characteristics", refer to <xref linkend="APP_OS8"/>.]
+ <table xml:id="APP_INC_TAB_OS8"><title>TECO-8 Commands</title>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <thead>
+<row>
+<entry><para>Command</para></entry><entry><para>Description</para></entry>
+</row>
+</thead>
+ <tbody>
+<row><entry><para><literal>&lt;CTRL/S></literal></para></entry><entry><para>If used as the first keystroke after TECO's
+ prompt, this command is the same as&star;Z, that is,
+ it saves the last command string in Q-register Z.
+ This command echoes as&star;Z and does not have to be
+ followed by a <literal>&lt;DELIM></literal>.</para></entry></row>
+ 
+</tbody>
+</tgroup></table>
+ </para><para>
+ See also <xref linkend="COM_FSC_FSS" xrefstyle="select: label title"/>.
+ </para></sect1><sect1 xml:id="APP_INC_TOPS"><title>Specific Features of TOPS-10</title>
+ <para>
+ [For "TOPS-10 Operating Characteristics", refer to <xref linkend="APP_TOPS"/>.]
+ <table><title>TECO-10 Commands</title>
+ <tgroup cols="3" align="left" colsep="1" rowsep="1">
+     <colspec colname="c1"/>
+     <colspec colname="c2"/>
+     <colspec colname="newCol3"/>
+     <thead>
+      <row>
+       <entry>
+        <para>Command</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para>Description</para>
+       </entry>
+      </row>
+     </thead>
+     <tbody>
+      <row>
+       <entry morerows="10">
+        <para>nEM</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para>Positions a magtape. You must open the magtape for input with an appropriate ER
+         command before it can be positioned. Exact positioning depends on the value of n, as
+         described below. You must reopen the magtape for output before you can output to it.
+         [TECO-10 only] </para>
+       </entry>
+      </row>
+      <row>
+       <entry><emphasis role="bold">Value</emphasis></entry>
+       <entry><emphasis role="bold">Action</emphasis></entry>
+      </row>
+      <row>
+       <entry>1EM</entry>
+       <entry>Rewind the currently-selected input magtape to load point. EM is identical to
+        1EM.</entry>
+      </row>
+      <row>
+       <entry>3EM</entry>
+       <entry>Write an end-of-file record.</entry>
+      </row>
+      <row>
+       <entry>6EM</entry>
+       <entry>Skip ahead one record.</entry>
+      </row>
+      <row>
+       <entry>7EM</entry>
+       <entry>Back up one record.</entry>
+      </row>
+      <row>
+       <entry>8EM</entry>
+       <entry>Skip ahead to logical end of tape (defined by two successive end-of-file marks). Leave
+        the magtape positioned between the two end-of-file marks so that successive output correctly
+        overwrites the second EOF.</entry>
+      </row>
+      <row>
+       <entry>9EM</entry>
+       <entry>Rewind and unload.</entry>
+      </row>
+      <row>
+       <entry>11EM</entry>
+       <entry>Write 3 inches of blank tape.</entry>
+      </row>
+      <row>
+       <entry>14EM</entry>
+       <entry>Advance tape one file. This leaves the tape positioned so that the next item read will
+        be the first record of the next file (or the second end-of-file mark at the logical
+        end-of-tape).</entry>
+      </row>
+      <row>
+       <entry>15EM</entry>
+       <entry>Backspace tape one file. This leaves the tape positioned so that the next item read
+        will be the end-of-file mark preceding the file backspaced over (unless the file is the
+        first file on the tape).</entry>
+      </row>
+      <row>
+       <entry>
+        <para>n^Q</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para>n^QC is identical to nL. This command returns the number of characters between the
+         buffer pointer and the nth line separator (both positive and negative). This command
+         converts line oriented command argument values into character oriented argument values.
+         Used after an expression.</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>F0</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para>Pointer position of start of window. Same as 6:W.</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>FZ</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para>Pointer position of end of window.</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>FH</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para>Same as F0,FZ.</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>FX</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para>Software maintained horizontal coordinate of location of cursor on screen (0-origin).
+         Updated by TECO on terminal output. If TECO cannot determine the updated location of the
+         cursor, this value is set to -1.</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>nFX</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para>Set value of FX register to n.</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>FY</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para>Software maintained vertical coordinate of location of cursor on screen (0-origin).
+         Updated by TECO on terminal output. If TECO cannot determine the updated location of the
+         cursor, this value is set to -1.</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>nFY</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para>Set value of FY register to n.</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>FP</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para>Equivalent to FY,FX.</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>m,nFP</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para>Equivalent to mFYnFX.</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>m,nFF</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para>Updates FY and FX registers as if the m,nT command were executed.</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>nFF</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para>Assumes that the scope cursor is pointing at the character that is just to the right
+         of the text buffer pointer (the current character). Then this command advances n screen
+         lines and goes to the end of that line and returns that pointer position.</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>nFQq</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para>Compares characters beginning at dot with characters beginning at the nth character in
+         Q-register q (0-origin). When a match fails or the match ends, this command moves the
+         pointer to after the last character that matched and returns the index into the
+         Q-register.</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>E=filespec`</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para>Renames the input file.</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>E&amp;filespec`</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para> Run the specified program when TECO exits. Can take a numeric argument which is the
+         run-offset. 0 is the default.</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>m,nE&star;</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para>Does an arbitrary TRMOP to your terminal. [Not available on TOPS-20.]</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>::Gq</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para>Same as :Gq but types literally.</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>::ER</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para>Same as ER but no defaults are used.</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>^Z</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para>Closes output file and exits from TECO.</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>^P</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para>Returns current page number.</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>n^P</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para>Executes P commands until page n has been reached.</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>n^Y</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para>Executes Y commands until page n has been reached.</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>n,m=</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para>Same as m=n^T.</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>m,n:^T</para>
+       </entry>
+       <entry namest="c2" nameend="newCol3">
+        <para>Does an arbitrary TTCALL.</para>
+       </entry>
+      </row>
+     </tbody>
+    </tgroup></table>
+ </para><para>
+ See also <xref linkend="COM_FSC_FSS" xrefstyle="select: label title"/>.
+ </para></sect1></appendix>

@@ -1,18 +1,321 @@
-<?xml version="1.0"?>
-<info xmlns="http://docbook.org/ns/docbook" version="5.0">
-  <title>Standard TECO</title>
-  <subtitle>Text Editor and Corrector for the VAX, PDP-11, PDP-10 and PDP-8</subtitle>
-  <author></author>
-  <copyright>
-    <year>1979</year>
-    <year>1985</year>
-    <year>1990</year>
-    <holder>TECO SIG</holder>
-  </copyright>
-  <legalnotice>
-    General permission to copy or modify, but not for profit,
-    is hereby granted, provided that the copyright notice is
-    included and reference made to the fact that reproduction
-    privileges were granted by the TECO SIG.
-  </legalnotice>
-</info>
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE part [
+<!ENTITY % isopub PUBLIC "ISO 8879:1986//ENTITIES Publishing//EN//XML" "http://www.w3.org/2003/entities/iso8879/isopub.ent">
+<!ENTITY % isonum PUBLIC "ISO 8879:1986//ENTITIES Numeric and Special Graphic//EN" "http://www.w3.org/2003/entities/iso8879/isonum.ent">
+<!ENTITY % isotech PUBLIC "ISO 8879:1986//ENTITIES General Technical//EN" "http://www.w3.org/2003/entities/iso8879/isotech.ent">
+%isopub;%isonum;%isotech;
+<!ENTITY % myEnt SYSTEM "teco.ent">
+%myEnt;
+]>
+ <part xmlns="http://docbook.org/ns/docbook" version="5.1">
+ 
+ 
+ <title>Standard TECO Text Editor and Corrector for the 
+ VAX, PDP-11, PDP-10, and PDP-8</title>
+ <abstract><title>May 1990</title>
+ <para>
+ This manual was updated for the online version only in May 1990.
+ <!-- <center_line>(<emphasis role="bold">User's Guide and Language Reference 
+ Manual</emphasis>\BIGSKIP) -->
+ <!-- <comment><center_line>(May 1990 Edition\BIGSKIP) -->
+ <!-- <center_line>(TECO-32 Version 40 \BIGSKIP) -->
+ <!-- <center_line>(TECO-11 Version 40) -->
+ <!-- <center_line>(TECO-10 Version 3) -->
+ <!-- <center_line>(TECO-8 Version 7) -->
+ </para><para> This manual describes the TECO Text Editor and COrrector.
+ </para><para> It includes a description for the novice user and an in-depth
+ discussion of all available commands for more advanced users.
+ </para><para> General permission to copy or modify, but not
+ for profit, is hereby granted, provided that
+ the copyright notice is included and
+ reference made to the fact that reproduction
+ privileges were granted by the TECO SIG.
+ </para></abstract>
+ 
+ <bookinfo>
+ <!-- <copyright_date>(1979, 1985, 1990 TECO SIG) -->
+ </bookinfo>
+ 
+ <preface>
+ <para>
+ TECO's history goes back a long time. In fact, TECO is
+ older than many of the readers of this manual, its roots
+ go back to 1962, when it was conceived by Daniel L. Murphy at MIT
+ on Digital's first computer, the PDP-1.
+ </para><para>
+ Since then, TECO has seen many implementations and additions to
+ its power.
+ <!-- <preface_section>(Introduction) -->
+ </para><para>
+ TECO is a powerful <firstterm>text editing language</firstterm> available under most
+ DIGITAL operating systems. TECO may be used to edit any form of
+ ASCII text: program sources, command procedures, or manuscripts,
+ for example. TECO is a character-oriented editor, and also
+ offers a number of facilities for dealing with lines of text.
+ </para><para>
+ You can use TECO interactively, issuing commands which are to be
+ executed as soon as they are typed in. (TECO is an <firstterm>interpreter</firstterm>.)
+ In this mode, TECO can be used for tasks ranging from very simple
+ to quite complex.
+ </para><para>
+ You can write sequences of commands called <firstterm>macros</firstterm>, which can be
+ stored and then invoked by short commands or even single
+ keystrokes. You can write sequences of commands to be run as
+ TECO <firstterm>programs</firstterm>, and store them on disk for execution at
+ convenience.
+ </para><para>
+ TECO can be used as an implementation language, as it provides
+ powerful primitive functions for text processing, screen
+ handling, and keyboard management. (The VTEDIT program included
+ with some TECO distributions is an example of a full keypad
+ editor developed in the TECO language.)
+ </para><para>
+ TECO correctly handles most sequential ASCII formats supported by
+ the operating systems upon which it runs. It provides flexible
+ pattern-matching constructs for text searching, file wildcarding,
+ and special support for editing BASIC-PLUS/BASIC-PLUS-2 source
+ programs. A split screen scrolling feature allows command
+ dialogue to share the screen with an automatically-updated window
+ into the editing buffer.
+ </para><para>
+ TECO's syntax is terse; commands are designed to minimize
+ keystrokes. Also, the versatility of TECO "in all its glory"
+ makes it complex. However, just a few commands suffice to get
+ real work done, and a novice TECO user can begin creating and
+ editing text files after only a few hours of instruction. More
+ powerful features can be learned one at a time, and at leisure.
+ </para><para>
+ This manual presents TECO in two stages. The first part 
+ (<xref linkend="BAS" xrefstyle="select: label title"/>)
+ contains basic information and introduces that set of "just a
+ few" commands.
+ </para><para>
+ Subsequent chapters describe the full TECO command set, including
+ a review of the those commands presented in <xref linkend="BAS"/>.
+ These chapters also introduce the concept of TECO as a programming
+ language and explain how basic editing commands may be combined
+ into "programs" sophisticated enough to handle the most
+ complicated editing tasks.
+ </para><para>
+ The early sections of this manual include few specific examples
+ of commands, since all TECO commands have a consistent, logical
+ format which will quickly become apparent to the beginning user.
+ There is, however, an extensive example at the end of 
+ <xref linkend="BAS"/>
+ which employs most of the commands introduced up to that point.
+ Students of TECO should experiment with each command as it is
+ introduced, and then duplicate the examples on their computer.
+ </para><para>
+ (If a video terminal which supports split-screen scrolling such
+ as a member of the VTx00 families is available and the
+ TECO being used supports it, seeing both your commands and their
+ effects in the text buffer simultaneously can make learning
+ easier. A command such as "5,7:W" allows 5 lines for command
+ dialogue, while "watching" the text buffer on the remainder of
+ the screen. The 7:W command is described in
+ <xref linkend="COM_SCO_TAB_VTS"/>.)
+ </para><para>
+ This manual is intended to be a reference manual, and except for
+ <xref linkend="BAS" xrefstyle="select: label title"/>, is not a tutorial. After <xref linkend="BAS"/>,
+ it is assumed that
+ the reader has a general familiarity with TECO and is referring
+ to this manual to find detailed information.
+ </para><para>
+ <xref linkend="INT_TAB_NOT"/> shows the notation which is used in
+ <indexterm><primary>Notation</primary>
+<secondary>Special characters</secondary>
+</indexterm>
+ this manual to represent special characters.
+ <table xml:id="INT_TAB_NOT"><title>Notation</title>
+ 
+ <tgroup cols="3" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+<colspec colname="c3"/>
+
+ <thead>
+<row>
+<entry><para>Notation</para></entry><entry><para>ASCII code (octal)</para></entry><entry><para>Name</para></entry>
+</row>
+</thead>
+ <!-- <align_char>(#) -->
+ <tbody>
+<row><entry><para><literal>&lt;NULL></literal></para></entry><entry><para>##0</para></entry><entry><para>Null</para></entry></row>
+ <row><entry><para><literal>&lt;BS></literal></para></entry><entry><para>#10</para></entry><entry><para>Backspace</para></entry></row>
+ <row><entry><para><literal>&lt;TAB></literal></para></entry><entry><para>#11</para></entry><entry><para>Tab</para></entry></row>
+ <row><entry><para><literal>&lt;LF></literal></para></entry><entry><para>#12</para></entry><entry><para>Line Feed</para></entry></row>
+ <row><entry><para><literal>&lt;VT></literal></para></entry><entry><para>#13</para></entry><entry><para>Vertical Tab</para></entry></row>
+ <row><entry><para><literal>&lt;FF></literal></para></entry><entry><para>#14</para></entry><entry><para>Form Feed</para></entry></row>
+ <row><entry><para><literal>&lt;CR></literal></para></entry><entry><para>#15</para></entry><entry><para>Carriage Return</para></entry></row>
+ <row><entry><para><literal>&lt;ESCAPE></literal> or $</para></entry><entry><para>#33</para></entry><entry><para>ESCape or Altmode</para></entry></row>
+ <row><entry><para><literal>&lt;CTRL/x></literal></para></entry><entry><para>##-</para></entry><entry><para>Control-x</para></entry></row>
+ <row><entry><para><literal>&lt;space></literal></para></entry><entry><para>#40</para></entry><entry><para>Space</para></entry></row>
+ <row><entry><para><literal>&lt;DELETE></literal></para></entry><entry><para>177</para></entry><entry><para>Delete or Rubout</para></entry></row>
+ <row><entry><para><literal>&lt;DELIM></literal> or <!-- <accent>(grave) --></para></entry><entry><para>##-</para></entry><entry><para>See below</para></entry></row>
+ <!-- <endalign_char> -->
+ 
+</tbody>
+</tgroup></table>
+ </para><para>
+ <indexterm><primary>Delimiter</primary>
+<secondary>command string</secondary>
+</indexterm>
+ <indexterm><primary>Delimiter</primary>
+<secondary>text string</secondary>
+</indexterm>
+ <literal>&lt;DELIM></literal> is a character used to signify the end of text strings
+ and TECO commands typed at the terminal. (TECO presumes that you
+ may need to deal with carriage return and line feed as ordinary
+ characters in ASCII text, so another character must be used as
+ TECO's text-string and command-string delimiter.)
+ </para><para>
+ When a command string is being executed, TECO looks for the
+ ESCape character as its delimiter. Some newer
+ terminals, however, no longer possess an ESCape key. Late-model
+ TECOs are capable of recognizing a surrogate (some other,
+ user-specified) character as signifying an ESCape when typed at
+ the terminal. Such a character echos as accent grave &ndash; you see
+ an <!-- <accent>(grave) --> character, and TECO receives an ESCape character.
+ (Note that TECO programs, command files, and macros cannot use the
+ surrogate, since it is translated to ESCape only when you type it
+ at the terminal.) For details on choosing a surrogate for ESCape,
+ see the EE flag or the 8192 ET bit (<xref linkend="COM_MCF"/>).
+ </para><para>
+ Throughout this manual, the term <literal>&lt;DELIM></literal> is used to mean 
+ whatever
+ character you type as a text-string or command-string delimiter.
+ The <!-- <accent>(grave) --> character is used throughout to mean whichever 
+ character is
+ echoed for a keystroke which passes an ESCape to TECO; if no
+ ESCape surrogate is active, you will see a $ instead.
+ </para><para>
+ <indexterm><primary>Control characters</primary>
+</indexterm>
+ Control characters, <literal>&lt;CTRL/x></literal>, are produced by striking
+ the CONTROL key and a character key simultaneously.
+ </para><para>
+ Throughout this manual, upper case characters will be used to
+ represent TECO commands.
+ <!-- <preface_section>(Preface to the May 1985 edition) -->
+ </para><bridgehead>Trading in the ESCape key</bridgehead>
+ <para>
+ In the beginning, terminals had ESCape keys. (Go back far
+ enough and the device TT: stands for might actually have
+ existed on the system, too...) Programs wanting to treat 
+ <literal>&lt;CR></literal>
+ &amp; Co. as data needed another character to serve as command
+ <indexterm><primary>Delimiter</primary>
+<secondary>command string</secondary>
+</indexterm>
+ delimiter, and ESCape looked available.
+ </para><para>
+ Times change. Welcome to ESCape sequences, to
+ cursor-control and function keys. Farewell to $$.
+ Hello <!-- <accent>(grave) --><!-- <accent>(grave) -->.
+ </para><para>
+ See the Introduction for the notation used in this manual
+ (<xref linkend="INT_TAB_NOT"/>).
+ </para><bridgehead>Changes to the manual</bridgehead>
+ <para>
+ This edition of the manual incorporates new material
+ pertinent to the enhancements to TECO-11 between 
+ Version 36 and Version 40 (see below).
+ </para><para>
+ Although this manual is still not intended to be a tutorial,
+ some "how to learn" suggestions (such as use of split-screen
+ scrolling) were added, as were indications of how TECO can
+ be used to build custom-designed editors.
+ </para><para>
+ Numerous smaller changes were also made: clarifications,
+ new index and glossary entries, additional explanatory
+ material and cross referrals, correction of old typographic
+ errors, and (no doubt) addition of new ones.
+ </para><bridgehead>From Version 36 to Version 40 - affected section numbers</bridgehead>
+ <para>
+ <itemizedlist>
+ <listitem><para>Manual organization/additions
+ <itemizedlist mark="-">
+ <listitem><para>Introduction to Macros (new section), <xref linkend="CSE_MAC" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para>Split-screen scrolling, <xref linkend="COM_SCO" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para>"Immediate action commands" renamed
+ to "immediate inspection commands", <xref linkend="BAS_TOC_IIC" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para>"Immediate action editing characters" (new name), 
+ <xref linkend="CSE_IAEC" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para>VAX/VMS filespec qualifiers, format/attribute table,
+ <xref linkend="APP_VMS_FRF" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para>Eight-bit ASCII character set table, <xref linkend="APP_ACS"/>
+ </para></listitem><listitem><para>Handling for BASIC-PLUS-x source files, <xref linkend="APP_BPX"/>
+ </para></listitem></itemizedlist>
+ </para></listitem><listitem><para>"Significant" software changes
+ <itemizedlist mark="-">
+ <listitem><para>ESCape surrogate - EE flag, 8192 ET bit,
+ <xref linkend="COM_MCF" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para>Reverse paging (-P, et al, VAX/VMS only), <xref linkend="COM_PMC" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para>Reverse searching (-N, et al, VAX/VMS only),
+ <xref linkend="COM_SRC" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para>Local Q-registers, <xref linkend="CON_DAT_QRG" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para>Local Q-register manipulation, <xref linkend="COM_QRG" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para>Immediate ESCape-sequence commands, <xref linkend="CSE_IESC" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para>:^T, read/decode a keystroke, <xref linkend="COM_SNV" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para>32 ED bit controls immediate ESC-seq commands,
+ <xref linkend="COM_MCF" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para>Acceptance and handling of 8-bit characters, [throughout]
+ </para></listitem><listitem><para>Typeout of 8-bit data, and the 4096 ET bit,
+ <xref linkend="COM_MCF" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para>n:^T, one-shot binary-mode character typeout,
+ <xref linkend="COM_TTO" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para>TECO HELP facilities on VAX/VMS, <xref linkend="APP_VMS_HLP" xrefstyle="select: labelnumber"/>
+ </para></listitem></itemizedlist>
+ </para></listitem><listitem><para>"Minor" software changes
+ <itemizedlist mark="-">
+ <listitem><para>^W as immediate mode command (screen re-paint),
+ <xref linkend="CSE_IAC" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para><literal>&lt;DELIM></literal> character as immediate inspection command,
+ <xref linkend="BAS_TOC_IIC" xrefstyle="select: labelnumber"/>,<xref linkend="CSE_IAC" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para>Null tag allowed in computed GOTO, <xref linkend="COM_BRC" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para>nFRtext<!-- <accent>(grave) --> command (replace n characters),
+ <xref linkend="COM_INS" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para>m,nFRtext<!-- <accent>(grave) --> command (replace from m to n),
+ <xref linkend="COM_INS" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para>^E (form feed flag) can now be user-set,
+ <xref linkend="COM_SNV" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para>Setting 1:W changes width and O/S characteristic,
+ <xref linkend="COM_SCO" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para>WRAP/NOWRAP set by 256 ET bit on VAX/VMS,
+ <xref linkend="COM_MCF" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para>128 ED bit inhibits auto-refresh in split scrolling,
+ <xref linkend="COM_MCF" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para>Search matching with diacritical marks,
+ <xref linkend="COM_MCF" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para>New 0:W codes for VT102 and GIGI scope types,
+ <xref linkend="COM_SCO" xrefstyle="select: labelnumber"/>
+ </para></listitem><listitem><para>VAX/VMS handling of ^T (disabled when),
+ <xref linkend="CSE_OSCF" xrefstyle="select: labelnumber"/>
+ </para></listitem></itemizedlist>
+ </para></listitem></itemizedlist>
+ <!-- <preface_section>(Preface to the May 1990 edition) -->
+ </para><bridgehead>TECO-32 goes Native</bridgehead>
+ <para>
+ TECO for VAX/VMS started life as a <firstterm>hybrid</firstterm> image. The command
+ processor and editor proper were the same as TECO-11 and ran in PDP-11 
+ compatibility mode on VAX processors. The operating system interface and
+ file service logic ran in VAX native mode.
+ </para><para>
+ With the advent of new processors without microcode support for PDP-11
+ compatibility mode, TECO could only be run on such processors when VAX RSX,
+ which supplies PDP-11 instruction emulation, was present. This resulted in
+ a dramatic decrease in performance.
+ </para><para>
+ Included with VMS version 5.0 is TECO-32, a brute force translation of TECO-11
+ to VAX native mode
+ performed by Richard H. Murphy of Digital Equipment Corporation.<!-- <line> -->
+ It was included into VMS V5.0 by Andrew C. Goldstein, also of Digital.
+ </para><para>
+ This version of the manual is a brute force translation from the May 1985
+ edition into 
+ Standard Document Markup Language (SDML) done by Rien Timmer, Digital.
+ Enhancements to the manual were made to include TECO-32.
+ </para><para>
+ Added and changed features of TECO-32 are described in <xref linkend="APP_VMS"/>.
+ </para></preface>
+ </part>

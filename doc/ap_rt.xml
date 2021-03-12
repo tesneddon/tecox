@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE appendix [
+<!ENTITY % isopub PUBLIC "ISO 8879:1986//ENTITIES Publishing//EN//XML" "http://www.w3.org/2003/entities/iso8879/isopub.ent">
+<!ENTITY % isonum PUBLIC "ISO 8879:1986//ENTITIES Numeric and Special Graphic//EN" "http://www.w3.org/2003/entities/iso8879/isonum.ent">
+<!ENTITY % isotech PUBLIC "ISO 8879:1986//ENTITIES General Technical//EN" "http://www.w3.org/2003/entities/iso8879/isotech.ent">
+%isopub;%isonum;%isotech;
+<!ENTITY % myEnt SYSTEM "teco.ent">
+%myEnt;
+]>
+ <appendix xmlns="http://docbook.org/ns/docbook" version="5.1" xml:id="APP_RT"><title>RT-11 Operating Characeristics</title>
+ <sect1 xml:id="APP_RT_STA"><title>Startup</title>
+ <para>
+ TECO is started with the
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.R TECO</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ command. TECO is now immediately ready to accept commands. The
+ text buffer and Q-register areas are empty.
+ </para><para>
+ The EDIT command:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.EDIT/TECO filespec</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ is used to edit an already existing file. It is equivalent to
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.R TECO</para></entry></row>
+ <row><entry><para/></entry><entry><para>&star;EBfilespec`Y``</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ For those RT-11 users that will use TECO as the primary editor, a
+ monitor SET command is provided:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.SET EDITOR TECO</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ Once this command is issued, the /TECO option on the EDIT command
+ is no longer necessary since the default editor is now TECO.
+ Since this SET command only has affect between system bootstraps,
+ it is recommended that the command be placed in the appropriate
+ startup file (e.g., STARTS.COM).
+ </para><para>
+ Now, assuming the SET command has been issued, the command
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.EDIT filespec</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ can be used to edit an already existing file.
+ </para><para>
+ The standard RT-11 EDIT command options are all available with
+ TECO.
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.EDIT/CREATE filespec</para></entry></row>
+ <row><entry><para/></entry><entry><para>.EDIT/INSPECT filespec</para></entry></row>
+ <row><entry><para/></entry><entry><para>.EDIT/OUTPUT:filespec filespec</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ Another option, /EXECUTE, is also available:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.EDIT/EXECUTE[:string] filespec</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ The /EXECUTE option causes TECO to process the filespec (assumed
+ .TEC filetype) as a set of TECO commands. If "string" is used,
+ the string is placed into TECO's text buffer. If "string"
+ contains only alphanumeric characters, it does not have to be
+ enclosed in quotes. If it is to contain blanks, it must be
+ quoted with single quotes. The equivalent TECO commands would be
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>.R TECO</para></entry></row>
+ <row><entry><para/></entry><entry><para>&star;ERfilespec`YHXZHKIstring`MZ``</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ Note the input file remains open and can provide more input to
+ the macro.
+ </para></sect1><sect1 xml:id="APP_RT_FS"><title>File Specification</title>
+ <para>
+ The file access commands ER, EB, EI, and EW accept a file
+ specification in the standard RT-11 format:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>dev:filename.type</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ in which dev: is a physical device name or a user assigned
+ logical name; if dev: is not specified, the default DK: is
+ assumed. The filename field must be specified in the commands
+ ER, EB, EI, and EW and be a legal RT-11 filename. The type field
+ is a file extension and must be explicitly given if used (there
+ is no default). The EB and EW commands also accept the extended
+ notation for an output file size
+ </para><para>
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>dev:filename.type[n]</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ The optional [n] specifies the output file size where n is the
+ number of blocks to be allocated.
+ </para></sect1><sect1 xml:id="APP_RT_BF"><title>Backup Files</title>
+ <para>
+ The EB command maintains one level of file backup on RT-11. The
+ pre-edited input file name is changed to:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>filename.BAK</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ before the new output file is closed with the original name.
+ Only normal file closing commands (EC, EF, EG, and EX) cause this
+ renaming to happen. If TECO is aborted or the output file is
+ purged by the EK command, the input filename remains unchanged.
+ Note only one .BAK file for a given name is kept; earlier .BAK
+ backup files are deleted each time a new backup file is created.
+ </para><para>
+ A good policy to follow when editing is to close the edited file
+ frequently enough so that an unexpected incident would not cause
+ a substantial loss of work. Files should be backed up regularly.
+ TECO has the power to let an unsuspecting user alter a good file
+ into a completely useless state. The SRCCOM program can be used
+ to verify an editing session.
+ </para></sect1><sect1 xml:id="APP_RT_EG"><title>EXIT and GO</title>
+ <para>
+ If TECO is exited via the EGstring` command, the string is
+ passed to the system as the next command to execute. This string may be
+ any valid command or an indirect command file specification.
+ </para></sect1><sect1 xml:id="APP_RT_RC"><title>REENTER and CLOSE</title>
+ <para>
+ The RT-11 REENTER command may always be used to continue TECO.
+ Its primary differences from running TECO is that when REENTER is
+ used, the text buffer and Q-register areas are unmodified, as
+ opposed to when TECO is run the text buffer and Q-register areas
+ are cleared. The input and output file are always lost upon
+ reentering TECO. If an output file was open before reentering
+ TECO, the file will have to be recreated with the appropriate
+ E-command. (Note that the monitor commands GT ON, GT OFF, LOAD,
+ and UNLOAD disallow a REENTER.)
+ </para><para>
+ The output file is not closed if TECO is aborted. The RT-11
+ CLOSE command can be used to make the output file permanent, but
+ be aware that the output file will not be complete because of
+ internal buffers that TECO keeps. TECO may be reentered after a
+ CLOSE command.
+ </para></sect1><sect1 xml:id="APP_RT_FR"><title>File Recovery</title>
+ <para>
+ TECO can be a useful tool in recovering ASCII files lost on a
+ block replaceable device. TECO allows block replaceable devices
+ to be opened in a non-file structured mode. This gives the user
+ the capability to open a disk and access ASCII data anywhere on
+ it, independent of file boundaries. The command
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>ERdev:`</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ is used to open the device at which point _ (underscore or
+ backarrow) searches may be used to locate specific ASCII data and
+ transfer it to new output files. Note that files tend to get
+ reproduced, in whole or part, many places on a block replaceable
+ device; be sure to verify that any given text is indeed complete
+ and the correct version.
+ </para></sect1><sect1><title>System Crash Recovery</title>
+ <para>
+ TECO and RT-11 are highly reliable, but if during an important
+ edit session a random system failure should occur, the following
+ procedure may help save some or all of the editing.
+ <orderedlist>
+ <listitem><para>Bootstrap the system
+ </para></listitem><listitem><para>Immediately perform a SAVE command to save as much of
+ memory as possible into a file on SY:. The address
+ range form of the SAVE command must be used. The SAVE
+ command will not allow any part of the monitor to be
+ saved, e.g., if you have a 28K system and are running SJ
+ you cannot save 28K but only 26.3K.
+ </para></listitem><listitem><para>Perform standard startup procedures, e.g., DATE.
+ </para></listitem><listitem><para>Use TECO on the SAVEd file to try and recover useful
+ parts of the edit.
+ </para></listitem></orderedlist>
+ </para></sect1><sect1 xml:id="APP_RT_GS"><title>VT11 Graphics Support</title>
+ <para>
+ If the monitor supports the VT11 graphics processor (GT ON and
+ GT OFF work) TECO will automatically start up in display mode,
+ adjusting to both the size of the display screen and to the
+ presence or absence of the scroller.
+ </para><para>
+ If the display fails to start with a working VT11, TECO has
+ decided that there is not enough free memory and will not
+ allocate the display file buffer or start the display.
+ </para><para>
+ See <xref linkend="COM_SCO"/> for a description of the available commands to
+ interact with the display.
+ </para><para>
+ Various aspects of the display screen become immediately obvious
+ upon seeing them; the text pointer, its position and shape and
+ its position between lines; wrap around of more than 72
+ characters per line; the scroller interaction and so on.
+ Experiment with a scratch file for more familiarity.
+ </para></sect1></appendix>

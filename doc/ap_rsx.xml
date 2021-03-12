@@ -1,0 +1,404 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE appendix [
+<!ENTITY % isopub PUBLIC "ISO 8879:1986//ENTITIES Publishing//EN//XML" "http://www.w3.org/2003/entities/iso8879/isopub.ent">
+<!ENTITY % isonum PUBLIC "ISO 8879:1986//ENTITIES Numeric and Special Graphic//EN" "http://www.w3.org/2003/entities/iso8879/isonum.ent">
+<!ENTITY % isotech PUBLIC "ISO 8879:1986//ENTITIES General Technical//EN" "http://www.w3.org/2003/entities/iso8879/isotech.ent">
+%isopub;%isonum;%isotech;
+<!ENTITY % myEnt SYSTEM "teco.ent">
+%myEnt;
+]>
+ <appendix xmlns="http://docbook.org/ns/docbook" version="5.1" xml:id="APP_RSX"><title>RSX-11 Operating Characeristics</title>
+ <sect1 xml:id="APP_RSX_STA"><title>Startup</title>
+ <para>
+ RSX-11 systems support all of the standard TECO invocation
+ commands, namely:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>TECO</para></entry></row>
+ <row><entry><para/></entry><entry><para>TECO filespec</para></entry></row>
+ <row><entry><para/></entry><entry><para>TECO filespec=filespec</para></entry></row>
+ <row><entry><para/></entry><entry><para>MAKE filespec</para></entry></row>
+ <row><entry><para/></entry><entry><para>MUNG filespec</para></entry></row>
+ <row><entry><para/></entry><entry><para>MUNG filespec,text</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ If any of these commands are not recognized by the system, check
+ with your system manager to see that TECO is properly installed.
+ </para><para>
+ TECO macros may also be invoked with the command:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>TECO @filespec</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ It is exactly equivalent to
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>MUNG filespec</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ In systems supporting dynamic task expansion, TECO will expand
+ its buffer space as necessary. Also, TECO'S buffer space may be
+ explicitly allocated in the startup command
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>RUN $TEC/INC=n</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para></sect1><sect1 xml:id="APP_RSX_INI"><title>Initialization</title>
+ <para>
+ TECO searches for the TECO.INI startup file in the current
+ default device and directory. TECO's memory, in which a plain
+ TECO command edits the file last edited with a TECO filespec or a
+ MAKE filespec command, is implemented with a file named
+ TECF00.TMP, also stored in the current default device and
+ directory.
+ </para><para>
+ The initial value of the ED flag is always 1.
+ </para><para> When TECO is initially invoked it will automatically set the ET and EU flags according to the
+   user's terminal characteristics. If the terminal supports CRT style rubouts, then bit 1 of the ET
+   flag is set to do the same in TECO. If the terminal supports lower case type in, then bit 2 of
+   the ET flag is set and the EU flag is set to -1 to turn off case flagging. If the terminal is a
+   CRT type terminal and the version of TECO includes the screen support package, then bit 9 of the
+   ET flag is set. While the command line is being processed, bit 7 of the ET flag is also set to
+   cause TECO to exit should any errors occurr. ET bit 7 is cleared every time TECO reaches prompt
+   (&star;) level. </para></sect1><sect1 xml:id="APP_RSX_FS"><title>File Specification</title>
+ <para>
+ The file access commands ER, EB, EW, and EI accept a file
+ specification in the standard RSX-11 format:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>dev:[p,pn]filename.typ;version</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ in which dev: is a physical device name or a logical device
+ name; if dev: is not specified, SY: is assumed. If [p,pn] is
+ not specified, the user's current default directory is assumed.
+ The filename field must be specified whenever the device name
+ references a file structured device. The typ field is a file
+ type and must be explicitly given if used. There is no default
+ type except for EI commands which default the .typ field to .TEC.
+ </para><para>
+ The /B2 file specification switch may be applied to the ER, EW,
+ and EB commands and invokes special handling of program lines
+ containing &amp; continuation characters. See <xref linkend="APP_BPX"/> for more
+ information.
+ </para><para>
+ The switch /RW may be applied to any file specification in an ER,
+ EW, and EI command. If the file specification references a
+ magtape, the tape is rewound before the file is opened. Note
+ that for output files, this has the effect of zeroing the tape.
+ The /RW switch is ignored for all other device types.
+ </para><para>
+ The presence of version numbers in Files-11 causes file
+ processing to behave slightly differently under RSX-11 than under
+ other operating systems. For example, no .BAK files are used;
+ each execution of an EB command simply produces a new version of
+ the file. Thus a user may retain any level of backup he feels to
+ be comfortable. It also means that one must occasionally delete
+ obsolete files to avoid cluttering the disk. Thus the command
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>EBname.typ;version<!-- <accent>(grave) --></para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ is equivalent to the commands
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>ERname.typ;version<!-- <accent>(grave) -->EWname.typ;0<!-- <accent>(grave) --></para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ The EW command also creates a new version (one higher than the
+ current highest) if no version number is given. If an explicit
+ version number is given, then that number is used, and if another
+ file of the same name, type, and version previously existed, it
+ is superseded without warning. (See use of the EP and EK
+ commands below.)
+ </para><para>
+ In reading files, version numbers behave the same as in other
+ RSX-11 utilities: the default is the highest version. This
+ leads to a problem in re-opening the input file while a file is
+ being edited with EB. Since the output file is already created
+ and in the directory, the input file is no longer the highest
+ version. One may deduce the version number of the input file by
+ doing a :G&star; (typing the file string of the output file) and
+ subtracting one from that version number.
+ </para><para>
+ In symmetry with the EB command, the EK command functions by
+ simply deleting the current output file. Note, however, that a
+ supersede (EW of same name, type, and version) is not undone -
+ the file is already deleted!
+ </para><para>
+ The EP and EA commands, while simulating two channels each with
+ an open file for each of input and output, in fact only keep one
+ file open for each to conserve buffer space. This means that
+ they are only useful for disk files. Also, it means that if you
+ open a file and then supersede it, you should not switch the
+ input channel away from it with an EP or ER<!-- <accent>(grave) --> command, since it
+ will not be possible to open the file again.
+ </para></sect1><sect1 xml:id="APP_RSX_WLD"><title>Wild Card Lookup</title>
+ <para>
+ The EN command will process wild card lookups on RSX-11. To
+ preset the wild card lookup file specification, use the standard
+ RSX-11 format
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>dev:[p,pn]filename.typ;version</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ The device name must reference a file structured disk device or
+ magtape. All other fields of the file specification may be fully
+ wild (&star;), including either or both halves of the directory. The
+ version number may be explicit, wild, or default. As with the
+ other file specification commands, there is no default file type.
+ </para></sect1><sect1 xml:id="APP_RSX_EXI"><title>Exiting From TECO</title>
+ <para>
+ The normal method of exiting from TECO is with the EX command.
+ This copies the remaining input file to the output file, closes
+ all files and exits.
+ </para><para>
+ The <literal>&lt;CTRL/C></literal> (or Caret-C) command is the "give up and get out"
+ command. Executed from main command level, it will cause TECO to
+ exit regardless of the state of the buffer. If there is an open
+ output file, it is deleted. The <literal>&lt;CTRL/C></literal> command is roughly
+ equivalent to EKHKEX.
+ </para></sect1><sect1 xml:id="APP_RSX_CTC"><title><literal>&lt;CTRL/C></literal></title>
+ <para>
+ The action taken when the user types <literal>&lt;CTRL/C></literal> depends on what
+ TECO is doing.
+ </para><para>
+ If TECO is executing commands, or is awaiting type-in for the ^T
+ command, the ?XAB error occurs.
+ </para><para>
+ If TECO is at command level, typing <literal>&lt;CTRL/C></literal> cancels the command
+ string currently being typed and returns TECO to its prompt. Two
+ consecutive <literal>&lt;CTRL/C></literal> characters will cause an instant HKEKEX
+ exit.
+ </para><para>
+ Sometimes it is desireable for a TECO macro to detect when a
+ <literal>&lt;CTRL/C></literal> was typed. By detecting the <literal>&lt;CTRL/C></literal>,
+ the macro can
+ exit cleanly back to command level (pop saved Q-registers,
+ restore any flag values, etc.). To do this, the macro sets Bit
+ 15 (Octal 100000, Decimal -32768) of the ET flag. When a
+ <literal>&lt;CTRL/C></literal> is typed, TECO will automatically turn off Bit 15, but
+ will continue execution of the macro. The macro periodically
+ checks Bit 15 and exits cleanly if it ever goes off. For
+ example:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>[0 [1 -32768#ETET &lt; ... ET; > 32767&amp;ETET ]1 ]0</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ Setting the <literal>&lt;CTRL/C></literal> intercept bit in the ET flag must be done
+ with some care; if the bit is set inside a command loop which
+ does not check it, it will be impossible for the user to abort
+ the loop. The only remedy for this situation is to abort TECO
+ from another terminal.
+ </para></sect1><sect1 xml:id="APP_RSX_EG"><title>EXIT and GO</title>
+ <para>
+ If TECO is exited via the EGstring<!-- <accent>(grave) --> command, TECO closes its
+ files and exits. It then causes "string" to be executed as an
+ MCR command using the spawn system directive. This feature works
+ only on RSX-11M V3.2 and RSX-11M+ V1 or later.
+ </para></sect1><sect1 xml:id="APP_RSX_ET"><title>ET Flag Handling</title>
+ <para>
+ TECO will automatically turn off the following bits in the ET
+ flag on every error: Bit 0 (image output), Bit 3 (no echo on
+ ^T), Bit 4 (cancel ^O), Bit 5 (no stall on ^T), and Bit 15 (^C
+ trap).
+ </para><para>
+ In addition, TECO always turns off Bit 7 (exit on error, etc.)
+ every time is reaches prompt (&star;) level.
+ </para><para>
+ Bit 6 (the detach flag) controls TECO'S treatment of the
+ terminal. Normally, TECO keeps the terminal attached to gain
+ control of <literal>&lt;CTRL/C></literal> interrupts. Setting bit 6 of the ET flag
+ causes TECO to run with the terminal detached. All commands
+ function normally, except that typing <literal>&lt;CTRL/C></literal> causes the MCR to
+ be activated, allowing other tasks to be run from the same
+ terminal concurrently with TECO. It is, of course, the user's
+ problem to sort out the confusion that will arise if both TECO
+ and another task request input from the terminal at the same
+ time.
+ </para></sect1><sect1 xml:id="APP_RSX_FRF"><title>File Record Format</title>
+ <para>
+ Files-11 files are record structured, while TECO's text buffer is
+ ASCII stream. Thus TECO must make format conversions when
+ reading and writing files. The conversion depends on the record
+ attributes of the file. While reading a file, the records are
+ packed into the buffer. If the file is implied carriage control
+ (the standard RSX-11 source format) or Fortran carriage control,
+ TECO inserts a carriage return and line feed after each record to
+ make each record appear as a line of text in the buffer, unless
+ the record ends with ESCAPE, carriage return, line feed, vertical
+ tab, or form feed. A record ending in form feed is interpreted
+ as an end of page mark; it stops the read operation and the form
+ feed is not entered in the buffer. If the file has print file
+ carriage control, TECO interprets the carriage control bytes and
+ inserts the resulting carriage return and line feed characters
+ about the record. If the input file has no carriage control
+ (also called internal carriage control), TECO simply packs the
+ records together in the text buffer.
+ </para><para>
+ On output, TECO scans the text buffer for carriage return, line
+ feed, vertical tab, and form feed characters. Each such
+ character delimits the end of an output record. If the output
+ file is implied or Fortran carriage control, and the record ends
+ with exactly carriage return / line feed, the carriage return and
+ line feed are not output with the record; Otherwise, the record
+ is output in its entirety. The carriage return and line feed are
+ also output with the record if the record ends with ESCAPE /
+ carriage return / line feed.
+ </para><para>
+ Switches may be applied to the input and output files to control
+ their carriage control attributes. The switch /CR forces implied
+ carriage control; /-CR forces no (internal) carriage control;
+ /FT forces Fortran carriage control. When a carriage control
+ switch is applied to an input file, the file is read as if it had
+ that attribute; when the switch is applied to an output file,
+ the file is written with that attribute. Applying a switch to an
+ EB file specification causes the switch to apply to both input
+ and output files. When an output file is created, its carriage
+ control attributes are defaulted to those of the currently open
+ input file as follows:
+ <informaltable>
+ 
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <thead>
+<row>
+<entry><para>Input</para></entry><entry><para>Output</para></entry>
+</row>
+</thead>
+ <tbody>
+<row><entry><para>implied</para></entry><entry><para>implied</para></entry></row>
+ <row><entry><para>none</para></entry><entry><para>implied</para></entry></row>
+ <row><entry><para>FORTRAN</para></entry><entry><para>FORTRAN</para></entry></row>
+ <row><entry><para>print file</para></entry><entry><para>implied</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ Files read with the EI command have their record attributes
+ interpreted in the same manner. This leads to an unexpected side
+ effect with EI files containing an entire command. The last
+ record of the file presumably contains as its last characters the
+ two alt modes which initiate execution of the macro. If the file
+ is implied carriage control, however, there are also the final
+ carriage return / line feed belonging to the last record, which
+ remain in the type in buffer while the macro executes. If the
+ macro attempts to receive input with the <literal>&lt;CTRL/T></literal> command, the
+ carriage return / line feed will be the first two characters
+ read. Alternatively, if the macro does no type in, the carriage
+ return / line feed will be read by TECO as the first two
+ characters of the next command. Then no asterisk (&star;) will appear
+ as the prompt for the next command. The remedy for both cases is
+ for the macro to execute an EI<!-- <accent>(grave) --> command early on. This causes
+ the remainder of the indirect file to be discarded and further
+ input to be read from the terminal.
+ </para></sect1><sect1 xml:id="APP_RSX_CLP"><title>Command Line Processing</title>
+ <para>
+ The mechanism used to process the command line in RSX-11 TECO is
+ designed to allow sophisticated TECO users the greatest
+ flexibility in customizing TECO for their own use. It functions
+ as follows:
+ </para><para>
+ The initialization routine places the original MCR command line
+ (if any) into the filename buffer. It copies into the text
+ buffer the text of a TECO macro that will be used to interpret
+ the command line. Then it starts up TECO with the command:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>HXY HKG&star; HXZ HK :EITECO<!-- <accent>(grave) --><!-- <accent>(grave) --></para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ in the type in buffer. This loads the command line into
+ Q-register Z and the macro into Q-register Y. It then executes
+ the file named TECO.TEC located in the user's default directory,
+ if it exists. After the user's TECO.TEC, and any files it might
+ link to with EI, have been executed, TECO executes the command
+ MY<!-- <accent>(grave) --><!-- <accent>(grave) -->, thus executing the macro to interpret
+ the command line and open the files requested.
+ </para><para>
+ The TECO.TEC mechanism should not be used for simple
+ initialization; the standard TECO.INI facility should suffice
+ for that. The alternate TECO.TEC facility is provided for the
+ sophisticated user who wants his own command processing and thus
+ wishes to usurp control from the normal initialization.
+ </para><para>
+ If an EI<!-- <accent>(grave) --> command (to close the indirect command file) is
+ executed during the processing of a user's TECO.TEC startup file,
+ the final MY<!-- <accent>(grave) --><!-- <accent>(grave) --> which causes processing of the
+ command line is not executed. This results from the fact that the
+ MY<!-- <accent>(grave) --><!-- <accent>(grave) --> normally
+ appears in TECO's type-in after all command files have been
+ processed. Executing the EI<!-- <accent>(grave) --> command causes all "type ahead" to
+ be discarded to allow a TECO command file to prompt and read
+ input from the terminal (and not read extraneous type ahead). It
+ is assumed that a TECO startup file that executes EI<!-- <accent>(grave) --> and reads
+ input from the terminal will want to manage the rest of TECO's
+ startup. If it still wants to process the command line, it must
+ issue the MY itself.
+ </para></sect1></appendix>

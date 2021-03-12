@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE appendix [
+<!ENTITY % isopub PUBLIC "ISO 8879:1986//ENTITIES Publishing//EN//XML" "http://www.w3.org/2003/entities/iso8879/isopub.ent">
+<!ENTITY % isonum PUBLIC "ISO 8879:1986//ENTITIES Numeric and Special Graphic//EN" "http://www.w3.org/2003/entities/iso8879/isonum.ent">
+<!ENTITY % isotech PUBLIC "ISO 8879:1986//ENTITIES General Technical//EN" "http://www.w3.org/2003/entities/iso8879/isotech.ent">
+%isopub;%isonum;%isotech;
+<!ENTITY % myEnt SYSTEM "teco.ent">
+%myEnt;
+]>
+ <appendix xmlns="http://docbook.org/ns/docbook" version="5.1" xml:id="APP_RSTS"><title>RSTS/E Operating Characeristics</title>
+ <sect1 xml:id="APP_RSTS_STA"><title>Startup</title>
+ <para>
+ RSTS supports all of the standard TECO invocation commands,
+ namely:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>TECO</para></entry></row>
+ <row><entry><para/></entry><entry><para>TECO filespec</para></entry></row>
+ <row><entry><para/></entry><entry><para>TECO filespec=filespec</para></entry></row>
+ <row><entry><para/></entry><entry><para>MAKE filespec</para></entry></row>
+ <row><entry><para/></entry><entry><para>MUNG filespec</para></entry></row>
+ <row><entry><para/></entry><entry><para>MUNG filespec,text</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ The CCL command switches /DETACH and /SIZE:n (or /SIZE:+n) can be
+ used with TECO. If /DETACH is used and the user's detached-job
+ quota has not yet been reached, TECO will detach the job before
+ any further processing. If /SIZE:n is used, TECO will pre-expand
+ the text and Q-register storage area to nK. If /SIZE:+n is used,
+ TECO will set the text storage and Q-register storage area to
+ n+4K initially (TECO's default startup size is 4K).
+ </para></sect1><sect1 xml:id="APP_RSTS_FS"><title>File Specification</title>
+ <para>
+ The file access commands ER, EB, EW, and EI accept a file
+ specification in the standard RSTS/E format:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>dev:[p,pn]filename.ext</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ in which dev: is a physical device name or a logical device
+ name; if dev: is not specified, the public structure is
+ assumed. If [p,pn] is not specified, the user's current logged
+ in account is assumed. The filename field must be specified
+ whenever the device name references a file structured device.
+ The .ext field is a file extension and must be explicitly given
+ if used. There is no default extension except for EI commands
+ which default the .ext field to .TEC.
+ </para><para>
+ The file specification switches /n, /B+, /, and /B2 may be
+ applied to the ER, EW, and EB commands. These switches invoke
+ special handling of program lines containing <!-- <LF> --> or &amp;
+ continuation characters. See <xref linkend="APP_BPX"/> for more information.
+ </para><para>
+ The file specification switch /B causes TECO to handle the file
+ as a stream of 8-bit binary characters; normal ASCII format
+ processing (such as removal of null characters) is not done.
+ </para><para>
+ The file specification switches /RONLY, /MODE:n, and
+ /CLUSTERSIZE:n can be included in a file specification. TECO
+ automatically opens any disk input file in /RONLY mode. The file
+ size switches /FILESIZE:n and /SIZE:n might leave an output file
+ larger than the amount of data output by TECO. These file size
+ switches are therefore illegal and produce an error if included
+ in a file specification.
+ </para><para>
+ The EB and EW commands also accept the extended notation for an
+ output file protection code
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>dev:[p,pn]filename.ext<literal>&lt;prot></literal></para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ The optional <literal>&lt;prot></literal> specifies the output file protection code.
+ </para></sect1><sect1 xml:id="APP_RSTS_BF"><title>Backup Files</title>
+ <para>
+ The EB command maintains one level of file backup on RSTS/E. The
+ pre-edited input file name is changed to
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>filename.BAK</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ before the new output file is closed with the original name.
+ Only normal file closing commands (EC, EF, EG, and EX) cause this
+ renaming to happen. If TECO is aborted or the output file is
+ purged by the EK command, the input filename remains unchanged.
+ Note only one .BAK file for a given name is kept; earlier .BAK
+ backup files are deleted each time a new backup file is created.
+ </para><para>
+ A good policy to follow when editing is to close the edited file
+ frequently enough so that an unexpected incident would not cause
+ a substantial loss of work. Files should be backed up regularly.
+ TECO has the power to let an unsuspecting user alter a good file
+ into a completely useless state. The FILCOM program can be used
+ to verify an editing session.
+ </para></sect1><sect1 xml:id="APP_RSTS_EG"><title>EXIT and GO</title>
+ <para>
+ If TECO is exited via the EGstring<!-- <accent>(grave) --> command, the "string" is
+ executed as a RSTS/E CCL command after the input and output
+ file(s) are closed.
+ </para></sect1><sect1><title>ET Flag Handling</title>
+ <para>
+ Bit 6 (detach) is handled specially by TECO. Every time the ET
+ flag is read (used as a numeric value), TECO ensures that Bit 6
+ is on if the job is attached or off if the job is detached. This
+ allows a TECO macro to check for "detachedness". If an attempt
+ is made to set Bit 6 and the user's detached-job quota has been
+ reached, the request is ignored and Bit 6 will read back as a 0
+ (assuming the job is attached). If Bit 6 is set and the user's
+ detached-job quota has not yet been reached, the job will become
+ detached. Further reading of Bit 6 will return a 1, indicating
+ the detached condition.
+ </para></sect1></appendix>

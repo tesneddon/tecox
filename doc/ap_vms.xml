@@ -1,0 +1,2589 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE appendix [
+<!ENTITY % isopub PUBLIC "ISO 8879:1986//ENTITIES Publishing//EN//XML" "http://www.w3.org/2003/entities/iso8879/isopub.ent">
+<!ENTITY % isonum PUBLIC "ISO 8879:1986//ENTITIES Numeric and Special Graphic//EN" "http://www.w3.org/2003/entities/iso8879/isonum.ent">
+<!ENTITY % isotech PUBLIC "ISO 8879:1986//ENTITIES General Technical//EN" "http://www.w3.org/2003/entities/iso8879/isotech.ent">
+%isopub;%isonum;%isotech;
+<!ENTITY % myEnt SYSTEM "teco.ent">
+%myEnt;
+]>
+ <appendix xmlns="http://docbook.org/ns/docbook" version="5.1" xml:id="APP_VMS"><title>VAX/VMS Operating Characteristics</title>
+ <section xml:id="APP_VMS_STA"><title>Startup</title>
+ <para>
+ VAX/VMS supports all of the standard TECO invocation commands,
+ namely:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>TECO</para></entry></row>
+ <row><entry><para/></entry><entry><para>TECO filespec</para></entry></row>
+ <row><entry><para/></entry><entry><para>TECO filespec=filespec</para></entry></row>
+ <row><entry><para/></entry><entry><para>MAKE filespec</para></entry></row>
+ <row><entry><para/></entry><entry><para>MUNG filespec</para></entry></row>
+ <row><entry><para/></entry><entry><para>MUNG filespec,text</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ If any of these commands are not recognized by the system, see
+ the installation instructions (<xref linkend="APP_VMS_INS"/>) in this appendix.
+ </para><para>
+ VMS Versions 5.0 and later recognize the EDIT/TECO command. See the VMS Help
+ for supported qualifiers.
+ </para></section><section xml:id="APP_VMS_INI"><title>Initialization</title>
+ <para>
+ TECO performs initialization by attempting to translate the
+ logical name TEC$INIT. If this name does not translate, no
+ special initialization is done. If it translates to a string of
+ the form "$filespec" (where "$" is a dollar sign), TECO executes
+ the TECO commands in the specified filespec during
+ initialization. If TEC$INIT translates to any other string, TECO
+ executes that string as TECO commands during initialization. The
+ original command line is available in the text buffer when the
+ user initialization commands execute. Generally, you would set
+ user private modes and/or flags at this time. This is also the
+ normal place to detect, strip off, and do something appropriate
+ with user private qualifiers.
+ </para><para>
+ TECO's memory is controlled by the logical name TEC$MEMORY. If
+ this name translates to a string of the form "$filespec", TECO uses
+ the specified file for its memory. Otherwise, TECO uses the
+ logical name itself as the memory.
+ </para><para>
+ If TECO is requested to load VTEDIT at startup (e.g., via a
+ TECO /VTEDIT command), it attempts to translate the logical name
+ TEC$VTEDIT. If the name is defined, the resulting filespec is
+ used as the file from which to load the scope editor. If
+ TEC$VTEDIT is not defined, TECO attempts to translate the logical
+ name TEC$LIBRARY. If that logical is defined, it is used as the
+ (device and) directory name of where to find VTEDIT.TEC.
+ Elsewise, TECO defaults to SYS$LIBRARY:VTEDIT.TEC.
+ </para><para>
+ These four logical names (TEC$INIT, TEC$MEMORY, TEC$VTEDIT, and
+ TEC$LIBRARY) are the information holders corresponding to the
+ four standard :EG commands INI, MEM, VTE, and LIB respectively
+ (see <xref linkend="COM_FSC_FCE"/>).
+ </para></section><section xml:id="APP_VMS_FS"><title>File Specification</title>
+ <para>
+ All file specifiers are subject to the VAX/VMS file specifier
+ rules; logical names and multi-level directories are properly
+ handled, including transparent network file access. The filename
+ field must be specified whenever the device name references a
+ file structured device. The type field must be explicitly given
+ if used. There is no default type except for EI commands which
+ default the type field to .TEC.
+ </para><para>
+ Qualifiers may be applied to file specifications to control
+ format and attributes; see <xref linkend="APP_VMS_FRF"/>.
+ </para><para>
+ The qualifier /RW may be applied to any file specification in an
+ ER, EW, and EI command. If the file specification references a
+ magtape, the tape is rewound before the file is opened. Note
+ that for output files, this has the effect of zeroing the tape.
+ The /RW qualifier is ignored for all other device types.
+ </para><para>
+ The presence of version numbers in Files-11 causes file
+ processing to behave slightly differently under VAX/VMS than
+ under other operating systems. For example, no .BAK files are
+ used; each execution of an EB command simply produces a new
+ version of the file. Thus a user may retain any level of backup
+ he feels to be comfortable. It also means that one must
+ occasionally delete obsolete files to avoid cluttering the disk.
+ Thus the command
+ </para><para>
+ EBname.typ;version`
+ </para><para>
+ is equivalent to the commands
+ </para><para>
+ ERname.typ;version`EWname.typ;0`
+ </para><para>
+ The EW command also creates a new version (one higher than the
+ current highest) if no version number is given. If an explicit
+ version number is given, then that number is used, and if another
+ file of the same name, type, and version previously existed, it
+ is superseded without warning. (See use of the EK command
+ below.)
+ </para><para>
+ In reading files, version numbers behave the same as in other
+ VAX/VMS utilities: the default is the highest version. This
+ leads to a problem in re-opening the input file while a file is
+ being edited with EB. Since the output file is already created
+ and in the directory, the input file is no longer the highest
+ version. One may deduce the version number of the input file by
+ doing a ER`:G&star;``
+ which types the file string of the current (primary) input file.
+ </para><para>
+ <note><para>
+ On VMS systems you can set the version limit of files and directories
+ to a maximum value, so that VMS will automatically delete the oldest
+ versions when more files than the version limit are present.</para>
+ <para>
+ When you use the EB command to open a file (either explicitly or implicitly)
+ TECO will open the input file and the output file. If the version limit for
+ that file is 1, VMS will automatically mark the input file for deletion upon
+ closure of that file. So make sure that you do not terminate the edit in any way
+ without writing the contents of the buffers and the remainder of the input file
+ to the output file, or your input file will be lost!
+ </para></note>
+ </para><para>
+ In symmetry with the EB command, the EK command functions by
+ simply deleting the current output file. Note, however, that a
+ supersede (EW of same name, type, and version) is not undone -
+ the file is already deleted!
+ </para><para>
+ When files are processed concurrently on the primary and
+ secondary channels, all files are kept open. Thus the problems
+ that occur under RSX-11 do not exist under VAX/VMS.
+ </para></section><section xml:id="APP_VMS_WLD"><title>Wildcard Lookup</title>
+ <para>
+ Wild card file name processing supports all of the wild carding
+ facilities of RMS. For VAX/VMS V2 and later systems this includes
+ embedded&star; and % and multi-level directory wildcarding.
+ </para></section><section xml:id="APP_VMS_SYM"><title>Symbol Constituents</title>
+ <para>
+ The match control character ^EC and the conditional n"C accept
+ the VAX/VMS symbol constituent character set, which consists of
+ upper and lower case alphabetics, numerics, ., $, and _.
+ </para></section><section xml:id="APP_VMS_EXI"><title>Exiting From TECO</title>
+ <para>
+ The normal method of exiting from TECO is with the EX command.
+ This copies the remaining input file to the output file, closes
+ all files and exits.
+ </para><para>
+ The <literal>&lt;CTRL/C></literal> (or Caret-C) command is the "give up and get out"
+ command. Executed from main command level, it will cause TECO to
+ exit regardless of the state of the buffer. If there is an open
+ output file, it is deleted. The <literal>&lt;CTRL/C></literal> command is roughly
+ equivalent to EKHKEX.
+ </para><para>
+ TECO's normal exit status code (as reflected by the DCL symbols
+ $STATUS and $SEVERITY) is 1 (success).
+ An exit caused by an EG`
+ command sets the exit status code to 9 (also success). An error
+ exit caused by an error or <literal>&lt;CTRL/C></literal> with the 128 bit set in ET
+ sets the exit status code to hexidecimal 1000002C which is
+ SS$_ABORT with the inhibit message bit set. All other exits are
+ from fatal internal errors and the exit status code is the fatal
+ error status code.
+ </para></section><section xml:id="APP_VMS_CTC"><title><literal>&lt;CTRL/C></literal></title>
+ <para>
+ The action taken when the user types <literal>&lt;CTRL/C></literal> depends on what
+ TECO is doing.
+ </para><para>
+ If TECO is executing commands, or is awaiting type-in for the ^T
+ command, the ?XAB error occurs.
+ </para><para>
+ If TECO is at command level, typing <literal>&lt;CTRL/C></literal> cancels the command
+ string currently being typed and returns TECO to its prompt. Two
+ consecutive <literal>&lt;CTRL/C></literal> characters will cause an instant HKEKEX
+ exit.
+ </para><para>
+ Sometimes it is desireable for a TECO macro to detect when a
+ <literal>&lt;CTRL/C></literal> was typed.
+ By detecting the <literal>&lt;CTRL/C></literal>, the macro can
+ exit cleanly back to command level (pop saved Q-registers,
+ restore any flag values, etc.). To do this, the macro sets Bit
+ 15 (Hex 8000, Octal 100000, Decimal -32768) of the ET flag. When a
+ <literal>&lt;CTRL/C></literal> is typed, TECO will automatically turn off Bit 15, but
+ will continue execution of the macro. The macro periodically
+ checks Bit 15 and exits cleanly if it ever goes off. For example:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>[0 [1 -32768#ETET &lt; ... ET; > 32767&amp;ETET ]1 ]0</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ Setting the <literal>&lt;CTRL/C></literal> intercept bit in the ET flag must be done
+ with some care; if the bit is set inside a command loop which
+ does not check it, it will be impossible for the user to abort
+ the loop. The only remedy for this situation is to abort TECO
+ with <literal>&lt;CTRL/Y></literal>, resulting in the loss of the edit.
+ </para></section><section xml:id="APP_VMS_CTY"><title><literal>&lt;CTRL/Y></literal></title>
+ <para>
+ <literal>&lt;CTRL/Y></literal> is not handled at all by TECO and will result in
+ trapping to the command interpreter. Should you accidentally
+ type <literal>&lt;CTRL/Y></literal>, immediately type CONTINUE in response to the DCL
+ prompt to resume editing.
+ </para></section><section xml:id="APP_VMS_EG"><title>EXIT and GO</title>
+ <para> If TECO is exited with the EGstring` command, the string is passed to the command
+   interpreter as the next command to execute after TECO has closed its files and exited. EG without
+   an argument executes the DCL command TECO_EG, if a TECO_EG symbol exists. </para></section><section xml:id="APP_VMS_OSF"><title>Operating System Functions</title>
+ <para>
+ The :EG command is used to perform operating system functions without exiting
+ TECO (see <xref linkend="COM_FSC_FCE"/>).
+ </para><para> The :EGLOG command can be used to manipulate logical names. For example: <informaltable>
+    <tgroup cols="2" align="left" colsep="1" rowsep="1">
+     <colspec colname="c1"/>
+     <colspec colname="c2"/>
+     <thead>
+      <row>
+       <entry>
+        <para>Command</para>
+       </entry>
+       <entry>
+        <para>Function</para>
+       </entry>
+      </row>
+     </thead>
+     <tbody>
+      <row>
+       <entry>
+        <para>:EGLOG FOO`</para>
+       </entry>
+       <entry>
+        <para>Loads the translation of logical name FOO into the filespec buffer. Returns &ndash;1
+         if the name exists, 0 if not</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>:EGLOG foo `</para>
+       </entry>
+       <entry>
+        <para>Deassigns logical name FOO</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>:EGLOG foo bar`</para>
+       </entry>
+       <entry>
+        <para>Defines logical name FOO</para>
+       </entry>
+      </row>
+     </tbody>
+    </tgroup>
+   </informaltable>
+  </para><para>
+ All logical name assignments are done in the process logical name table.
+ </para><para> The :EGSYM command can be used to manipulate DCL symbols. For example: <informaltable>
+    <tgroup cols="2" align="left" colsep="1" rowsep="1">
+     <colspec colname="c1"/>
+     <colspec colname="c2"/>
+     <thead>
+      <row>
+       <entry>
+        <para>Command</para>
+       </entry>
+       <entry>
+        <para>Function</para>
+       </entry>
+      </row>
+     </thead>
+     <tbody>
+      <row>
+       <entry>
+        <para>:EGSYM FOO`</para>
+       </entry>
+       <entry>
+        <para>Loads the translation of symbol FOO into the filespec buffer. Returns &ndash;1 if the
+         symbol exists, 0 if not</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>:EGSYM foo `</para>
+       </entry>
+       <entry>
+        <para>Deletes symbol FOO</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para>:EGSYM foo bar`</para>
+       </entry>
+       <entry>
+        <para>Creates symbol FOO</para>
+       </entry>
+      </row>
+     </tbody>
+    </tgroup>
+   </informaltable>
+  </para><para>
+ To spawn a subprocess, use the :EGSPAWN command (SPAWN can be abbreviated to
+ SPA). The format is:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>:EGSPA[WN][/QUALIFIERS][ COMMAND]`</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para> All of the qualifiers allowed on the DCL SPAWN command are allowed. For example: <informaltable>
+    <tgroup cols="2" align="left" colsep="1" rowsep="1">
+     <colspec colname="c1"/>
+     <colspec colname="c2"/>
+     <tbody>
+      <row>
+       <entry>
+        <para/>
+       </entry>
+       <entry>
+        <para>:EGSPAWN/PROMPT="Foo> "/PROCESS="TECO_SUB"`</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para/>
+       </entry>
+       <entry>
+        <para>.. spawns an interactive subprocess</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para/>
+       </entry>
+       <entry>
+        <para>:EGSPAWN DIR/OUT=TEMP.TMP *.BAR`</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para/>
+       </entry>
+       <entry>
+        <para>.. spawns a command</para>
+       </entry>
+      </row>
+     </tbody>
+    </tgroup>
+   </informaltable>
+  </para><para>
+ The return value for :EGSPA is the subprocess exit status.
+ </para><para> To attach to a detached process, use the :EGATTACH command. It is compatible with the DCL
+   ATTACH command: <informaltable>
+    <tgroup cols="2" align="left" colsep="1" rowsep="1">
+     <colspec colname="c1"/>
+     <colspec colname="c2"/>
+     <tbody>
+      <row>
+       <entry>
+        <para/>
+       </entry>
+       <entry>
+        <para>:EGATTACH process-name`</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para/>
+       </entry>
+       <entry>
+        <para>.. attaches to the named process</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para/>
+       </entry>
+       <entry>
+        <para>:EGATTACH/IDENTIFICATION=pid`</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para/>
+       </entry>
+       <entry>
+        <para>.. attaches to the process with the given PID</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para/>
+       </entry>
+       <entry>
+        <para>:EGATTACH`</para>
+       </entry>
+      </row>
+      <row>
+       <entry>
+        <para/>
+       </entry>
+       <entry>
+        <para>.. attaches to the parent process</para>
+       </entry>
+      </row>
+     </tbody>
+    </tgroup>
+   </informaltable>
+  </para></section><section xml:id="APP_VMS_FLG"><title>Flag Handling</title>
+ <para>
+ TECO-32 does 32-bit math. Flags (such as the ET flag) are sign-extended from
+ 16 to 32 bits when interrogated.
+ </para><section><title>The EE flag</title>
+ <para> The EE flag allows the setting of an alternate 'escape' character for terminals using the
+    LK201 or similar keyboards. For example, 96EE sets accent grave (`) as the alternate escape
+    character. The EE flag is set to the ASCII value of the alternate delimiter. This character will
+    echo as ` regardless of the actual value of the alternate delimiter. </para><para>
+ Setting the 8192 bit in the ET flag sets EE to 96.
+ </para><para>
+ When read by ^T or in screen mode, the alternate escape character will
+ return an escape (27).
+ </para></section><section><title>The EJ flag</title>
+ <para>
+ The &ndash;1EJ flag (operating system) returns 1024.
+ </para><para>
+ TECO-11 returns 5. Code written for TECO-11 such as:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>&ndash;EJ&ndash;5"E&hellip;'</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ can be changed to:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>&ndash;1EJ&ndash;5&star;&lpar;&ndash;1EJ&ndash;1024&rpar;"E&hellip;'</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ and work on either TECO-32 or TECO-11.
+ </para></section><section><title>The ET flag</title>
+ <para>
+ TECO will automatically turn off the following bits in the ET
+ flag on every error: Bit 0 (image output), Bit 3 (no echo on
+ ^T), Bit 4 (cancel ^O), Bit 5 (no stall on ^T), and Bit 15 (^C
+ trap).
+ </para><para>
+ In addition, TECO always turns off Bit 7 (exit on error, etc.)
+ every time is reaches prompt (&star;) level.
+ </para><para>
+ Bit 6 (the detach flag) detaches your physical terminal from your process
+ (similar to ^Y, DISCONNECT/CONTINUE).
+ </para><para>
+ The DETACH bit can be interrogated to check if the user has re-connected to
+ the process. For example:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para/></entry><entry><para>0,64ET !Disconnect! &lt; &hellip; some work &hellip;
+ ET&amp;64"E 0; ></para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ The iteration exits when the user re-connects.
+ </para></section><section><title>The :W flag</title>
+ <para> TECO-32 uses scrolling regions and editing functions to screen updating on terminals with
+    the proper functions. This has been found to 'break' with some editing macros that modify the
+    terminal characteristics. A new :W flag, 8:W, has been added. Setting 8:W nonzero disables
+    TECO-32's use of scrolling regions. </para><para> Another new terminal flag is 9:W. It returns a bit-encoded mask that describes the terminal
+    characteristics. Attempts to set 9:W are ignored. </para><para>
+ The value returned has the following meanings:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <thead>
+<row>
+<entry><para>Valuee</para></entry><entry><para>Meaning</para></entry>
+</row>
+</thead>
+ <tbody>
+<row><entry><para>1</para></entry><entry><para>Is ANSI CRT</para></entry></row>
+ <row><entry><para>2</para></entry><entry><para>Has EDIT mode features</para></entry></row>
+ <row><entry><para>4</para></entry><entry><para>Can do reverse scrolling</para></entry></row>
+ <row><entry><para>8</para></entry><entry><para>Has special graphics</para></entry></row>
+ <row><entry><para>16</para></entry><entry><para>Can do reverse video</para></entry></row>
+ <row><entry><para>32</para></entry><entry><para>Can change width</para></entry></row>
+ <row><entry><para>64</para></entry><entry><para>Has scrolling regions</para></entry></row>
+ <row><entry><para>128</para></entry><entry><para>Can erase to end-of-screen</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para></section></section><section xml:id="APP_VMS_QRG"><title>Q-registers</title>
+ <para>
+ In TECO-32 all Q-registers and the text buffer can grow up to 65535
+ characters in size each, subject to virtual memory constraints.
+ </para></section><section xml:id="APP_VMS_FRF"><title>File Record Format</title>
+ <para>
+ Files-11 files are record structured, while TECO'S text buffer is
+ ASCII stream. Thus TECO must make format conversions when
+ reading and writing files. The conversion depends on the record
+ attributes of the file. While reading a file, the records are
+ packed into the buffer. If the file is implied carriage control
+ (the standard VAX/VMS source format) or FORTRAN carriage control,
+ TECO inserts a carriage return and line feed after each record to
+ make each record appear as a line of text in the buffer, unless
+ the record ends with ESCAPE, carriage return, line feed, vertical
+ tab, or form feed. A record containing a form feed is
+ interpreted as an end of page mark; it stops the read operation
+ and the form feed is not entered in the buffer. The portion of
+ the record after the form feed, if any, is saved for the next
+ input command. If the file has print file carriage control, TECO
+ interprets the carriage control bytes and inserts the resulting
+ carriage return and line feed characters about the record. If
+ the input file has no carriage control (also called internal
+ carriage control), TECO simply packs the records together in the
+ text buffer.
+ </para><para>
+ On output, TECO scans the text buffer for carriage return, line
+ feed, vertical tab, and form feed characters. Each such
+ character delimits the end of an output record. If the output
+ file is implied or FORTRAN carriage control, and the record ends
+ with exactly carriage return / line feed, the carriage return and
+ line feed are not output with the record; Otherwise, the record
+ is output in its entirety. The carriage return and line feed are
+ also output with the record if the record ends with ESCAPE /
+ carriage return / line feed.
+ </para><para>
+ Qualifiers may be applied to the input and output file
+ specifications. When a carriage control qualifier is applied to
+ an input file, the file is read as if it had that attribute;
+ when the qualifier is applied to an output file, the file is
+ written with that attribute. Applying a qualifier to an EB file
+ specification causes the qualifier to apply to both input and
+ output files.
+ </para><para>
+ The following qualifiers may be used to control input processing:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <thead>
+<row>
+<entry><para>Qualifier</para></entry><entry><para>Meaning</para></entry>
+</row>
+</thead>
+ <tbody>
+<row><entry><para>/&ndash;CR</para></entry><entry><para>Force "none" file record attributes</para></entry></row>
+ <row><entry><para>/CR</para></entry><entry><para>Force "Implied" file record attributes</para></entry></row>
+ <row><entry><para>/FT</para></entry><entry><para>Force "FORTRAN" file record attributes</para></entry></row>
+ <row><entry><para>/FTN</para></entry><entry><para>Same as /FT</para></entry></row>
+ <row><entry><para>/B2</para></entry><entry><para>BASIC-PLUS-x handling (see <xref linkend="APP_BPX"/>)</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ The following qualifiers may be used to control output
+ processing:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <thead>
+<row>
+<entry><para>Qualifier</para></entry><entry><para>Meaning</para></entry>
+</row>
+</thead>
+ <tbody>
+<row><entry><para>/VAR</para></entry><entry><para>Create file record format "Var"</para></entry></row>
+ <row><entry><para>/STM</para></entry><entry><para>Create file record format "Stm"</para></entry></row>
+ <row><entry><para>/&ndash;CR</para></entry><entry><para>Create file record format "None"</para></entry></row>
+ <row><entry><para>/CR</para></entry><entry><para>Create file record format "Implied"</para></entry></row>
+ <row><entry><para>/FT</para></entry><entry><para>Create file record format "FORTRAN"</para></entry></row>
+ <row><entry><para>/FTN</para></entry><entry><para>Same as /FT</para></entry></row>
+ <row><entry><para>/B2</para></entry><entry><para>BASIC-PLUS-x handling (see <xref linkend="APP_BPX"/>)</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ The following qualifiers may be used to control
+ open/create/access options:
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <thead>
+<row>
+<entry><para>Qualifier</para></entry><entry><para>Meaning</para></entry>
+</row>
+</thead>
+ <tbody>
+<row><entry><para>/RW</para></entry><entry><para>Rewind before open/create</para></entry></row>
+ <row><entry><para>/SH</para></entry><entry><para>Enable file sharing</para></entry></row>
+ <row><entry><para>/SHR</para></entry><entry><para>Same as /SH</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ Below is a complete list of valid TECO input file record
+ format/attribute combinations and the resulting file
+ format/attribute combinations for EB commands:
+ <informaltable>
+ <tgroup cols="4" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+<colspec colname="c3"/>
+<colspec colname="c4"/>
+ <thead>
+<row>
+<entry><para>Input Format</para></entry><entry><para>Input Attribute</para></entry><entry><para>Output Format</para></entry><entry><para>Output Attribute</para></entry>
+</row>
+</thead>
+ <tbody>
+<row><entry><para>Fix</para></entry><entry><para>none</para></entry><entry><para>Var</para></entry><entry><para>Implied</para></entry></row>
+ <row><entry><para>Fix</para></entry><entry><para>Implied</para></entry><entry><para>Var</para></entry><entry><para>Implied</para></entry></row>
+ <row><entry><para>Fix</para></entry><entry><para>FORTRAN</para></entry><entry><para>Var</para></entry><entry><para>FORTRAN</para></entry></row>
+ <row><entry><para>Var</para></entry><entry><para>none</para></entry><entry><para>Var</para></entry><entry><para>Implied</para></entry></row>
+ <row><entry><para>Var</para></entry><entry><para>Implied</para></entry><entry><para>Var</para></entry><entry><para>Implied</para></entry></row>
+ <row><entry><para>Var</para></entry><entry><para>FORTRAN</para></entry><entry><para>Var</para></entry><entry><para>FORTRAN</para></entry></row>
+ <row><entry><para>VFC</para></entry><entry><para>Print</para></entry><entry><para>Var</para></entry><entry><para>Implied</para></entry></row>
+ <row><entry><para>Stm</para></entry><entry><para>none</para></entry><entry><para>Stm</para></entry><entry><para>Implied</para></entry></row>
+ <row><entry><para>Stm</para></entry><entry><para>Implied</para></entry><entry><para>Stm</para></entry><entry><para>Implied</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ Files read with the EI command have their record attributes
+ interpreted in the same manner. This leads to an unexpected side
+ effect with EI files containing an entire command. The last
+ record of the file presumably contains as its last characters the
+ two alt modes which initiate execution of the macro. If the file
+ is implied carriage control, however, there are also the final
+ carriage return / line feed belonging to the last record, which
+ remain in the type in buffer while the macro executes. If the
+ macro attempts to receive input with the <literal>&lt;CTRL/T></literal> command, the
+ carriage return / line feed will be the first two characters
+ read. Alternatively, if the macro does no type in, the carriage
+ return / line feed will be read by TECO as the first two
+ characters of the next command. Then no asterisk (&star;) will
+ appear as the prompt for the next command. The remedy for both cases is
+ for the macro to execute an EI` command early on. This causes
+ the remainder of the indirect file to be discarded and further
+ input to be read from the terminal as soon as the double alt mode
+ is encountered.
+ </para></section><section xml:id="APP_VMS_CLP"><title>Command Line Processing</title>
+ <para>
+ The mechanism used to process the command line in VAX/VMS TECO is
+ designed to allow sophisticated TECO users the greatest
+ flexibility in customizing TECO for their own use. It functions
+ as follows:
+ </para><para>
+ The initialization routine places a built-in command decoding
+ TECO macro into Q-register Y and the original command line
+ (including the keyword TECO, MAKE, or MUNG) into Q-register Z.
+ </para><para>
+ It then looks for a user private command decoding TECO macro by
+ attempting
+ <orderedlist>
+ <listitem><para>an EITECO`` if the logical name "TECO"
+ exists, elsewise
+ </para></listitem><listitem><para>an EISYS$LOGIN:TECO`` if the logical name 
+ "SYS$LOGIN" exists, elsewise
+ </para></listitem><listitem><para>an EITECO``
+ </para></listitem></orderedlist>
+ </para><para>
+ If the EI succeeds, the found file is executed. The file may, or
+ course, do anything it pleases. Generally, you would use a
+ private command decoder to automate some sort of system specific
+ editing package. For example, to implement an editing package
+ called FOOBAR, you would define the logical TECO with
+ </para>
+  <screen> $ DEFINE/SYSTEM TECO dev:[dir]FOOBAR</screen><para>
+ define a DCL foreign command symbol with
+ </para>
+  <screen> $ FOOBAR :== $SYS$SYSTEM:TECO FOOBAR</screen><para>
+ and place the TECO macro the implements the FOOBAR editor in
+ dev:[dir]FOOBAR.TEC. Now, whenever a TECO, MAKE, MUNG, or FOOBAR
+ command is issued, the your macro will gain control. It should
+ fetch Q-register Z (the original command line), check the command
+ type, if it's FOOBAR then go do its thing, else it should
+ terminate and execute TECO's built-in command decoder.
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para>GZ</para></entry><entry><para>! Put command into text buffer !</para></entry></row>
+ <row><entry><para>J ::@S/FOOBAR/"U</para></entry><entry><para>! Is the command for us? !</para></entry></row>
+ <row><entry><para>@EI//</para></entry><entry><para>! Not for us, turn us off !</para></entry></row>
+ <row><entry><para>HK</para></entry><entry><para>! Clear out text buffer !</para></entry></row>
+ <row><entry><para>MY</para></entry><entry><para>! Let the real TECO takeover !</para></entry></row>
+ <row><entry><para>'</para></entry><entry><para>! It's for us, just flow on... !</para></entry></row>
+ <row><entry><para>$$</para></entry><entry><para>! Double ESCAPE; 1st command's end !</para></entry></row>
+ <row><entry><para>...</para></entry><entry><para>! Do your own thing here... !</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para><para>
+ This mechanism should not be used for simple initialization; the
+ standard TEC$INIT facility should suffice for that. This
+ facility is provided for the sophisticated user who wants his own
+ command processing and thus wishes to usurp control.
+ </para></section><section xml:id="APP_VMS_HLP"><title>Help</title>
+ <para>
+ On VAX/VMS, TECO can provide HELP in any of three ways.
+ </para><para>
+ You can issue a HELP command at TECO's asterisk prompt. This
+ HELP command obeys the standard VAX/VMS HELP command syntax
+ rules. The HELP command may be terminated by either RETURN or
+ ``.
+ </para><para>
+ You can type the / command immediately after an error. (See
+ <xref linkend="CSE_IAC"/>.) TECO will respond with a one-paragraph description
+ of the error.
+ </para><para>
+ You can set EH to 3. (See <xref linkend="COM_MCF"/>.) This will cause TECO to
+ automatically respond with a one-paragraph description of any
+ error which occurs.
+ </para></section><section xml:id="APP_VMS_INS"><title>Installing TECO</title>
+ <para>
+ TECO is distributed with VAX/VMS; the files are already in
+ place. If TECO will receive heavy use, it should be installed
+ /OPEN and /HEADER_RESIDENT.
+ </para><para>
+ The following commands, if used in a LOGIN.COM file, would define
+ the three normal TECO invocation commands:
+ </para><screen> $ TE&star;CO :== $SYS$SYSTEM:TECO TECO
+ $ MA&star;KE :== $SYS$SYSTEM:TECO MAKE
+ $ MU&star;NG :== $SYS$SYSTEM:TECO MUNG</screen><para>
+ The asterisk allows for abbreviation of these commands. For
+ example, the TE&star;CO definition permits TE, TEC, or TECO.
+ </para><para>
+ One may include command qualifiers in the command definitions.
+ For example, one can define a command to invoke TECO with VTEDIT
+ as follows:
+ </para>
+  <screen>$ VTECO :== $SYS$SYSTEM:TECO TECO /VTEDIT</screen></section><section><title>Callable TECO interface routines</title>
+  <para> Callable routines return reasonable error status. If, for example, TEC$DO_COMMAND exits
+   with a search failure, (?SRH), the value TECO$_SRH is returned. </para><para> All TECO$ symbols
+   are resolved by linking to SYS$SHARE:TECOSHR.EXE. </para><para>
+   <table xml:id="APP_VMS_TAB_SYM">
+    <title>TECO symbols</title>
+    <tgroup cols="3" align="left" colsep="1" rowsep="1">
+     <colspec colname="c1"/>
+     <colspec colname="c2"/>
+     <colspec colname="c3"/>
+     <thead>
+      <row>
+       <entry>Symbol</entry>
+       <entry>Hexadecimal</entry>
+       <entry>Decimal</entry>
+      </row>
+     </thead>
+     <tbody>
+      <row>
+       <entry>TECO$_BNI</entry>
+       <entry>00FF8008</entry>
+       <entry>16744456</entry>
+      </row>
+      <row>
+       <entry>TECO$_CPQ</entry>
+       <entry>00FF8010</entry>
+       <entry>16744464</entry>
+      </row>
+      <row>
+       <entry>TECO$_DTB</entry>
+       <entry>00FF8018</entry>
+       <entry>16744472</entry>
+      </row>
+      <row>
+       <entry>TECO$_ERR</entry>
+       <entry>00FF8020</entry>
+       <entry>16744480</entry>
+      </row>
+      <row>
+       <entry>TECO$_FNF</entry>
+       <entry>00FF8028</entry>
+       <entry>16744488</entry>
+      </row>
+      <row>
+       <entry>TECO$_IAA</entry>
+       <entry>00FF8030</entry>
+       <entry>16744496</entry>
+      </row>
+      <row>
+       <entry>TECO$_IEC</entry>
+       <entry>00FF8038</entry>
+       <entry>16744504</entry>
+      </row>
+      <row>
+       <entry>TECO$_IFC</entry>
+       <entry>00FF8040</entry>
+       <entry>16744512</entry>
+      </row>
+      <row>
+       <entry>TECO$_IIA</entry>
+       <entry>00FF8048</entry>
+       <entry>16744520</entry>
+      </row>
+      <row>
+       <entry>TECO$_ILL</entry>
+       <entry>00FF8050</entry>
+       <entry>16744528</entry>
+      </row>
+      <row>
+       <entry>TECO$_ILN</entry>
+       <entry>00FF8058</entry>
+       <entry>16744536</entry>
+      </row>
+      <row>
+       <entry>TECO$_IPA</entry>
+       <entry>00FF8060</entry>
+       <entry>16744544</entry>
+      </row>
+      <row>
+       <entry>TECO$_IQC</entry>
+       <entry>00FF8068</entry>
+       <entry>16744552</entry>
+      </row>
+      <row>
+       <entry>TECO$_IQN</entry>
+       <entry>00FF8070</entry>
+       <entry>16744560</entry>
+      </row>
+      <row>
+       <entry>TECO$_IRA</entry>
+       <entry>00FF8078</entry>
+       <entry>16744568</entry>
+      </row>
+      <row>
+       <entry>TECO$_ISA</entry>
+       <entry>00FF8080</entry>
+       <entry>16744576</entry>
+      </row>
+      <row>
+       <entry>TECO$_ISS</entry>
+       <entry>00FF8088</entry>
+       <entry>16744584</entry>
+      </row>
+      <row>
+       <entry>TECO$_IUC</entry>
+       <entry>00FF8090</entry>
+       <entry>16744592</entry>
+      </row>
+      <row>
+       <entry>TECO$_MEM</entry>
+       <entry>00FF8098</entry>
+       <entry>16744600</entry>
+      </row>
+      <row>
+       <entry>TECO$_MRP</entry>
+       <entry>00FF80A0</entry>
+       <entry>16744608</entry>
+      </row>
+      <row>
+       <entry>TECO$_NAB</entry>
+       <entry>00FF80A8</entry>
+       <entry>16744616</entry>
+      </row>
+      <row>
+       <entry>TECO$_NAC</entry>
+       <entry>00FF80B0</entry>
+       <entry>16744624</entry>
+      </row>
+      <row>
+       <entry>TECO$_NAE</entry>
+       <entry>00FF80B8</entry>
+       <entry>16744632</entry>
+      </row>
+      <row>
+       <entry>TECO$_NAP</entry>
+       <entry>00FF80C0</entry>
+       <entry>16744640</entry>
+      </row>
+      <row>
+       <entry>TECO$_NAQ</entry>
+       <entry>00FF80C8</entry>
+       <entry>16744648</entry>
+      </row>
+      <row>
+       <entry>TECO$_NAS</entry>
+       <entry>00FF80D0</entry>
+       <entry>16744656</entry>
+      </row>
+      <row>
+       <entry>TECO$_NAU</entry>
+       <entry>00FF80D8</entry>
+       <entry>16744664</entry>
+      </row>
+      <row>
+       <entry>TECO$_NFI</entry>
+       <entry>00FF80E0</entry>
+       <entry>16744672</entry>
+      </row>
+      <row>
+       <entry>TECO$_NFO</entry>
+       <entry>00FF80E8</entry>
+       <entry>16744680</entry>
+      </row>
+      <row>
+       <entry>TECO$_NYA</entry>
+       <entry>00FF80F0</entry>
+       <entry>16744688</entry>
+      </row>
+      <row>
+       <entry>TECO$_OFO</entry>
+       <entry>00FF80F8</entry>
+       <entry>16744696</entry>
+      </row>
+      <row>
+       <entry>TECO$_PDO</entry>
+       <entry>00FF8100</entry>
+       <entry>16744704</entry>
+      </row>
+      <row>
+       <entry>TECO$_POP</entry>
+       <entry>00FF8108</entry>
+       <entry>16744712</entry>
+      </row>
+      <row>
+       <entry>TECO$_SNI</entry>
+       <entry>00FF8110</entry>
+       <entry>16744720</entry>
+      </row>
+      <row>
+       <entry>TECO$_SRH</entry>
+       <entry>00FF8118</entry>
+       <entry>16744728</entry>
+      </row>
+      <row>
+       <entry>TECO$_STL</entry>
+       <entry>00FF8120</entry>
+       <entry>16744736</entry>
+      </row>
+      <row>
+       <entry>TECO$_UTC</entry>
+       <entry>00FF8128</entry>
+       <entry>16744744</entry>
+      </row>
+      <row>
+       <entry>TECO$_UTM</entry>
+       <entry>00FF8130</entry>
+       <entry>16744752</entry>
+      </row>
+      <row>
+       <entry>TECO$_XAB</entry>
+       <entry>00FF8138</entry>
+       <entry>16744760</entry>
+      </row>
+      <row>
+       <entry>TECO$_YCA</entry>
+       <entry>00FF8140</entry>
+       <entry>16744768</entry>
+      </row>
+      <row>
+       <entry>TECO$M_NOCOMMAND</entry>
+       <entry>00000002</entry>
+       <entry>2</entry>
+      </row>
+      <row>
+       <entry>TECO$M_READONLY</entry>
+       <entry>00000001</entry>
+       <entry>1</entry>
+      </row>
+      <row>
+       <entry>TECO$V_NOCOMMAND</entry>
+       <entry>00000001</entry>
+       <entry>1</entry>
+      </row>
+      <row>
+       <entry>TECO$V_READONLY</entry>
+       <entry>00000000</entry>
+       <entry>0</entry>
+      </row>
+     </tbody>
+    </tgroup>
+   </table>
+  </para>
+  <refentry><refnamediv>
+    <refname>TECO$INIT</refname>
+    <refpurpose>This routine should be called before calling any other interface
+     routines.</refpurpose>
+   </refnamediv>
+  <refsection>
+   <title>Format</title>
+   <synopsis>TECO$INIT</synopsis>
+  </refsection>
+  <refsection><title>Returns</title>
+  
+  <para>TECO$INIT returns a status value. Any TECO error message is mapped into a
+  status code of TECO$_xxx, where xxx is the TLA [three-letter-abbreviation] of the error message.
+  (See <xref linkend="APP_ERR"/>) </para></refsection>
+  </refentry>
+  <refentry><refnamediv>
+    <refname>TECO$EDIT</refname>
+    <refpurpose>Callable TECO entry point. This routine is called to start the callable
+     editor.</refpurpose>
+   </refnamediv>
+  <refsection>
+   <title>Format</title>
+   <synopsis>TECO$EDIT(in,[out],[com],[opt],[xlt])</synopsis>
+  </refsection>
+  <refsection><title>Returns</title>
+  
+  <para>TECO$EDIT returns a status value. Any TECO error message is mapped into a
+  status code of TECO$_xxx, where xxx is the TLA [three-letter-abbreviation] of the error message.
+  (See <xref linkend="APP_ERR"/>) </para></refsection>
+  <refsection>
+   <title>Arguments</title>
+    <variablelist>
+     <varlistentry>
+      <term>in</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>read only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by descriptor</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> Descriptor of the input file name </para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term>out</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>read only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by descriptor</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> Descriptor of the output file name. </para>
+       <para> Defaults to same name as the input file. [i.e. EBinput-file``] </para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term>com</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>read only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by descriptor</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> Descriptor for the TECO startup command. </para>
+       <para> If this argument is not specified, and the TECO$M_NOCOMMAND option is not specified,
+        the standard TECO initialization is done. The logical name TEC$INIT is used to find a
+        startup command file. </para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term>opt</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>read only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by descriptor</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> Address of an options longword. Valid options are: <informaltable>
+         <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <colspec colname="c1"/>
+          <colspec colname="c2"/>
+          <tbody>
+           <row>
+            <entry>
+             <para>TECO$M_NOCOMMAND</para>
+            </entry>
+            <entry>
+             <para>Don't execute the TECO initialization file</para>
+            </entry>
+           </row>
+           <row>
+            <entry>
+             <para>TECO$M_READONLY</para>
+            </entry>
+            <entry>
+             <para>Open the file in INSPECT mode</para>
+            </entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable></para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term>xlt</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>read only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by descriptor</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> Address of a bound procedure mask [BPM] for the xlate routine. See the information
+        below. </para>
+       <para> It is not neccessary to initialize TECO before calling TECO$EDIT. </para>
+       <bridgehead>Callable TECO Xlate routine</bridgehead>
+       <para> When TECO$EDIT is called, one of the arguments is the XLATE routine. This routine is
+        called by the :EGXLT command.</para>
+       <para>The format of this command is: <informaltable>
+         <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <colspec colname="c1"/>
+          <colspec colname="c2"/>
+          <tbody>
+           <row>
+            <entry>
+             <para/>
+            </entry>
+            <entry>
+             <para>m,n:EGXLT string`</para>
+            </entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> It calls the XLATE routine with 3 arguments: <itemizedlist>
+         <listitem>
+          <para>The string given. Passed by descriptor. Leading spaces and tabs are removed from
+           this string. </para>
+         </listitem>
+         <listitem>
+          <para>Two arguments, passed by reference. The first is the M value, the second N.
+           Modifying these locations modifies the XLATE routine's return values.</para>
+          <para>The return value to the :EGXLT command is, by default, -1 if there is an XLATE
+           routine, 0 if there is none.</para>
+          <para>The XLATE routine itself can modify the return values with a call to TECO$VALUES.
+          </para>
+         </listitem>
+        </itemizedlist>
+       </para>
+       <para> The XLATE hook is analogous to the callable EDT facility. It allows a user of Callable
+        TECO to easily return to the calling program, perform some operation, and then return to
+        TECO. </para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+  </refsection></refentry>
+  <refentry><refnamediv>
+    <refname>TECO$POINTERS</refname>
+    <refpurpose>Returns position of dot and z.</refpurpose>
+   </refnamediv>
+   <refsection>
+    <title>Format</title>
+    <synopsis>TECO$POINTERS([dot][,z])</synopsis>
+   </refsection>
+   <refsection><title>Returns</title>
+    <para>
+     <informaltable frame="none" colsep="0" rowsep="0">
+      <tgroup cols="2">
+       <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+       <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+       <tbody>
+        <row>
+         <entry>OpenVMS usage:</entry>
+         <entry>cond_value</entry>
+        </row>
+        <row>
+         <entry>type:</entry>
+         <entry>longword integer</entry>
+        </row>
+        <row>
+         <entry>access:</entry>
+         <entry>write only</entry>
+        </row>
+        <row>
+         <entry>mechanism:</entry>
+         <entry>by value in R0</entry>
+        </row>
+       </tbody>
+      </tgroup>
+     </informaltable>
+    </para>
+   
+   <para>TECO$POINTERS returns a status value. Any TECO error message is mapped into a
+   status code of TECO$_xxx, where xxx is the TLA [three-letter-abbreviation] of the error message.
+   (See <xref linkend="APP_ERR"/>) </para></refsection>
+  <refsection>
+   <title>Arguments</title>
+    <variablelist>
+     <varlistentry>
+      <term>dot</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>write only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by reference</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> Gets text pointer relative to the start of the buffer (.) in TECO.</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term>z</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>write only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by reference</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> Gets a pointer to the end of the text buffer. Z in TECO. </para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+  </refsection>
+  </refentry>
+   <refentry><refnamediv>
+    <refname>TECO$SET_DOT</refname>
+    <refpurpose>Set pointer.</refpurpose>
+   </refnamediv>
+  <refsection>
+   <title>Format</title>
+   <synopsis>TECO$SET_DOT(new-dot)</synopsis>
+  </refsection>
+  <refsection><title>Returns</title>
+    <para>
+     <informaltable frame="none" colsep="0" rowsep="0">
+      <tgroup cols="2">
+       <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+       <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+       <tbody>
+        <row>
+         <entry>OpenVMS usage:</entry>
+         <entry>cond_value</entry>
+        </row>
+        <row>
+         <entry>type:</entry>
+         <entry>longword integer</entry>
+        </row>
+        <row>
+         <entry>access:</entry>
+         <entry>write only</entry>
+        </row>
+        <row>
+         <entry>mechanism:</entry>
+         <entry>by value in R0</entry>
+        </row>
+       </tbody>
+      </tgroup>
+     </informaltable>
+    </para>
+  
+  <para>TECO$SET_DOT returns a status value. Any TECO error message is mapped into a
+  status code of TECO$_xxx, where xxx is the TLA [three-letter-abbreviation] of the error message.
+  (See <xref linkend="APP_ERR"/>) </para></refsection>
+  <refsection>
+   <title>Arguments</title>
+    <variablelist>
+     <varlistentry>
+      <term>new-dot</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>read only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by reference</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> New value to set into the text pointer. </para>
+       <para> Must be between 0 and the end of the buffer [Z]. </para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+  </refsection>
+   </refentry>
+    <refentry><refnamediv>
+    <refname>TECO$ADVANCE_LINE</refname>
+    <refpurpose>Advance lines [nL command].</refpurpose>
+   </refnamediv>
+  <refsection>
+   <title>Format</title>
+   <synopsis>TECO$ADVANCE_LINE(lines)</synopsis>
+  </refsection>
+  <refsection><title>Returns</title>
+    <para>
+     <informaltable frame="none" colsep="0" rowsep="0">
+      <tgroup cols="2">
+       <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+       <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+       <tbody>
+        <row>
+         <entry>OpenVMS usage:</entry>
+         <entry>cond_value</entry>
+        </row>
+        <row>
+         <entry>type:</entry>
+         <entry>longword integer</entry>
+        </row>
+        <row>
+         <entry>access:</entry>
+         <entry>write only</entry>
+        </row>
+        <row>
+         <entry>mechanism:</entry>
+         <entry>by value in R0</entry>
+        </row>
+       </tbody>
+      </tgroup>
+     </informaltable>
+    </para>
+  
+  <para>TECO$ADVANCE_LINE returns a status value. Any TECO error message is mapped into
+  a status code of TECO$_xxx, where xxx is the TLA [three-letter-abbreviation] of the error message.
+  (See <xref linkend="APP_ERR"/>) </para></refsection>
+  <refsection><title>Arguments</title>
+    <variablelist>
+     <varlistentry>
+      <term>lines</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>read only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by reference</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> Number of line terminators to advance. </para>
+       <para> Acts like the nL command in TECO; 0 moves to the start of the current line, 1 moves
+        forward one line, -1 backward one line. </para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+  </refsection>
+    </refentry>
+     <refentry><refnamediv>
+    <refname>TECO$DELETE_TEXT</refname>
+    <refpurpose>Deletes characters.</refpurpose>
+   </refnamediv>
+  <refsection><title>Format</title>
+   <synopsis>TECO$DELETE_TEXT(chars)</synopsis>
+  </refsection>
+  <refsection><title>Returns</title>
+    <para>
+     <informaltable frame="none" colsep="0" rowsep="0">
+      <tgroup cols="2">
+       <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+       <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+       <tbody>
+        <row>
+         <entry>OpenVMS usage:</entry>
+         <entry>cond_value</entry>
+        </row>
+        <row>
+         <entry>type:</entry>
+         <entry>longword integer</entry>
+        </row>
+        <row>
+         <entry>access:</entry>
+         <entry>write only</entry>
+        </row>
+        <row>
+         <entry>mechanism:</entry>
+         <entry>by value in R0</entry>
+        </row>
+       </tbody>
+      </tgroup>
+     </informaltable>
+    </para>
+  
+  <para>TECO$DELETE_TEXT returns a status value. Any TECO error message is mapped into
+  a status code of TECO$_xxx, where xxx is the TLA [three-letter-abbreviation] of the error message.
+  (See <xref linkend="APP_ERR"/>) </para></refsection>
+  <refsection><title>Arguments</title>
+    <variablelist>
+     <varlistentry>
+      <term>chars</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>read only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> Number of characters to delete. </para>
+       <para> Acts exactly like the nD command in TECO. 3 deletes 3 characters after DOT, -3 deletes
+        3 characters before DOT. Exceeding the buffer boundaries will generate a "DTB Delete too
+        big" error. </para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+  </refsection>
+     </refentry>
+      <refentry><refnamediv>
+    <refname>TECO$GET_Q_REG</refname>
+    <refpurpose>Returns text and value of Q-register.</refpurpose>
+   </refnamediv>
+  <refsection><title>Format</title>
+   <synopsis>TECO$GET_Q_REG(q-name,[value],[text])</synopsis>
+  </refsection>
+  <refsection><title>Returns</title>
+    <para>
+     <informaltable frame="none" colsep="0" rowsep="0">
+      <tgroup cols="2">
+       <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+       <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+       <tbody>
+        <row>
+         <entry>OpenVMS usage:</entry>
+         <entry>cond_value</entry>
+        </row>
+        <row>
+         <entry>type:</entry>
+         <entry>longword integer</entry>
+        </row>
+        <row>
+         <entry>access:</entry>
+         <entry>write only</entry>
+        </row>
+        <row>
+         <entry>mechanism:</entry>
+         <entry>by value in R0</entry>
+        </row>
+       </tbody>
+      </tgroup>
+     </informaltable>
+    </para>
+  
+  <para>TECO$GET_Q_REG returns a status value. Any TECO error message is mapped into a
+  status code of TECO$_xxx, where xxx is the TLA [three-letter-abbreviation] of the error message.
+  (See <xref linkend="APP_ERR"/>) </para></refsection>
+  <refsection><title>Arguments</title>
+    <variablelist>
+     <varlistentry>
+      <term>q-name</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>read only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by descriptor</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> Descriptor for name of the q-register to obtain. </para>
+       <para> Upper or lower case character, optionally preceded by a dot (.) for local q-registers.
+        Any descriptor type allowed by STR$COPY_DX is allowed. The text is copied from the
+        q-register to the destination string. </para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term>value</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>read only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by reference</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> Gets 'value' portion of q-register.</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term>text</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>read only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by descriptor</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> Descriptor for string to receive the text stored in the q-register. </para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+  </refsection>
+      </refentry>
+       <refentry><refnamediv>
+    <refname>TECO$LOAD_Q_REG</refname>
+    <refpurpose>Loads q-register text and/or value.</refpurpose>
+   </refnamediv>
+  <refsection>
+   <title>Format</title>
+   <synopsis>TECO$LOAD_Q_REG(q-name,[value],[text])</synopsis>
+  </refsection>
+  <refsection><title>Returns</title>
+    <para>
+     <informaltable frame="none" colsep="0" rowsep="0">
+      <tgroup cols="2">
+       <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+       <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+       <tbody>
+        <row>
+         <entry>OpenVMS usage:</entry>
+         <entry>cond_value</entry>
+        </row>
+        <row>
+         <entry>type:</entry>
+         <entry>longword integer</entry>
+        </row>
+        <row>
+         <entry>access:</entry>
+         <entry>write only</entry>
+        </row>
+        <row>
+         <entry>mechanism:</entry>
+         <entry>by value in R0</entry>
+        </row>
+       </tbody>
+      </tgroup>
+     </informaltable>
+    </para>
+  
+  <para>TECO$LOAD_Q_REG returns a status value. Any TECO error message is mapped into a
+  status code of TECO$_xxx, where xxx is the TLA [three-letter-abbreviation] of the error message.
+  (See <xref linkend="APP_ERR"/>) </para></refsection>
+  <refsection><title>Arguments</title>
+    <variablelist>
+     <varlistentry>
+      <term>q-name</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>read only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by descriptor</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> Descriptor for name of the q-register to load. </para>
+       <para> Upper or lower case character, optionally preceded by a dot (.) for local q-registers.
+        Any descriptor type allowed by STR$COPY_DX is allowed. The text is copied to the q-register
+        from the source string.</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term>value</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>read only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by reference</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> Sets 'value' portion of q-register.</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term>text</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>read only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by descriptor</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> Descriptor for the text string to load into the q-register. </para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+  </refsection>
+       </refentry>
+        <refentry><refnamediv>
+    <refname>TECO$MUNG</refname>
+    <refpurpose>Executes q-register.</refpurpose>
+   </refnamediv>
+  <refsection>
+   <title>Format</title>
+   <synopsis>TECO$MUNG(q-name)</synopsis>
+  </refsection>
+  <refsection><title>Returns</title>
+    <para>
+     <informaltable frame="none" colsep="0" rowsep="0">
+      <tgroup cols="2">
+       <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+       <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+       <tbody>
+        <row>
+         <entry>OpenVMS usage:</entry>
+         <entry>cond_value</entry>
+        </row>
+        <row>
+         <entry>type:</entry>
+         <entry>longword integer</entry>
+        </row>
+        <row>
+         <entry>access:</entry>
+         <entry>write only</entry>
+        </row>
+        <row>
+         <entry>mechanism:</entry>
+         <entry>by value in R0</entry>
+        </row>
+       </tbody>
+      </tgroup>
+     </informaltable>
+    </para>
+  
+  <para>TECO$MUNG returns a status value. Any TECO error message is mapped into a
+  status code of TECO$_xxx, where xxx is the TLA [three-letter-abbreviation] of the error message.
+  (See <xref linkend="APP_ERR"/>) </para></refsection>
+  <refsection><title>Arguments</title>
+    <variablelist>
+     <varlistentry>
+      <term>q-name</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>read only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by descriptor</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> Descriptor for q-register name to execute. </para>
+       <para> MUNG executes the TECO program loaded into the given q-register. The current TECO
+        command level's local q-registers are saved before executing the MUNG, unless the q-register
+        name specifies a local q-register. </para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+  </refsection></refentry>
+   <refentry><refnamediv>
+    <refname>TECO$LOAD_TEXT</refname>
+    <refpurpose>Load text buffer.</refpurpose>
+   </refnamediv>
+   <refsection>
+    <title>Format</title>
+    <synopsis>TECO$LOAD_TEXT(new-text[,delete])</synopsis>
+   </refsection>
+   <refsection><title>Returns</title>
+   
+   <para>TECO$LOAD_TEXT returns a status value. Any TECO error message is mapped into a
+   status code of TECO$_xxx, where xxx is the TLA [three-letter-abbreviation] of the error message.
+   (See <xref linkend="APP_ERR"/>) </para></refsection>
+  <refsection>
+   <title>Arguments</title>
+    <variablelist>
+     <varlistentry>
+      <term>new-text</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>read only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by reference</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> Descriptor for text string to be loaded into the text buffer. The text is copied from
+        the source string to the text buffer.</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term>delete</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>read only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by reference</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> Number of characters to delete before insert. Negative values delete text before DOT,
+        positive values delete after DOT. </para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+  </refsection>
+   </refentry>
+    <refentry><refnamediv>
+    <refname>TECO$GET_TEXT</refname>
+    <refpurpose>Gets descriptor of text buffer.</refpurpose>
+   </refnamediv>
+  <refsection>
+   <title>Format</title>
+   <synopsis>TECO$GET_TEXT(text[,[start][,end]])</synopsis>
+  </refsection>
+  <refsection><title>Returns</title>
+    <para>
+     <informaltable frame="none" colsep="0" rowsep="0">
+      <tgroup cols="2">
+       <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+       <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+       <tbody>
+        <row>
+         <entry>OpenVMS usage:</entry>
+         <entry>cond_value</entry>
+        </row>
+        <row>
+         <entry>type:</entry>
+         <entry>longword integer</entry>
+        </row>
+        <row>
+         <entry>access:</entry>
+         <entry>write only</entry>
+        </row>
+        <row>
+         <entry>mechanism:</entry>
+         <entry>by value in R0</entry>
+        </row>
+       </tbody>
+      </tgroup>
+     </informaltable>
+    </para>
+  
+  <para>TECO$GET_TEXT returns a status value. Any TECO error message is mapped into a
+  status code of TECO$_xxx, where xxx is the TLA [three-letter-abbreviation] of the error message.
+  (See <xref linkend="APP_ERR"/>) </para></refsection>
+  <refsection>
+   <title>Arguments</title>
+    <variablelist>
+     <varlistentry>
+      <term>text</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>read only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by reference</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> Descriptor of string to receive a copy of the extracted text. The text extracted is
+        copied to this string.</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term>start</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>read only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by reference</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> Text buffer offset to start the extract at. Defaults to zero [beginning of buffer, B].
+       </para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term>end</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>read only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by reference</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> Text buffer offset to end at. Defaults to end of text buffer [Z]. </para>
+       <para> The START and END values are checked and limited to the beginning and end of the text
+        buffer, respectively. </para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+  </refsection>
+    </refentry>
+  <refentry><refnamediv>
+    <refname>TECO$DO_COMMAND</refname>
+    <refpurpose> Execute a TECO command. </refpurpose>
+   </refnamediv>
+   <refsection>
+    <title>Format</title>
+    <synopsis>TECO$DO_COMMAND(command)</synopsis>
+   </refsection>
+   <refsection><title>Returns</title>
+    <para>
+     <informaltable frame="none" colsep="0" rowsep="0">
+      <tgroup cols="2">
+       <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+       <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+       <tbody>
+        <row>
+         <entry>OpenVMS usage:</entry>
+         <entry>cond_value</entry>
+        </row>
+        <row>
+         <entry>type:</entry>
+         <entry>longword integer</entry>
+        </row>
+        <row>
+         <entry>access:</entry>
+         <entry>write only</entry>
+        </row>
+        <row>
+         <entry>mechanism:</entry>
+         <entry>by value in R0</entry>
+        </row>
+       </tbody>
+      </tgroup>
+     </informaltable>
+    </para>
+   
+   <para>TECO$DO_COMMAND returns a status value. Any TECO error message is mapped into
+   a status code of TECO$_xxx, where xxx is the TLA [three-letter-abbreviation] of the error
+   message. (See <xref linkend="APP_ERR"/>) </para></refsection>
+  <refsection>
+   <title>Arguments</title>
+    <variablelist>
+     <varlistentry>
+      <term>command</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>read only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by reference</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> TECO command to execute. </para>
+       <para> TECO$DO_COMMAND executes a single TECO string and returns. Returned values [m,n] can
+        be obtained with the TECO$VALUES routine. </para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+  </refsection></refentry>
+  
+  <refentry><refnamediv>
+    <refname>TECO$START</refname>
+    <refpurpose>Allow user TECO commands.</refpurpose>
+   </refnamediv>
+   <refsection>
+    <title>Format</title>
+    <synopsis>TECO$START([flag])</synopsis>
+   </refsection>
+   <refsection><title>Returns</title>
+    <para>
+     <informaltable frame="none" colsep="0" rowsep="0">
+      <tgroup cols="2">
+       <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+       <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+       <tbody>
+        <row>
+         <entry>OpenVMS usage:</entry>
+         <entry>cond_value</entry>
+        </row>
+        <row>
+         <entry>type:</entry>
+         <entry>longword integer</entry>
+        </row>
+        <row>
+         <entry>access:</entry>
+         <entry>write only</entry>
+        </row>
+        <row>
+         <entry>mechanism:</entry>
+         <entry>by value in R0</entry>
+        </row>
+       </tbody>
+      </tgroup>
+     </informaltable>
+    </para>
+   
+   <para>TECO$START returns a status value. Any TECO error message is mapped into a
+   status code of TECO$_xxx, where xxx is the TLA [three-letter-abbreviation] of the error message.
+   (See <xref linkend="APP_ERR"/>) </para></refsection>
+  <refsection>
+   <title>Arguments</title>
+    <variablelist>
+     <varlistentry>
+      <term>flag</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>read only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by reference</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> Default is zero. </para>
+       <para> TECO$START turns control over to the TECO interpreter until an exit command is
+        executed [EX, EG, or :EGXLT]. If the flag is true [low bit set], EXIT commands return
+        control to caller immediately, without paging out the text buffer. </para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+  </refsection></refentry>
+  <refentry><refnamediv>
+    <refname>TECO$GET_VALUES</refname>
+    <refpurpose>Obtain numeric values.</refpurpose>
+   </refnamediv>
+   <refsection>
+    <title>Format</title>
+    <synopsis>TECO$GET_VALUES([m][,n])</synopsis>
+   </refsection>
+   <refsection><title>Returns</title>
+    <para>
+     <informaltable frame="none" colsep="0" rowsep="0">
+      <tgroup cols="2">
+       <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+       <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+       <tbody>
+        <row>
+         <entry>OpenVMS usage:</entry>
+         <entry>cond_value</entry>
+        </row>
+        <row>
+         <entry>type:</entry>
+         <entry>longword integer</entry>
+        </row>
+        <row>
+         <entry>access:</entry>
+         <entry>write only</entry>
+        </row>
+        <row>
+         <entry>mechanism:</entry>
+         <entry>by value in R0</entry>
+        </row>
+       </tbody>
+      </tgroup>
+     </informaltable>
+    </para>
+   
+   <para>TECO$GET_VALUES returns a status value. Any TECO error message is mapped into
+   a status code of TECO$_xxx, where xxx is the TLA [three-letter-abbreviation] of the error
+   message. (See <xref linkend="APP_ERR"/>) </para></refsection>
+  <refsection>
+   <title>Arguments</title>
+    <variablelist>
+     <varlistentry>
+      <term>m</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>write only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by reference</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> This longword receives TECO's M [first numeric] value. </para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term>n</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>write only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by reference</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> This longword receives TECO's N [second numeric] value. </para>
+       <para> This routine is used to obtain numeric values from TECO code. </para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+  </refsection>
+  </refentry>
+  <refentry><refnamediv>
+    <refname>TECO$SET_VALUES</refname>
+    <refpurpose>Set numeric return values.</refpurpose>
+   </refnamediv>
+   <refsection>
+    <title>Format</title>
+    <synopsis>TECO$SET_VALUES([m][,n])</synopsis>
+   </refsection>
+   <refsection><title>Returns</title>
+    <para>
+     <informaltable frame="none" colsep="0" rowsep="0">
+      <tgroup cols="2">
+       <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+       <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+       <tbody>
+        <row>
+         <entry>OpenVMS usage:</entry>
+         <entry>cond_value</entry>
+        </row>
+        <row>
+         <entry>type:</entry>
+         <entry>longword integer</entry>
+        </row>
+        <row>
+         <entry>access:</entry>
+         <entry>write only</entry>
+        </row>
+        <row>
+         <entry>mechanism:</entry>
+         <entry>by value in R0</entry>
+        </row>
+       </tbody>
+      </tgroup>
+     </informaltable>
+    </para>
+   
+   <para>TECO$SET_VALUES returns a status value. Any TECO error message is mapped into
+   a status code of TECO$_xxx, where xxx is the TLA [three-letter-abbreviation] of the error
+   message. (See <xref linkend="APP_ERR"/>) </para></refsection>
+  <refsection>
+   <title>Arguments</title>
+    <variablelist>
+     <varlistentry>
+      <term>m</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>read only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by reference</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> This longword is use to set TECO's M [first numeric] value. </para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term>n</term>
+      <listitem>
+       <para>
+        <informaltable frame="none" colsep="0" rowsep="0">
+         <tgroup cols="2">
+          <colspec colname="c1" colnum="1" colwidth="0.4*"/>
+          <colspec colname="c2" colnum="2" colwidth="1.6*"/>
+          <tbody>
+           <row>
+            <entry>OpenVMS usage:</entry>
+            <entry>cond_value</entry>
+           </row>
+           <row>
+            <entry>type:</entry>
+            <entry>longword integer</entry>
+           </row>
+           <row>
+            <entry>access:</entry>
+            <entry>read only</entry>
+           </row>
+           <row>
+            <entry>mechanism:</entry>
+            <entry>by reference</entry>
+           </row>
+          </tbody>
+         </tgroup>
+        </informaltable>
+       </para>
+       <para> This longword is used to set TECO's N [second numeric] value. </para>
+       <para> This routine is used to set numeric return values for TECO code. If the M argument is
+        present, it sets the COMMA flag. </para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+  </refsection></refentry>
+ 
+ 
+ </section>
+ </appendix>

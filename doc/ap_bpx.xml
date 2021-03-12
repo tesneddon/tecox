@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE appendix [
+<!ENTITY % isopub PUBLIC "ISO 8879:1986//ENTITIES Publishing//EN//XML" "http://www.w3.org/2003/entities/iso8879/isopub.ent">
+<!ENTITY % isonum PUBLIC "ISO 8879:1986//ENTITIES Numeric and Special Graphic//EN" "http://www.w3.org/2003/entities/iso8879/isonum.ent">
+<!ENTITY % isotech PUBLIC "ISO 8879:1986//ENTITIES General Technical//EN" "http://www.w3.org/2003/entities/iso8879/isotech.ent">
+%isopub;%isonum;%isotech;
+<!ENTITY % myEnt SYSTEM "teco.ent">
+%myEnt;
+]>
+ <appendix xmlns="http://docbook.org/ns/docbook" version="5.1" xml:id="APP_BPX"><title>Basic-Plus/Basic-Plus-2 Handling</title>
+ <sect1 xml:id="APP_BPX_PUR"><title>Purpose</title>
+ <para>
+ In BASIC-PLUS and BASIC-PLUS-2 a program statement may be
+ continued over more than one text line. A text line which is not
+ the last text line of a given statement may need to be flagged as
+ a "continued" line. (See the appropriate language reference
+ manual for requirements of each version of each language
+ processor.)
+ </para><para>
+ The standard continuation flag is the &amp; character. A line which
+ must be marked as "continued" is written with an &amp; as the last
+ non-whitespace character before the <literal>&lt;CR></literal><literal>&lt;LF></literal>.
+ </para><para>
+ (An older form of continuation was, in BASIC-PLUS only, to end
+ the text line by typing a <literal>&lt;LF></literal> key instead of <literal>&lt;CR></literal>.)
+ </para><para>
+ The switches described in this appendix cause TECO to manipulate
+ the text files in such a way that each text line appears in the
+ editing buffer to be completely "conventional": that is, each
+ text line ends with a standard <literal>&lt;CR></literal><literal>&lt;LF></literal>,
+ and no text line has a
+ trailing &amp; character. You can correctly edit well-formed
+ BASIC-PLUS or BASIC-PLUS-2 source files without having to be
+ concerned about continuation conventions.
+ </para></sect1><sect1 xml:id="APP_BPX_MET"><title>Method</title>
+ <para>
+ TECO allows you to work with "unemcumbered" lines in the editing
+ buffer by removing continuation conventions as each text line is
+ read in. You indicate that you want this processing by
+ specifying a switch on the file specification supplied to the ER
+ (or the EB) command.
+ </para><para>
+ TECO (again) adds appropriate continuation conventions to each
+ text line as it is written out from the editing buffer. You
+ indicate that you want this processing by specifying a switch on
+ the file specification supplied to the EW (or the EB) command.
+ </para></sect1><sect1 xml:id="APP_BPX_INP"><title>Input Processing</title>
+ <para>
+ As TECO reads each new text line into the editing buffer, it is
+ examined for a trailing &amp; character. If one is found, TECO
+ removes it, and then additionally removes any trailing spaces
+ and/or tabs.
+ </para><para>
+ (In the case of <literal>&lt;LF></literal> continuation, TECO converts that kind of
+ line terminator character sequence to <literal>&lt;CR></literal><literal>&lt;LF></literal>.)
+ </para><para>
+ The available switches follow. (Consult the appropriate appendix
+ to see which switches are supported on your operating system.)
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para>/B2</para></entry><entry><para>TECO strips trailing &amp; sequences</para></entry></row>
+ <row><entry><para>/n</para></entry><entry><para>Same as /B2 for input processing</para></entry></row>
+ <row><entry><para>/B+</para></entry><entry><para>TECO changes <literal>&lt;LF></literal><literal>&lt;CR></literal><literal>&lt;NUL></literal>
+ sequences to <literal>&lt;CR></literal><literal>&lt;LF></literal>.</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para></sect1><sect1 xml:id="APP_BPX_OUT"><title>Output Processing</title>
+ <para>
+ As TECO writes each text line from the editing buffer, it takes a
+ look at the text line which will follow. If the following line
+ begins with a digit, the current line is written without change.
+ If the following line does not begin with a digit, TECO assumes
+ that the current line must be continued.
+ </para><para>
+ The convention applied to an output text line which TECO marks as
+ "continued" depends on the form of the switch you specify.
+ (Consult the appropriate appendix to see which switches are
+ supported on your operating system.)
+ <informaltable>
+ <tgroup cols="2" align="left" colsep="1" rowsep="1">
+<colspec colname="c1"/>
+<colspec colname="c2"/>
+
+ <tbody>
+<row><entry><para>/B2</para></entry><entry><para>TECO appends a space and an &amp;</para></entry></row>
+ <row><entry><para>/n</para></entry><entry><para>TECO appends an &amp;, after padding out
+ the line with tabs and/or spaces to make
+ the &amp; appear in column n</para></entry></row>
+ <row><entry><para>/B+</para></entry><entry><para>TECO ends the line with a
+ <literal>&lt;LF></literal><literal>&lt;CR></literal><literal>&lt;NUL></literal> sequence
+ (instead of <literal>&lt;CR></literal><literal>&lt;LF></literal>.)</para></entry></row>
+ 
+</tbody>
+</tgroup></informaltable>
+ </para></sect1><sect1 xml:id="APP_BPX_FFI"><title>Form Feed Interaction</title>
+ <para>
+ When TECO reads a page of text into the editing buffer, it stops
+ when a <literal>&lt;form feed></literal> character is encountered, or when the buffer
+ has been filled to capacity. In the latter case, the last line
+ will be complete, and will include its line delimiter. However,
+ no look-ahead is done to examine the next line in the file.
+ </para><para>
+ If TECO is being used with one of the switches described in this
+ appendix, a very long BASIC-PLUS-x source program which is not
+ segmented with <literal>&lt;FF></literal> characters can cause the last line in the
+ buffer to not be the last text line of a multi-line source
+ statement.
+ </para><para>
+ When the buffer is written to the output file, TECO has no way of
+ determining whether the next text line (the first line of the
+ next buffer load) will begin with a line number. TECO makes the
+ assumption that the buffer's last text line is not to be
+ "continued", and terminates it with <literal>&lt;CR></literal><literal>&lt;LF></literal>.
+ If this assumption
+ is incorrect (frequently the case), remaining text lines of that
+ multi-line statement will be lost when the program is
+ subsequently OLDed.
+ </para><para>
+ To avoid this problem, lengthy BASIC-PLUS or BASIC-PLUS-2
+ programs should be segmented with <literal>&lt;form feed></literal> characters before
+ editing them using these TECO switches. Segments of
+ approximately 150 to 200 lines are convenient. Starting a new
+ page even more frequently to make listings readable isn't a bad
+ idea, either.
+ </para></sect1></appendix>
