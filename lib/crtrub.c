@@ -40,7 +40,9 @@
 #  pragma module MODULE VERSION
 # endif
 #endif
+#include <ctype.h>
 #include "tecodef.h"
+#include "extrn.h"
 #include "globals.h"
 
 /*

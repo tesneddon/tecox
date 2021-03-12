@@ -311,13 +311,24 @@ void emit_help(FILE *op,
 
 void emit_header(FILE *op,
                  int selection) {
+    int min_id, max_id;
     ENTRYDEF *ep = 0;
 
     fprintf(op, "/* %s %s */\n", module, ident);
     fprintf(op, "#ifndef %s_DEFINED\n", module);
     fprintf(op, "#define %s_DEFINED 1\n", module);
 
-    for (ep = tree; ep != 0; ep = ep->next) {
+    fprintf(op, "#ifdef %s_MESSAGES_INTERNAL\n", facility);
+    fprintf(op, "    typedef struct _msgdef {\n");
+    fprintf(op, "        int msg_index;\n");
+    fprintf(op, "        char *msg_name;\n");
+    fprintf(op, "        char *msg_text;\n");
+    fprintf(op, "        char *msg_help;\n");
+    fprintf(op, "    } MSGDEF;\n");
+    fprintf(op, "    extern MSGDEF %s_MESSAGES[];\n", facility);
+    fprintf(op, "#endif /* %s_MESSAGES_INTERNAL */\n", facility);
+
+    for (ep = tree, min_id = ep->id; ep != 0; ep = ep->next) {
 #ifdef VMS
         fprintf(op, "#define %s__%s %s%s_%s\n",
                facility, ep->name, facility,
@@ -325,7 +336,13 @@ void emit_header(FILE *op,
 #else
         fprintf(op, "#define %s__%s %d\n", facility, ep->name, ep->id);
 #endif
+        max_id = ep->id;
     }
+
+    fprintf(op, "#ifdef %s_MESSAGES_INTERNAL\n", facility);
+    fprintf(op, "#define %s_MESSAGES_MIN %d\n", facility, min_id);
+    fprintf(op, "#define %s_MESSAGES_MAX %d\n", facility, max_id);
+    fprintf(op, "#endif /* %s_MESSAGES_INTERNAL */\n", facility);
 
     fprintf(op, "#endif /* %s_DEFINED */\n", module);
 } /* emit_header */
@@ -334,31 +351,43 @@ void emit_msgdef(FILE *op,
                  int selection) {
     int i;
 
-    fprintf(op, "#ifndef %s_MESSAGES_DEFINED\n", facility);
-    fprintf(op, "#define %s_MESSAGES_DEFINED 1\n", facility);
-
-    fprintf(op, "#ifndef MSGDEF_DEFINED\n");
-    fprintf(op, "#define MSGDEF_DEFINED 1\n");
-    fprintf(op, "    typedef struct _msgdef {\n");
-    fprintf(op, "        int msg_id;\n");
-    fprintf(op, "        int msg_index;\n");
-    fprintf(op, "        char *msg_name;\n");
-    fprintf(op, "        char *msg_help;\n");
-    fprintf(op, "    } MSGDEF;\n");
-    fprintf(op, "#endif /* MSGDSC_DEFINED */\n");
-
+    fprintf(op, "#define %s_MESSAGES_INTERNAL\n", facility);
+    fprintf(op, "#include \"tecomsg.h\"\n");
     fprintf(op, "/* Facility: %s */\n", facility);
     fprintf(op, "MSGDEF %s_MESSAGES[] = {\n", facility);
 
     for (i = 0; i < count; i++) {
+        char *p;
         ENTRYDEF *ep = list[i];
 
-        fprintf(op, "    { %d, %d, \"%s\", \"%s\", 0 },\n",
-                ep->id, ep->id, ep->name, ep->text);
+        fprintf(op, "    { %d, \"%s\", \"", ep->id, ep->name);
+
+        for (p = ep->text; p && *p; p++) {
+            if (*p == '"')
+                fputc('\\', op);
+            fputc(*p, op);
+        }
+
+        fprintf(op, "\", \"");
+
+        if (p) {
+            fprintf(op, "\\\n");
+
+            for (p = ep->help; p && *p; p++) {
+                if (*p == '\n') {
+                    fprintf(op, "\\\n");
+                } else {
+                    if (*p == '"')
+                        fputc('\\', op);
+                    fputc(*p, op);
+                }
+            }
+        }
+
+        fprintf(op, "\", },\n");
     }
 
     fprintf(op, "};\n");
-    fprintf(op, "#endif /* %s_MESSAGES_DEFINED\n", facility);
 } /* emit_msgdef */
 
 int main(argc,

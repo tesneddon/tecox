@@ -1,5 +1,101 @@
-#ifndef macros_h__
-#define macros_h__
+/*
+**++
+**  MODULE DESCRIPTION:
+**
+**      TECO internal macros used by the intrepreter.
+**
+**  AUTHOR:             Tim E. Sneddon
+**
+**  Copyright (C) 2021 Tim E. Sneddon <tim@sneddon.id.au>
+**
+**  This program is free software: you can redistribute it and/or modify
+**  it under the terms of the GNU General Public License as published by
+**  the Free Software Foundation, either version 3 of the License, or
+**  (at your option) any later version.
+**
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU General Public License for more details.
+**
+**  You should have received a copy of the GNU General Public License
+**  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+**
+**  CREATION DATE:      12-MAR-2021
+**
+**  MODIFICATION HISTORY:
+**
+**      12-MAR-2021 V41.00  Sneddon   Initial coding.
+**--
+*/
+#ifndef __TECO_MACROS_LOADED
+#define __TECO_MACROS_LOADED 1
+
+#include <limits.h>
+#include <setjmp.h>
+#include <signal.h>
+#include <stdio.h>
+#include "tecochr.h"
+
+#define ERROR_MESSAGE(nnn) \
+    ERROR_CODE(TECO__##nnn)
+
+#define ERROR_CODE(n) \
+do { \
+    ctx.errcod = n; \
+    raise(SIGUSR1); \
+} while (0)
+
+#define goto_unwind() siglongjmp(ctx.tecosp, ctx.errcod)
+#define set_unwind() (int32_t) sigsetjmp(ctx.tecosp, 1)
+
+#define TYPET 0x0       /* Type without case flagging and ringing bells */
+#define TYPEF 0x1       /* Type with case flagging */
+#define TYPEB 0x2       /* Type with ringing bells */
+#define type(c) \
+do { \
+    teco_type(TYPET, (c)); \
+    io_support.flush(0); \
+} while (0)
+#define typb(c) \
+do { \
+    teco_type(TYPEB, (c)); \
+    io_support.flush(0); \
+} while (0)
+#define typf(c) \
+do { \
+    teco_type(TYPEF, (c)); \
+    io_support.flush(0); \
+} while (0)
+#define print(ptr, len) \
+do { \
+    int32_t i; \
+    uint8_t *p = (uint8_t *)(ptr); \
+    for (i = 0; i < (len); i++) \
+        teco_type(TYPET, p[i]);  \
+    io_support.flush(0); \
+} while (0)
+#define prinb(ptr, len) \
+do { \
+    int32_t i; \
+    uint8_t *p = (uint8_t *)(ptr); \
+    for (i = 0; i < len; i++) \
+        teco_type(TYPEB, p[i]); \
+    io_support.flush(0); \
+} while (0)
+#define prinf(ptr, len) \
+do { \
+    int32_t i; \
+    uint8_t *p = (uint8_t *)(ptr); \
+    for (i = 0; i < len; i++) \
+        teco_type(TYPEF, p[i]); \
+    io_support.flush(0); \
+} while (0)
+#define prinz(s) \
+do { \
+    int32_t len = strlen((s)); \
+    print(s,len); \
+} while (0)
 
 #define bzchk(n) \
 do { \
@@ -119,4 +215,4 @@ do { \
     ((((struct qelem *))(q)->next == (struct qelem *)(q)) \
     && (((struct qelem *)(q))->prev == (struct qelem *)(q)))
 
-#endif /* macros_h__ */
+#endif /* __TECO_MACROS_LOADED */

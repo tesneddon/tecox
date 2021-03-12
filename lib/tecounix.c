@@ -59,6 +59,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 #include <term.h>
 #include <termios.h>
 #include <unistd.h>
@@ -79,7 +80,9 @@
 #define OS_MODULE_BUILD
 #include "tecodef.h"
 #include "tecomsg.h"
+#include "extrn.h"
 #include "globals.h"
+#include "macros.h"
 
 /*
 ** Forward Declarations
@@ -188,11 +191,26 @@ static int32_t init()
         if (tcgetattr(STDIN_FILENO, &pattr) == 0) {
             attr = pattr;
 
+#if 0 // This worked for Linux...
             attr.c_lflag &= ~(ICANON | ECHO);
             attr.c_iflag |= ISIG;
             attr.c_iflag &= ~(IGNCR | ICRNL | INLCR);
 #ifdef VDSUSP
             attr.c_cc[VDSUSP] = _POSIX_VDISABLE;
+#endif
+#else
+            attr.c_lflag = 0;
+
+            attr.c_iflag &= ~(IGNBRK | IGNPAR | INPCK | ISTRIP);
+            attr.c_iflag &= ~(IGNCR | ICRNL | INLCR);
+
+            attr.c_oflag &= ~OPOST;
+
+            attr.c_cc[VMIN] = 1;
+            attr.c_cc[VTIME] = 0;
+#ifdef VDSUSP
+            attr.c_cc[VDSUSP] = _POSIX_VDISABLE;
+#endif
 #endif
 
             /*
@@ -262,9 +280,9 @@ static int32_t output(chr)
 static int32_t flush(fp)
     FILEHANDLE fp;
 {
-//    FILE *fptr = (fp == 0) ? stdout : fp->fptr;
+    FILE *fptr = (fp == 0) ? stdout : fp->fptr;
 
-//    fflush(fptr);
+    fflush(fptr);
 
     return TECO__NORMAL;
 } /* flush */
@@ -659,6 +677,8 @@ static void sigcont_handler(signum)
 static void sigsegv_handler(signum)
     int signum;
 {
+#if 0
+// Fix this...
     void *btbuf[BTBUF_SIZE];
     int i, nptrs;
     char **trace;
@@ -675,6 +695,7 @@ static void sigsegv_handler(signum)
 
 	free(trace);
     }
+#endif
 } /* sigsegv_handler */
 
 static int32_t cvt_errno(err)
@@ -725,7 +746,7 @@ int32_t syserr(id, message)
         if (ctx.syserr <= (sizeof(posix) / sizeof(posix[0]))) {
             *id = strdup(posix[ctx.syserr-1]);
         } else {
-            asprintf(id, "%05d", (int) ctx.syserr);
+            asprintf((char **)id, "%05d", (int) ctx.syserr);
         }
     }
 

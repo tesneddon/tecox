@@ -45,21 +45,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "tecodef.h"
+#define TECO_MESSAGES_INTERNAL
 #include "tecomsg.h"
+#include "extrn.h"
 #include "globals.h"
 #include "macros.h"
-#define ID_MAX 3
-
-/*
-** Message descriptor.  These messages are stored in set TECO__Set.  id is
-** always three characters and never zero terminated.  text is variable
-** length ans always zero terminated.
-*/
-
-    struct MSGDSC {
-        char id[ID_MAX];
-        char text[];
-    };
 
 /*
 ** Forward Declarations.
@@ -69,31 +59,19 @@
 
 void teco_putmsg() {
 
-    static nl_catd catalog = (nl_catd) -1;
-
-    struct MSGDSC *message;
-    char *help;
+    MSGDEF *message = &TECO_MESSAGES[ctx.errcod];
     uint16_t eh, eh4;
 
-    if (catalog == (nl_catd) -1) {
-        char *name = getenv("TECOMSG");
-
-        /*
-        ** Always open up the catalog on the first go round...
-        */
-        catalog = catopen(name == 0 || name[0] == '\0' ? "tecomsg" : name, 0);
-        if (catalog == (nl_catd) -1) {
-            printf("?SYS\t%s", strerror(errno));
-        }
+    if ((ctx.errcod < TECO_MESSAGES_MIN)
+        || (ctx.errcod > TECO_MESSAGES_MAX)) {
+        /* This shouldn't happen...use system I/O call so we
+         * don;t get stuck in a loop?.
+         */ 
+        printf("?SYS\tMessage code outside acceptable range");
+        return;
     }
 
-    /*
-    ** Fetch the id and basic text from the catalog.
-    */
-    message = (struct MSGDSC *)catgets(catalog, TECO__Set, ctx.errcod, 0);
-    if (message == 0) {
-        printf("?SYS\tUnable to load message catalogue");
-    }
+    message = &TECO_MESSAGES[ctx.errcod];
 
     /**
      * @note
@@ -108,7 +86,7 @@ void teco_putmsg() {
     /*
     ** The error identifier is always printed.
     */
-    type('?');  print(message->id, ID_MAX);
+    type('?');  prinz(message->msg_name);
 
     if (eh & 2) {
         /*
@@ -125,7 +103,7 @@ void teco_putmsg() {
             char *sysid, *sysmsg;
 
             io_support.syserr(&sysid, &sysmsg);
-            asprintf(&buf ,message->text, sysid, sysmsg);
+            asprintf(&buf ,message->msg_text, sysid, sysmsg);
 
             free(sysid);
             free(sysmsg);
@@ -134,22 +112,22 @@ void teco_putmsg() {
             ** This is a file not found, so we need to include the file
             ** name in the message output.
             */
-            asprintf(&buf, message->text, ctx.filbuf.qrg_size,
+            asprintf(&buf, message->msg_text, ctx.filbuf.qrg_size,
                      ctx.filbuf.qrg_size, ctx.filbuf.qrg_ptr);
         } else if (ctx.errcod == TECO__SRH) {
             /*
             ** Search failure includes the failed string in the
             ** output.
             */
-            asprintf(&buf, message->text, ctx.schbuf.qrg_size,
+            asprintf(&buf, message->msg_text, ctx.schbuf.qrg_size,
                      ctx.schbuf.qrg_size, ctx.schbuf.qrg_ptr);
         }
 
         if (buf != 0) {
-            print(buf, strlen(buf));
+            prinz(buf);
             free(buf);
         } else {
-            print(message->text, strlen(message->text));
+            prinz(message->msg_text);
         }
 
 //        crlfno();
@@ -158,18 +136,13 @@ void teco_putmsg() {
             crlfno();
             crlfno();
 
-            help = catgets(catalog, TECO__HELP_Set, ctx.errcod, 0);
-            if (help == 0) {
-                // cope with the rror...
-            } else {
-                print("     ?", 6); print(message->id, ID_MAX);
-                print("    ", 4); print(message->text, strlen(message->text));
-                crlfno();
-                crlfno();
-                print(help, strlen(help));
-                crlfno();
-                crlfno();
-            }
+            print("     ?", 6); prinz(message->msg_name);
+            print("    ", 4); prinz(message->msg_text);
+            crlfno();
+            crlfno();
+            prinz(message->msg_help);
+            crlfno();
+            crlfno();
         }
     }
 

@@ -40,12 +40,14 @@
 # endif
 #endif
 #include <ctype.h>
+#include <search.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
 #include "tecodef.h"
 #include "tecomsg.h"
+#include "extrn.h"
 #include "globals.h"
 #include "macros.h"
 
@@ -68,6 +70,7 @@
     static uint32_t getbyt();
     int32_t teco_yank();
     int32_t teco_bakup();
+    int32_t teco_kilfl();
 
 /*
 ** Own Storage
@@ -162,17 +165,27 @@ int32_t teco_init()
 static void errors(signum)
     int signum;
 {
+    int unwind = 1;
+
     if (ctx.errcod == TECO__NORMAL)
         return;
 
-    if (ctx.errcod > TECO__NORMAL) {
+    switch (ctx.errcod) {
+    default:
         ctx.errptr = ctx.qcmnd->qrg_ptr;
         ctx.errpos = ctx.scanp - ctx.errptr;
+        break;
+
+    case TECO__DISK_QUOTA:
+    case TECO__MEM_PAG:
+    case TECO__SEAR_ITER:
+        unwind = 0;
+        break;
     }
 
     teco_putmsg();
 
-    if (ctx.errcod > TECO__NORMAL) {
+    if (unwind) {
         crlfno();
         goto_unwind();
     }
@@ -382,6 +395,19 @@ uint8_t tlistn()
 
 /**
  * get files (EB, EI, EN, EP, ER, EW)
+ * 
+ * @detail
+ * This routine handles the open, close and switch channel functions
+ * for all I/O channels.  The accepted "E" command qualifiers are:
+ *
+ * - B -- Open with backup
+ * - I -- Open/close indirect command file
+ * - N -- $SEARCH/glob function
+ * - P -- 
+ * - R -- Open/switch read channel
+ * - W -- Open/switch write channel
+ *
+ * @param chr "E" command qualifier indicating I/O command
  */
 int32_t teco_getfl(chr)
     uint8_t chr;
@@ -430,7 +456,6 @@ int32_t teco_getfl(chr)
 
         case 'R':
             //close_input();
-            if (ctx.inpntr == 0) prinz("null pointer");
             status = io_support.getfl(&ctx.inpntr->tecfab, TECO_K_GETFL_READ);
             break;
         }
@@ -532,7 +557,7 @@ int32_t teco_getbf(ptr,
 
     ctx.flags2 &= ~(TECO_M_EOFLAG | TECO_M_FFFLAG);
 
-    if (ctx.inpntr == 0)
+    if (ctx.inpntr->tecfab == 0)
         ERROR_MESSAGE(NFI);
 #if 0
     if (len != 0) {
@@ -609,6 +634,11 @@ int32_t teco_getbf(ptr,
 #if 0
 /**
  * Get an input byte
+ *
+ * Input from io_support.getbyt needs to be...
+ * - All lines terminated with '\r\n'
+ * - Literal needs to be escaped...
+ *
  */
 static uint32_t getbyt(chr)
     uint8_t *chr;
@@ -714,69 +744,63 @@ static int32_t save_data(txp,
     return status;
 } /* save_data */
 
-int32_t yanky() {
-    ctx.temp &= 0xFFFF00FF;
-
-    return 0; // TODO:teco_yank();
-} /* yanky */
-
-#if 0
-// 0 = EOF; 1 =  readsomething
-/**
- * 
- */
-int32_t teco_yank()
+int32_t yyy_y()
 {
-    int32_t status;
+    yyy_c();
 
     if (ctx.flags2 & TECO_M_EOFLAG)
         return 0;
 
-    for(;;) {
-	uint32_t zz = ctx.zz;
-	uint32_t zmax = ctx.zmax;
+    return teco_yank(1);
+} /* yyy_y */
 
-	txrem = zmax / 4;
-	txrem = txrem >= 256 ? txrem : 256;
-	txrem = txrem <= 8192 ? txrem : 8192;
+// 0 = EOF; 1 =  readsomething
+int32_t teco_yank(full)
+    int32_t full;
+{
+    int32_t status, stop = 1;
+    int32_t txsz, zmax = ctx.zmax;
 
-	zmax -= zz;
+    if (ctx.flags2 & TECO_M_EOFLAG)
+	return 0;
 
-	if ((int8_t)(ctx.temp >> 8) < 0)
-	    txrem = zmax;
+    do {
+        txsz = zmax / 4;
+	if (txsz < 254)
+	    txsz = 254;
+        if (txsz > 8192)
+	    txsz = 8192;
+        zmax -= ctx.zz;
+	if (!full)
+	    txsz = zmax;
 
-        status = teco_getbf(&ctx.txstor[zz], txrem);
-        if (status != TECO__NORMAL) {
-            // IOERR
-        }
+        status = teco_getbf(&ctx.txstor[ctx.zz], txsz);
+	if (status != TECO__NORMAL) {
+	    // anything else is IOERR we need?
+
+	   ERROR_CODE(status);
+	}
 
         if (ctx.flags2 & (TECO_M_FFFLAG | TECO_M_EOFLAG)) {
-            /* If the FF or EOF flags are set? */
-	    if ((int8_t)(ctx.temp >> 8) < 0) {
-                /* Not a full buffer load, so say we read something. */
-                status = 1;
-                break;
-            }
-
-            if (ctx.edit & TECO_M_ED_EXP) {
-		/* Allowing arbitrary expansions */
-		status = txadj(512);
-		if (status == 0)
-		    status = 1;
-		    break;
-		}
-
-		yankf();
-            }
+	    status = 1;
         } else {
-            status = 1;
-            break;
-        }
-    }
+	    if (!full) {
+		status = 1;
+	    } else {
+		if (!(ctx.edit & TECO_M_ED_EXP)) {
+		    /* No arbitrary expansions */
+		    status = 1;
+		} else {
+		    txadj(512);
+		    yyy_f();
+		    stop = 0;
+		}
+	    }
+	}
+    } while (!stop);
 
     return status;
 } /* teco_yank */
-#endif
 
 int32_t teco_bakup(txp,
 		   len,
@@ -811,3 +835,13 @@ int32_t teco_bakup(txp,
 
     return status;
 } /* teco_bakup */
+
+int32_t teco_kilfl() {
+    if (ctx.oupntr->tecfab == 0)
+	return TECO__NORMAL;
+
+    // if not at end-of-file
+        // loop and release all queued data
+        // close file
+        // success_or_err
+} /* teco_kilfl */

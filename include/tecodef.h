@@ -50,6 +50,8 @@
 **                                    Add ERROR macro.
 **      02-OCT-2014 V41.14  Sneddon   Add syserr to IO_SUPPORT.
 **	16-MAY-2019 V41.15  Sneddon   Moved character constants to tecochr.h
+**      12-MAR-2021 V41.16  Sneddon   Moved macros and function prototypes
+**                                    lib/macros.h and lib/extrn.h.
 **--
 */
 #ifndef __TECODEF_LOADED
@@ -126,6 +128,7 @@
  * 12   PowerPC         0       MacOS X
  *                      1       Darwin
  * 13   x86-64          0       GNU/Linux
+ *                      4       NetBSD
  */
 #if (defined(vax) || defined(VAX) || defined(__vax) || defined(__VAX))
 # define TECO_K_ARCH 4
@@ -238,6 +241,8 @@
 # if (defined(linux) || defined(__linux) || defined(__linux__))
 #  define TECO_K_OS 0
 #  include <stdint.h>
+# elif (defined(__NetBSD__))
+#  define TECO_K_OS 4
 # else
 #  error "unknown OS on x86-64 architecture"
 # endif
@@ -685,89 +690,5 @@
         int32_t (*syserr)   ();         /* return system error code         */
         int32_t (*crtset)   ();         /* configure sequences in scope     */
     } IO_SUPPORT;
-
-/*
-** Useful macros...
-*/
-#define ERROR_MESSAGE(nnn) \
-    ERROR_CODE(TECO__##nnn)
-
-#define ERROR_CODE(n) \
-do { \
-    ctx.errcod = n; \
-    raise(SIGUSR1); \
-} while (0)
-
-#define goto_unwind() siglongjmp(ctx.tecosp, ctx.errcod)
-#define set_unwind() (int32_t) sigsetjmp(ctx.tecosp, 1)
-
-/*
-** crtrub.c
-*/
-
-    extern uint32_t decode();
-
-/*
-** teco.c
-*/
-
-    extern int32_t teco();
-    extern void qset();
-
-/*
-** tecoio.c
-*/
-
-    extern void teco_type();
-    extern uint8_t listen();
-    extern void teco_delch();
-
-#define TYPET 0x0       /* Type without case flagging and ringing bells */
-#define TYPEF 0x1       /* Type with case flagging */
-#define TYPEB 0x2       /* Type with ringing bells */
-#define type(c) \
-do { \
-    teco_type(TYPET, (c)); \
-    io_support.flush(0); \
-} while (0)
-#define typb(c) \
-do { \
-    teco_type(TYPEB, (c)); \
-    io_support.flush(0); \
-} while (0)
-#define typf(c) \
-do { \
-    teco_type(TYPEF, (c)); \
-    io_support.flush(0); \
-} while (0)
-#define print(ptr, len) \
-do { \
-    int32_t i; \
-    uint8_t *p = (uint8_t *)(ptr); \
-    for (i = 0; i < (len); i++) \
-        teco_type(TYPET, p[i]);  \
-    io_support.flush(0); \
-} while (0)
-#define prinb(ptr, len) \
-do { \
-    int32_t i; \
-    uint8_t *p = (uint8_t *)(ptr); \
-    for (i = 0; i < len; i++) \
-        teco_type(TYPEB, p[i]); \
-    io_support.flush(0); \
-} while (0)
-#define prinf(ptr, len) \
-do { \
-    int32_t i; \
-    uint8_t *p = (uint8_t *)(ptr); \
-    for (i = 0; i < len; i++) \
-        teco_type(TYPEF, p[i]); \
-    io_support.flush(0); \
-} while (0)
-#define prinz(s) \
-do { \
-    int32_t len = strlen((s)); \
-    print(s,len); \
-} while (0)
 
 #endif /* __TECODEF_LOADED */

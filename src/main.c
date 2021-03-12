@@ -42,6 +42,7 @@
 #endif
 #include <stdlib.h>
 #include "tecodef.h"
+#include "extrn.h"
 #include "globals.h"
 
 /*

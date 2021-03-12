@@ -48,7 +48,7 @@
 
 .name CPQ
 .text /Can't pop Q-reg/
-.help CPQ /\
+.help /\
          A ] command has been executed and there is  nothing\n\
          saved on the Q-register push down list./
 
@@ -351,7 +351,7 @@
 
 .severity   informational
 
-.name SEAR_INTER
+.name SEAR_ITER
 .text /%%Search fail in iter!/
 .help /\
          Indicates that a search command has  failed  inside\n\
@@ -361,7 +361,7 @@
          printing the message, the iteration is  terminated,\n\
          i.e., TECO simulates a 0; command./
 
-.name DISK_QUOT
+.name DISK_QUOTA
 .text /%%Exceeding disk quota!/
 .help /\
          Indicates that the  current  output  operation  has\n\

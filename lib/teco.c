@@ -90,6 +90,7 @@
 #include <time.h>
 #include "tecodef.h"
 #include "tecomsg.h"
+#include "extrn.h"
 #include "globals.h"
 #include "macros.h"
 
@@ -172,7 +173,7 @@ int32_t teco()
         if (ctx.qpntr->qrg_size > 0) {
             ctx.qlcmd = ctx.qpntr->qrg_size;
             status = set_unwind();
-            if (status == TECO__NORMAL)
+            if (status == 0)
                 teco_interp();
 
             poplcl(ctx.lclptr);
@@ -341,7 +342,6 @@ void teco_interp(void)
             skpquo();
 
             len = (ctx.scanp - ctx.oscanp) -1;
-
             if (len != 0)
                 prinb(ctx.oscanp, len);
 
@@ -1004,9 +1004,7 @@ void teco_interp(void)
                     flag = &ctx.evflag;
                     break;
 
-		case 'y':	/* "EY" is yank without protection */
-		    cmd = 'Y';
-		case 'Y':
+		case 'Y':	/* "EY" is yank without protection */
 		    break;
 
                 default:
@@ -1017,40 +1015,36 @@ void teco_interp(void)
 		    break;
 
 	    case 'Y':
-	    case 'y':
+	    case 'y': {		/* "Y" is yank in a buffer */
+		int32_t oflg = (ctx.flags & TECO_M_OFLG);
+
 		if (ctx.flags & TECO_M_NFLG) {
 		    ctx.flags &= ~TECO_M_NFLG;
 		    ERROR_MESSAGE(NYA);
 		}
 
-		if (ctx.flags & TECO_M_OFLG) {
+		if (oflg) {
 		    if (ctx.nopr > OP_SUB)
 			ERROR_MESSAGE(NYA);
 
 		    ctx.flags &= ~TECO_M_OFLG;
-
-		    // MOVAL 150$, (SP)
 		}
 
-		if ((cmd != 'Y')	   /* Not "EY" */
-		    || (ctx.zz != 0)       /* Buffer not empty */
-		    || (ctx.oupntr != 0)) {/* Active output file */
+		if ((cmd != 'Y')	           /* Not "EY" */
+		    || (ctx.zz != 0)               /* Buffer not empty */
+		    || (ctx.oupntr->tecfab != 0)) {/* Active output file */
 
 		    if (!(ctx.edit & TECO_M_ED_YNK))
 			ERROR_MESSAGE(YCA);
 		}
-#if 0
-		if (...) {
-		    // .YYY.Y
-		    yankc();
-		    ...
-		} else
-#endif
- {
-// 150$:
+
+		if (!oflg) {
+		    status = yyy_y();
+		} else {
+//150$:
 		    int32_t rempg = 0;
 
-		    yankc();
+		    yyy_c();
 
 		    status = teco_bakup(&ctx.txstor, ctx.zz,
 					(ctx.flags & TECO_M_FFFLAG) ? -1 : 0,
@@ -1058,17 +1052,19 @@ void teco_interp(void)
 		    if (status != TECO__NORMAL)
 			ERROR_CODE(status); // IO.ERR???
 
-		    yankc();
+		    yyy_c();
 
-		    ctx.flags &= !TECO_M_EOFLAG;
+		    ctx.flags &= ~TECO_M_EOFLAG;
 
 		    if (rempg >= 0)
-			status = yanky();
+			status = yyy_y();
 		}
 
 		clnxit(status);
 
 		break;
+	    }
+
             }
 
             /*
@@ -1306,7 +1302,7 @@ void teco_interp(void)
                         ERROR_CODE(status);
                     }
 
-                    yankc();
+                    yyy_c();
                     ctx.flags2 &= ~TECO_M_EOFLAG;
 
                     // there is still code here that needs translating...
