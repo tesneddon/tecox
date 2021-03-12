@@ -1,4 +1,4 @@
-New in 41:
-* Moving to GNU autoconf structure for source.
-* Convert original DECdocument manual to DocBook.
-
+12-Mar-2021, Tim Sneddon <tim@sneddon.id.au>
+* Moved to Apache 2.0 License
+* Converted error messages to use new genmsg tool
+* Ported to NetBSD
