@@ -1,0 +1,7 @@
+! 006 -- Test NAE !
+5=
+5==
+5===
+5==== ! Should cause an NAE !
+
+^C

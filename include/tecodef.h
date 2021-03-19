@@ -338,6 +338,7 @@
 /*
 ** Radix control flags.
 */
+#define RADIX_MIN 0
 #define RADIX_DEC 0                     /* Decimal radix                    */
 #define RADIX_OCT 1                     /* Octal radix                      */
 #define RADIX_HEX 2                     /* Hexidecimal radix                */

@@ -840,8 +840,9 @@ void teco_interp(void)
             if (!(ctx.flags & TECO_M_NFLG)) ERROR_MESSAGE(NAE);
             ctx.flags &= ~TECO_M_NFLG;
 
-            for (ctx.nmrbas = 0; tstnxt(chr) &&
-                                 (ctx.nmrbas <= RADIX_MAX); ctx.nmrbas++)
+            for (ctx.nmrbas = 0;
+                 (ctx.nmrbas < RADIX_MAX) && tstnxt(chr);
+                 ctx.nmrbas++)
                 ;
 
             zerod(TECO_K_ZEROD_TERM);
