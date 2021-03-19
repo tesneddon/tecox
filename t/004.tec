@@ -1,0 +1,20 @@
+0"F
+  @^A%do print this
+%
+'
+
+0"F
+  F'
+  @^A%do not print this
+%
+'
+
+0"F
+  F'
+  @^A%do not print this
+%
+|
+  @^A%or this...
+%
+'
+

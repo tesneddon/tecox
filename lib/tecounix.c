@@ -203,7 +203,8 @@ static int32_t init()
             attr.c_iflag &= ~(IGNBRK | IGNPAR | INPCK | ISTRIP);
             attr.c_iflag &= ~(IGNCR | ICRNL | INLCR);
 
-            attr.c_oflag &= ~OPOST;
+            attr.c_oflag &= ~(OCRNL | OXTABS | ONOEOT | ONOCR | ONLRET);
+            attr.c_oflag |= OPOST | ONLCR;
 
             attr.c_cc[VMIN] = 1;
             attr.c_cc[VTIME] = 0;

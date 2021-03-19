@@ -66,11 +66,11 @@ void teco_putmsg() {
         /* This shouldn't happen...use system I/O call so we
          * don;t get stuck in a loop?.
          */ 
-        printf("?SYS\tMessage code outside acceptable range");
+        printf("?SYS\tMessage code %d outside acceptable range", ctx.errcod);
         return;
     }
 
-    message = &TECO_MESSAGES[ctx.errcod];
+    message = &TECO_MESSAGES[ctx.errcod-1];
 
     /**
      * @note

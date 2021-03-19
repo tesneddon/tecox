@@ -1108,6 +1108,20 @@ void teco_interp(void)
                 ERROR_MESSAGE(IFC);
                 break;
 
+            case TECO_C_APS:    /* "F'" is flow to conditional's end */
+                ctx.cndn = 0;
+                do {
+                    skpset(TECO_C_APS, TECO_C_NUL);
+                } while (ctx.cndn != 0);
+                break;
+
+            case TECO_C_VBR:    /* "F<certival bar>" is flow to else */
+                ctx.cndn = 0;
+                do {
+                    skpset(TECO_C_VBR, TECO_C_APS);
+                } while (ctx.cndn != 0);
+                break;
+
             case '<':           /* "F<" flows to iteration's start */
                 if (ctx.itrst == 0) {
                     ctx.scanp = ctx.qcmnd->qrg_ptr;
@@ -1131,7 +1145,100 @@ void teco_interp(void)
                 } else {
                     skpset(TECO_C_NUL, TECO_C_NUL);
                 }
+
+            case 'C':           /* "FC" is bounded search & replace */
+                ctx.flags |= TECO_M_REPFLG;
+
+            case 'B':           /* "FB" is bounded search */
+                // BSBW SEARCB
+                // BRB 10$
+                ERROR_MESSAGE(NYI);
+                break;
+
+            case 'S':           /* "FS" is search & replace */
+                ctx.flags |= TECO_M_REPFLG;
+                ERROR_MESSAGE(NYI);
+                break;
+
+            case 'N':           /* "FN" is pagiong search & replace */
+
+//
+// These need a better way to enter the search functions than a simple
+// fall through.
+//
+// Could we set the flag and then adjust the command pointer to point
+// at the '_', 'N' or 'S' in the commadn stream?  This would negate the
+// need to special flags and  positioning in the switch.
+//
+                ERROR_MESSAGE(NYI);
+                break;
+
+            case '_':           /* "F_" is destruct search & replace */
+                ERROR_MESSAGE(NYI);
+                break;
+
+            case 'R':           /* "FR" is replace, skip insert string */
+                ERROR_MESSAGE(NYI);
+                break;
             }
+
+            break;
+        }
+
+        case 'S':
+        case 's': {             /* "S" is search */
+            uint32_t status;
+
+            if (ctx.flags & TECO_M_REPFLG) {
+                ctx.flags &= ~TECO_M_REPFLG;
+                skpquo();
+                if (status & SUR_OK) {
+                    // do some jigger-pokery and call .sch.r();
+                }
+            }
+            irest();
+            ncom(status & SUR_OK ? TECO__TRUE : TECO__FALSE);
+            if (!(ctx.flags & (TECO_M_CLNF|TECO_M_CLN2F))) {
+                if (ctx.itrst) {
+                    uint32_t tflg = ctx.flags & TECO_M_TFLG;
+                    ctx.flags &= ~TECO_M_TFLG;
+                    if (tstnxt(';')) {
+                        ctx.scanp--;
+                        ctx.flags |= tflg;
+                        ctx.flags &= ~(TECO_M_CLNF|TECO_M_CLN2F);
+                        break;
+                    } else if (tstnxt(':')) {
+                        if (tstnxt(';')) {
+                            ctx.scanp -= 2;
+                            ctx.flags |= tflg;
+                            ctx.flags &= ~(TECO_M_CLNF|TECO_M_CLN2F);
+                            break;
+                        } else {
+                            ctx.scanp--;
+                        }
+                    }
+                    ctx.flags |= tflg;
+                    ctx.flags &= ~TECO_M_NFLG;
+                    if (ctx.n == TECO__TRUE)
+                        break;
+                    /* TODO: crlfno(); */
+                    ERROR_MESSAGE(SEAR_ITER);
+                    chr =';';
+                    continue;
+                }
+                ctx.flags &= ~TECO_M_NFLG;
+                if (ctx.n >= 0) {
+                    ERROR_MESSAGE(SRH);// ...need to supply the search string?
+                }
+                if (ctx.esflag == 0) {
+                    ctx.flags &= ~(TECO_M_CLNF|TECO_M_CLN2F);
+                    break;
+                }
+                ctx.flags &= ~(TECO_M_NFLG|TECO_M_CFLG);
+                chr = 'V';
+                continue;
+            }
+            ctx.flags &= ~(TECO_M_CLNF|TECO_M_CLN2F);
             break;
         }
 
@@ -1367,63 +1474,6 @@ void teco_interp(void)
             p = ctx.p - ctx.n;
             bzchk(p);
             ctx.p = p;
-            break;
-        }
-
-        case 'S':
-        case 's': {             /* "S" is search */
-            uint32_t status;
-
-            if (ctx.flags & TECO_M_REPFLG) {
-                ctx.flags &= ~TECO_M_REPFLG;
-                skpquo();
-                if (status & SUR_OK) {
-                    // do some jigger-pokery and call .sch.r();
-                }
-            }
-            irest();
-            ncom(status & SUR_OK ? TECO__TRUE : TECO__FALSE);
-            if (!(ctx.flags & (TECO_M_CLNF|TECO_M_CLN2F))) {
-                if (ctx.itrst) {
-                    uint32_t tflg = ctx.flags & TECO_M_TFLG;
-                    ctx.flags &= ~TECO_M_TFLG;
-                    if (tstnxt(';')) {
-                        ctx.scanp--;
-                        ctx.flags |= tflg;
-                        ctx.flags &= ~(TECO_M_CLNF|TECO_M_CLN2F);
-                        break;
-                    } else if (tstnxt(':')) {
-                        if (tstnxt(';')) {
-                            ctx.scanp -= 2;
-                            ctx.flags |= tflg;
-                            ctx.flags &= ~(TECO_M_CLNF|TECO_M_CLN2F);
-                            break;
-                        } else {
-                            ctx.scanp--;
-                        }
-                    }
-                    ctx.flags |= tflg;
-                    ctx.flags &= ~TECO_M_NFLG;
-                    if (ctx.n == TECO__TRUE)
-                        break;
-                    /* TODO: crlfno(); */
-                    ERROR_MESSAGE(SEAR_ITER);
-                    chr =';';
-                    continue;
-                }
-                ctx.flags &= ~TECO_M_NFLG;
-                if (ctx.n >= 0) {
-                    ERROR_MESSAGE(SRH);// ...need to supply the search string?
-                }
-                if (ctx.esflag == 0) {
-                    ctx.flags &= ~(TECO_M_CLNF|TECO_M_CLN2F);
-                    break;
-                }
-                ctx.flags &= ~(TECO_M_NFLG|TECO_M_CFLG);
-                chr = 'V';
-                continue;
-            }
-            ctx.flags &= ~(TECO_M_CLNF|TECO_M_CLN2F);
             break;
         }
 

@@ -1,0 +1,27 @@
+!005 -- Test F|, flow to ELSE !
+0"F
+  @^A%do print this
+%
+'
+
+! TECO-32 does not like this next bit of code and as such !
+! results in a UTC and execution terminates.  However,    !
+! according to the Standard TECO manual, the correct      !
+! behaviour is to proceed to the next ' and continue      !
+! execution there.                                        !
+! So...bug fixed? ~\_("/)_/~                              !
+0"F
+  F|
+  @^A%1do not print this
+%
+'
+
+0"F
+  F|
+  @^A%2do not print this
+%
+|
+  @^A%and this
+%
+'
+^C

@@ -314,8 +314,8 @@ void emit_header(FILE *op,
     ENTRYDEF *ep = 0;
 
     fprintf(op, "/* %s %s */\n", module, ident);
-    fprintf(op, "#ifndef %s_DEFINED\n", module);
-    fprintf(op, "#define %s_DEFINED 1\n", module);
+    fprintf(op, "#ifndef %s_LOADED\n", module);
+    fprintf(op, "#define %s_LOADED 1\n", module);
 
     fprintf(op, "#ifdef %s_MESSAGES_INTERNAL\n", facility);
     fprintf(op, "    typedef struct _msgdef {\n");
@@ -327,7 +327,7 @@ void emit_header(FILE *op,
     fprintf(op, "    extern MSGDEF %s_MESSAGES[];\n", facility);
     fprintf(op, "#endif /* %s_MESSAGES_INTERNAL */\n", facility);
 
-    for (ep = tree, min_id = ep->id; ep != 0; ep = ep->next) {
+    for (ep = tree, max_id = ep->id; ep != 0; ep = ep->next) {
 #ifdef VMS
         fprintf(op, "#define %s__%s %s%s_%s\n",
                facility, ep->name, facility,
@@ -335,7 +335,7 @@ void emit_header(FILE *op,
 #else
         fprintf(op, "#define %s__%s %d\n", facility, ep->name, ep->id);
 #endif
-        max_id = ep->id;
+        min_id = ep->id;
     }
 
     fprintf(op, "#ifdef %s_MESSAGES_INTERNAL\n", facility);
@@ -343,7 +343,7 @@ void emit_header(FILE *op,
     fprintf(op, "#define %s_MESSAGES_MAX %d\n", facility, max_id);
     fprintf(op, "#endif /* %s_MESSAGES_INTERNAL */\n", facility);
 
-    fprintf(op, "#endif /* %s_DEFINED */\n", module);
+    fprintf(op, "#endif /* %s_LOADED */\n", module);
 } /* emit_header */
 
 void emit_msgdef(FILE *op,
